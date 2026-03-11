@@ -33,11 +33,10 @@ Decimal phases appear between their surrounding integers in numeric order.
   1. `.claude-plugin/plugin.json` exists with valid manifest and the plugin loads in Claude Code without errors
   2. `marketplace.json` exists for private distribution and points to the correct git repo
   3. Directory structure has `skills/` and `tools/` directories ready for content
-**Plans**: TBD
+**Plans**: 1 plan
 
 Plans:
-- [ ] 01-01: TBD
-- [ ] 01-02: TBD
+- [ ] 01-01-PLAN.md — Plugin manifest, marketplace config, directory structure, CLAUDE.md, and .gitignore
 
 ### Phase 2: Plugin Install + Operations
 **Goal**: Users can install the plugin on a fresh machine and keep it updated, with health checking and automatic context injection
@@ -184,7 +183,7 @@ Phases execute in numeric order: 1 -> 2 -> 3 -> 4 -> 5 -> 6 -> 7 -> 8 -> 9 -> 10
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
-| 1. Plugin Scaffold | 0/2 | Not started | - |
+| 1. Plugin Scaffold | 0/1 | Planning | - |
 | 2. Plugin Install + Operations | 0/3 | Not started | - |
 | 3. Simple Skill Conversion | 0/2 | Not started | - |
 | 4. Complex Skill Conversion | 0/3 | Not started | - |
