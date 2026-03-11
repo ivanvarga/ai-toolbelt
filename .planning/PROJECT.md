@@ -32,6 +32,42 @@ One repo, one install command — every custom skill, credential setup, and dev 
 - Making skills generic/open-source — this is a private personal toolkit
 - MCP server approach for mbridge — skill-based, not MCP
 
+## Naming Convention
+
+Skills organized by workflow families using `family:action` pattern:
+
+| Family | Skills | Purpose |
+|--------|--------|---------|
+| `task:` | `task:jira`, `task:github` | Read work items from sources |
+| `pr:` | `pr:read`, `pr:submit`, `pr:describe`, `pr:qa`, `pr:upload` | Pull request lifecycle |
+| `sentry:` | `sentry:investigate`, `sentry:sourcemaps` | Sentry error tracking |
+| `release:` | `release:create` | Release management |
+| `figma:` | `figma:component` | Figma design to code |
+| `track:` | `track:summary` | Time/project tracking |
+| `mobile:` | `mobile:reset` | Mobile dev utilities |
+| standalone | `catchup`, `contentful`, `mobilecli` | No family needed |
+
+Full mapping from current names:
+
+| Current | New |
+|---------|-----|
+| jira | task:jira |
+| github-issue | task:github |
+| github-pr | pr:read |
+| ship-ticket | pr:submit |
+| pr-description | pr:describe |
+| qa-description | pr:qa |
+| gh-upload | pr:upload |
+| investigate-sentry-issue | sentry:investigate |
+| upload-sentry-sourcemaps | sentry:sourcemaps |
+| create-release-branch | release:create |
+| create-figma-component | figma:component |
+| daily-summary | track:summary |
+| reset-app-data | mobile:reset |
+| catchup | catchup |
+| contentful-cli | contentful |
+| mobilecli | mobilecli (sunset when mbridge ready) |
+
 ## Context
 
 - Currently 9 custom commands in `~/.claude/commands/`: catchup, create-figma-component, github-issue, github-pr, investigate-sentry-issue, jira, pr-description, reset-app-data, upload-sentry-sourcemaps
@@ -66,6 +102,7 @@ One repo, one install command — every custom skill, credential setup, and dev 
 | All-in-one repo | Private toolkit, no need to separate work vs personal | -- Pending |
 | All items as skills, not commands | Claude Code merged commands into skills; skills support frontmatter + supporting files | -- Pending |
 | Organize conversion by complexity | Simple (pure markdown) vs complex (scripts/credentials) is more natural than origin-based grouping | -- Pending |
+| family:action naming convention | Groups skills by workflow (task:, pr:, sentry:, release:, figma:, track:, mobile:) for discoverability | -- Pending |
 
 ---
-*Last updated: 2026-03-11 after roadmap revision*
+*Last updated: 2026-03-11 after naming convention*
