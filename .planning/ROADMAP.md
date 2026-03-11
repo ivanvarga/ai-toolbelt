@@ -36,7 +36,7 @@ Decimal phases appear between their surrounding integers in numeric order.
 **Plans**: 1 plan
 
 Plans:
-- [ ] 01-01-PLAN.md — Plugin manifest, marketplace config, directory structure, CLAUDE.md, and .gitignore
+- [x] 01-01-PLAN.md — Plugin manifest, marketplace config, directory structure, CLAUDE.md, and .gitignore
 
 ### Phase 2: Plugin Install + Operations
 **Goal**: Users can install the plugin on a fresh machine and keep it updated, with health checking and automatic context injection
@@ -47,12 +47,11 @@ Plans:
   2. Running the update command pulls the latest changes and the plugin reflects them
   3. Running the doctor/health-check command reports the status of all plugin components (skills, credentials)
   4. Starting a new Claude Code session automatically injects toolkit context via the SessionStart hook
-**Plans**: TBD
+**Plans**: 2 plans
 
 Plans:
-- [ ] 02-01: TBD
-- [ ] 02-02: TBD
-- [ ] 02-03: TBD
+- [ ] 02-01-PLAN.md — SessionStart hook with dynamic skill discovery + README install docs
+- [ ] 02-02-PLAN.md — /tb:update and /tb:doctor skills with modular check scripts
 
 ### Phase 3: Simple Skill Conversion
 **Goal**: All 8 simple items (pure markdown, no helper scripts or credentials) are converted to SKILL.md + frontmatter format and work from the plugin
@@ -184,7 +183,7 @@ Phases execute in numeric order: 1 -> 2 -> 3 -> 4 -> 5 -> 6 -> 7 -> 8 -> 9 -> 10
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
 | 1. Plugin Scaffold | 1/1 | Complete   | 2026-03-11 |
-| 2. Plugin Install + Operations | 0/3 | Not started | - |
+| 2. Plugin Install + Operations | 0/2 | Not started | - |
 | 3. Simple Skill Conversion | 0/2 | Not started | - |
 | 4. Complex Skill Conversion | 0/3 | Not started | - |
 | 5. Credential System | 0/3 | Not started | - |
