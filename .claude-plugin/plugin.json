@@ -1,0 +1,10 @@
+{
+  "name": "tb",
+  "description": "Personal dev toolkit -- skills, credentials, and tools for Claude Code",
+  "version": "0.1.0",
+  "author": {
+    "name": "Ivan Varga"
+  },
+  "repository": "https://github.com/ivarga/ai-toolbelt",
+  "keywords": ["toolkit", "skills", "automation", "mobile"]
+}

@@ -1,0 +1,13 @@
+{
+  "name": "tb-marketplace",
+  "owner": {
+    "name": "Ivan Varga"
+  },
+  "plugins": [
+    {
+      "name": "tb",
+      "source": "./",
+      "description": "Personal dev toolkit -- skills, credentials, and tools for Claude Code"
+    }
+  ]
+}
