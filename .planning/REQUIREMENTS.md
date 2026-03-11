@@ -9,7 +9,7 @@ Requirements for initial release. Each maps to roadmap phases.
 
 ### Plugin Packaging
 
-- [ ] **PLUG-01**: Plugin manifest with `.claude-plugin/plugin.json` and marketplace.json for private distribution
+- [x] **PLUG-01**: Plugin manifest with `.claude-plugin/plugin.json` and marketplace.json for private distribution
 - [ ] **PLUG-02**: Install script that clones repo and registers plugin in Claude Code
 - [ ] **PLUG-03**: Update mechanism for pulling latest changes
 - [ ] **PLUG-04**: Health check / doctor command that verifies all components working
@@ -80,7 +80,7 @@ Which phases cover which requirements. Updated during roadmap creation.
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| PLUG-01 | Phase 1 | Pending |
+| PLUG-01 | Phase 1 | Complete |
 | PLUG-02 | Phase 2 | Pending |
 | PLUG-03 | Phase 2 | Pending |
 | PLUG-04 | Phase 2 | Pending |
