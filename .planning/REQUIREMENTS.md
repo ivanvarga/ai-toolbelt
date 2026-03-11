@@ -10,10 +10,10 @@ Requirements for initial release. Each maps to roadmap phases.
 ### Plugin Packaging
 
 - [x] **PLUG-01**: Plugin manifest with `.claude-plugin/plugin.json` and marketplace.json for private distribution
-- [ ] **PLUG-02**: Install script that clones repo and registers plugin in Claude Code
+- [x] **PLUG-02**: Install script that clones repo and registers plugin in Claude Code
 - [ ] **PLUG-03**: Update mechanism for pulling latest changes
 - [ ] **PLUG-04**: Health check / doctor command that verifies all components working
-- [ ] **PLUG-05**: SessionStart hook that injects toolkit context
+- [x] **PLUG-05**: SessionStart hook that injects toolkit context
 
 ### Skill Conversion
 
@@ -81,10 +81,10 @@ Which phases cover which requirements. Updated during roadmap creation.
 | Requirement | Phase | Status |
 |-------------|-------|--------|
 | PLUG-01 | Phase 1 | Complete |
-| PLUG-02 | Phase 2 | Pending |
+| PLUG-02 | Phase 2 | Complete |
 | PLUG-03 | Phase 2 | Pending |
 | PLUG-04 | Phase 2 | Pending |
-| PLUG-05 | Phase 2 | Pending |
+| PLUG-05 | Phase 2 | Complete |
 | MIGR-01 | Phase 3 | Pending |
 | MIGR-02 | Phase 4 | Pending |
 | MIGR-03 | Phase 4 | Pending |

@@ -50,7 +50,7 @@ Plans:
 **Plans**: 2 plans
 
 Plans:
-- [ ] 02-01-PLAN.md — SessionStart hook with dynamic skill discovery + README install docs
+- [x] 02-01-PLAN.md — SessionStart hook with dynamic skill discovery + README install docs
 - [ ] 02-02-PLAN.md — /tb:update and /tb:doctor skills with modular check scripts
 
 ### Phase 3: Simple Skill Conversion
