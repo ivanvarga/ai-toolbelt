@@ -62,11 +62,11 @@ Plans:
   2. Each converted skill is invocable from Claude Code and produces the same behavior as the original command or skill
   3. Original items in ~/.claude/commands/ and ~/.claude/skills/ can be removed for these 8 without loss of functionality
   4. Each SKILL.md has correct frontmatter fields (name, description, trigger patterns) per Claude Code skills spec
-**Plans**: TBD
+**Plans**: 2 plans
 
 Plans:
-- [ ] 03-01: TBD
-- [ ] 03-02: TBD
+- [ ] 03-01-PLAN.md — Convert pr-read, pr-qa, pr-submit, task-github to SKILL.md format
+- [ ] 03-02-PLAN.md — Convert catchup, release-create, track-summary, mobile-reset to SKILL.md format
 
 ### Phase 4: Complex Skill Conversion
 **Goal**: All 8 complex items (helper scripts, external tool dependencies, credential needs) are converted to SKILL.md + frontmatter format with supporting files
