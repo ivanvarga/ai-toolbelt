@@ -1,0 +1,17 @@
+{
+  "mode": "yolo",
+  "granularity": "fine",
+  "parallelization": true,
+  "commit_docs": true,
+  "model_profile": "quality",
+  "workflow": {
+    "research": true,
+    "plan_check": true,
+    "verifier": true,
+    "nyquist_validation": true,
+    "skill_creator_verification": true
+  },
+  "notes": {
+    "verifier": "Use /skill-creator for skill creation, verification, and benchmarking wherever applicable"
+  }
+}
