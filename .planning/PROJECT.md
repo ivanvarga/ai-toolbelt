@@ -2,7 +2,7 @@
 
 ## What This Is
 
-A private Claude Code plugin that packages all of Ivan's custom skills, commands, CLI tools, global config, and dev machine setup into a single distributable repo. Install on any machine, get the full toolkit. Includes a rebuilt mobile automation tool (mbridge) for interacting with iOS/Android apps via UI dumps and OCR rather than screenshots.
+A private Claude Code plugin that packages all of Ivan's custom skills, CLI tools, global config, and dev machine setup into a single distributable repo. All 16 existing items (9 former commands + 7 existing skills) are converted to the unified skills format (SKILL.md + frontmatter + supporting files). Install on any machine, get the full toolkit. Includes a rebuilt mobile automation tool (mbridge) for interacting with iOS/Android apps via UI dumps and OCR rather than screenshots.
 
 ## Core Value
 
@@ -17,13 +17,13 @@ One repo, one install command — every custom skill, credential setup, and dev 
 ### Active
 
 - [ ] Plugin packaging — distribute as a Claude Code private plugin with install/update mechanism
-- [ ] Skill migration — bring all custom commands and skills into the repo with proper structure
+- [ ] Skill conversion — convert all 16 items (commands + skills) to unified SKILL.md + frontmatter format with supporting files
 - [ ] Credential management — keychain-based setup scripts for all skills that need secrets (Jira/acli, Sentry, Contentful, GitHub, and any others discovered during audit)
 - [ ] Script offloading — convert inline bash/logic in skills to Node.js helper scripts (like gh-upload's setup.sh/upload.sh pattern)
 - [ ] Global CLAUDE.md — include personal global instructions as part of the plugin
 - [ ] mbridge rebuild — Python-based mobile automation skill: UI dumps over screenshots, OCR for verification, leverages app code knowledge and mobilecli cache/context for fast reliable navigation
 - [ ] Install/update flow — single command install on fresh machine, GSD-style update mechanism
-- [ ] Repo structure — organized for skills, commands, tools, configs, with room for future n8n flows
+- [ ] Repo structure — organized for skills, tools, configs, with room for future n8n flows
 
 ### Out of Scope
 
@@ -36,6 +36,7 @@ One repo, one install command — every custom skill, credential setup, and dev 
 
 - Currently 9 custom commands in `~/.claude/commands/`: catchup, create-figma-component, github-issue, github-pr, investigate-sentry-issue, jira, pr-description, reset-app-data, upload-sentry-sourcemaps
 - 7 custom skills in `~/.claude/skills/`: gh-upload (with setup.sh/upload.sh), mobilecli (with test-helpers.sh), qa-description, ship-ticket, daily-summary, create-release-branch, contentful-cli
+- Claude Code has merged custom commands into skills — skills are the recommended format supporting additional features like supporting files
 - gh-upload already has the keychain credential pattern to model other skills after
 - Claude Code plugin system uses git-based install with `.claude-plugin/plugin.json` manifest
 - GSD distributes as npm package with `npx` install and built-in update workflow — reference for update mechanism
@@ -51,17 +52,20 @@ One repo, one install command — every custom skill, credential setup, and dev 
 - **mbridge language**: Python (settled on this, inspired by rn-debugger MCP patterns)
 - **mbridge approach**: UI dumps + OCR, no screenshot-based vision — favors speed and reliability
 - **Skill quality**: Use /skill-creator for creation, verification, and benchmarking of all skills
+- **Skill format**: All items use unified SKILL.md + frontmatter format (commands merged into skills)
 
 ## Key Decisions
 
 | Decision | Rationale | Outcome |
 |----------|-----------|---------|
-| Private plugin over npm package | Plugin system is native to Claude Code, git-based fits private repo | — Pending |
-| Python for mbridge | Proven by rn-debugger MCP, good ecosystem for device automation | — Pending |
-| UI dumps + OCR over screenshots | Faster, more reliable, leverages code knowledge | — Pending |
-| Keychain for all credentials | Secure, native macOS, gh-upload already proves the pattern | — Pending |
-| Fresh mbridge rewrite | Previous attempt was poorly structured, clean slate needed | — Pending |
-| All-in-one repo | Private toolkit, no need to separate work vs personal | — Pending |
+| Private plugin over npm package | Plugin system is native to Claude Code, git-based fits private repo | -- Pending |
+| Python for mbridge | Proven by rn-debugger MCP, good ecosystem for device automation | -- Pending |
+| UI dumps + OCR over screenshots | Faster, more reliable, leverages code knowledge | -- Pending |
+| Keychain for all credentials | Secure, native macOS, gh-upload already proves the pattern | -- Pending |
+| Fresh mbridge rewrite | Previous attempt was poorly structured, clean slate needed | -- Pending |
+| All-in-one repo | Private toolkit, no need to separate work vs personal | -- Pending |
+| All items as skills, not commands | Claude Code merged commands into skills; skills support frontmatter + supporting files | -- Pending |
+| Organize conversion by complexity | Simple (pure markdown) vs complex (scripts/credentials) is more natural than origin-based grouping | -- Pending |
 
 ---
-*Last updated: 2026-03-11 after initialization*
+*Last updated: 2026-03-11 after roadmap revision*

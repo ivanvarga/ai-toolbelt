@@ -1,0 +1,196 @@
+# Roadmap: ai-toolbelt
+
+## Overview
+
+ai-toolbelt delivers a private Claude Code plugin that consolidates all custom commands and skills (converted to the unified skills format), credential management, and a new Python-based mobile automation CLI (mbridge) into a single installable repo. All 16 existing items (9 former commands + 7 existing skills) are converted to SKILL.md + frontmatter format, organized by complexity. The roadmap moves from plugin foundation through skill conversion, credential setup, verification, and finally builds mbridge as a standalone capability.
+
+## Phases
+
+**Phase Numbering:**
+- Integer phases (1, 2, 3): Planned milestone work
+- Decimal phases (2.1, 2.2): Urgent insertions (marked with INSERTED)
+
+Decimal phases appear between their surrounding integers in numeric order.
+
+- [ ] **Phase 1: Plugin Scaffold** - Establish plugin manifest, marketplace config, and directory structure
+- [ ] **Phase 2: Plugin Install + Operations** - Install script, update mechanism, health check, and session hook
+- [ ] **Phase 3: Simple Skill Conversion** - Convert 8 pure-markdown items to skill format in plugin
+- [ ] **Phase 4: Complex Skill Conversion** - Convert 8 items with helper scripts and external tool dependencies to skill format
+- [ ] **Phase 5: Credential System** - Keychain-based credential setup for all skills needing secrets
+- [ ] **Phase 6: Global Config + Verification** - Distribute global CLAUDE.md and verify all 16 converted skills
+- [ ] **Phase 7: mbridge CLI Foundation** - Python CLI skeleton with device discovery
+- [ ] **Phase 8: mbridge UI Parsing** - UI dump parsing and element finding for iOS and Android
+- [ ] **Phase 9: mbridge Interaction + OCR** - Device interaction commands and OCR-based verification
+- [ ] **Phase 10: mbridge Skill Integration** - SKILL.md that connects mbridge to app code knowledge and mobilecli context
+
+## Phase Details
+
+### Phase 1: Plugin Scaffold
+**Goal**: The repo is a valid Claude Code plugin with correct directory layout for skills and tools
+**Depends on**: Nothing (first phase)
+**Requirements**: PLUG-01
+**Success Criteria** (what must be TRUE):
+  1. `.claude-plugin/plugin.json` exists with valid manifest and the plugin loads in Claude Code without errors
+  2. `marketplace.json` exists for private distribution and points to the correct git repo
+  3. Directory structure has `skills/` and `tools/` directories ready for content
+**Plans**: TBD
+
+Plans:
+- [ ] 01-01: TBD
+- [ ] 01-02: TBD
+
+### Phase 2: Plugin Install + Operations
+**Goal**: Users can install the plugin on a fresh machine and keep it updated, with health checking and automatic context injection
+**Depends on**: Phase 1
+**Requirements**: PLUG-02, PLUG-03, PLUG-04, PLUG-05
+**Success Criteria** (what must be TRUE):
+  1. Running the install script on a fresh machine clones the repo and registers the plugin in Claude Code
+  2. Running the update command pulls the latest changes and the plugin reflects them
+  3. Running the doctor/health-check command reports the status of all plugin components (skills, credentials)
+  4. Starting a new Claude Code session automatically injects toolkit context via the SessionStart hook
+**Plans**: TBD
+
+Plans:
+- [ ] 02-01: TBD
+- [ ] 02-02: TBD
+- [ ] 02-03: TBD
+
+### Phase 3: Simple Skill Conversion
+**Goal**: All 8 simple items (pure markdown, no helper scripts or credentials) are converted to SKILL.md + frontmatter format and work from the plugin
+**Depends on**: Phase 1
+**Requirements**: MIGR-01
+**Success Criteria** (what must be TRUE):
+  1. All 8 simple items (catchup, github-issue, github-pr, qa-description, ship-ticket, create-release-branch, daily-summary, reset-app-data) exist as SKILL.md files with proper frontmatter in the plugin skills/ directory
+  2. Each converted skill is invocable from Claude Code and produces the same behavior as the original command or skill
+  3. Original items in ~/.claude/commands/ and ~/.claude/skills/ can be removed for these 8 without loss of functionality
+  4. Each SKILL.md has correct frontmatter fields (name, description, trigger patterns) per Claude Code skills spec
+**Plans**: TBD
+
+Plans:
+- [ ] 03-01: TBD
+- [ ] 03-02: TBD
+
+### Phase 4: Complex Skill Conversion
+**Goal**: All 8 complex items (helper scripts, external tool dependencies, credential needs) are converted to SKILL.md + frontmatter format with supporting files
+**Depends on**: Phase 1, Phase 3 (validates conversion pattern)
+**Requirements**: MIGR-02, MIGR-03, MIGR-04
+**Success Criteria** (what must be TRUE):
+  1. All 8 complex items (gh-upload, mobilecli, contentful-cli, create-figma-component, jira, investigate-sentry-issue, pr-description, upload-sentry-sourcemaps) exist as SKILL.md files with proper frontmatter and supporting files in the plugin skills/ directory
+  2. Every `$HOME/.claude/` path reference in SKILL.md files and helper scripts is rewritten to use plugin-relative paths
+  3. Inline bash/logic in complex skills is converted to Node.js helper scripts stored as supporting files alongside each SKILL.md
+  4. Each skill loads correctly when Claude Code reads the plugin and supporting files are accessible
+**Plans**: TBD
+
+Plans:
+- [ ] 04-01: TBD
+- [ ] 04-02: TBD
+- [ ] 04-03: TBD
+
+### Phase 5: Credential System
+**Goal**: Every skill that needs secrets has a keychain-based setup script following a consistent pattern
+**Depends on**: Phase 4
+**Requirements**: CRED-01, CRED-02, CRED-03, CRED-04, CRED-05
+**Success Criteria** (what must be TRUE):
+  1. Each credential-dependent skill (Jira/acli, Sentry, Contentful, GitHub upload) has a setup.sh that stores secrets in macOS Keychain
+  2. Running a skill's setup.sh prompts for credentials, stores them in Keychain, and verifies retrieval
+  3. All setup scripts follow the gh-upload pattern (prompt, store, verify) with no secrets in files or env vars
+  4. Skills can retrieve their credentials from Keychain at runtime without user intervention
+**Plans**: TBD
+
+Plans:
+- [ ] 05-01: TBD
+- [ ] 05-02: TBD
+- [ ] 05-03: TBD
+
+### Phase 6: Global Config + Verification
+**Goal**: Global CLAUDE.md is distributed via the plugin and all 16 converted skills pass /skill-creator benchmarking
+**Depends on**: Phase 4, Phase 5
+**Requirements**: CONF-01, MIGR-05
+**Success Criteria** (what must be TRUE):
+  1. The global CLAUDE.md is included in the plugin and injected into Claude Code sessions
+  2. Each of the 16 converted skills passes /skill-creator verification and benchmarking
+  3. Benchmark results confirm skills produce correct output for their intended use cases
+**Plans**: TBD
+
+Plans:
+- [ ] 06-01: TBD
+- [ ] 06-02: TBD
+- [ ] 06-03: TBD
+
+### Phase 7: mbridge CLI Foundation
+**Goal**: mbridge is an installable Python CLI that can discover connected iOS simulators and Android emulators
+**Depends on**: Phase 1 (lives in tools/mbridge/)
+**Requirements**: MBRD-01, MBRD-02
+**Success Criteria** (what must be TRUE):
+  1. Running `uv tool install` from tools/mbridge/ installs the mbridge CLI globally
+  2. Running `mbridge devices` lists connected iOS simulators (via xcrun simctl) and Android emulators (via adb)
+  3. The CLI uses Click for command structure and provides help text for all commands
+**Plans**: TBD
+
+Plans:
+- [ ] 07-01: TBD
+- [ ] 07-02: TBD
+
+### Phase 8: mbridge UI Parsing
+**Goal**: mbridge can capture and parse UI hierarchy from iOS and Android devices and find elements within it
+**Depends on**: Phase 7
+**Requirements**: MBRD-03, MBRD-05
+**Success Criteria** (what must be TRUE):
+  1. Running `mbridge dump` on an iOS simulator produces a parsed JSON UI hierarchy
+  2. Running `mbridge dump` on an Android emulator produces a parsed XML UI hierarchy
+  3. Elements can be found by accessibility ID, text content, or XPath expression
+  4. Element results include position coordinates sufficient for interaction
+**Plans**: TBD
+
+Plans:
+- [ ] 08-01: TBD
+- [ ] 08-02: TBD
+- [ ] 08-03: TBD
+
+### Phase 9: mbridge Interaction + OCR
+**Goal**: mbridge can interact with device UIs via tap/swipe/text and verify results using OCR
+**Depends on**: Phase 8
+**Requirements**: MBRD-04, MBRD-06
+**Success Criteria** (what must be TRUE):
+  1. Running `mbridge tap` on coordinates or a found element performs a tap on the device
+  2. Running `mbridge swipe` performs a swipe gesture with configurable direction and distance
+  3. Running `mbridge type` inputs text into the currently focused field
+  4. Running `mbridge verify` uses pytesseract OCR to confirm expected text is visible on screen
+**Plans**: TBD
+
+Plans:
+- [ ] 09-01: TBD
+- [ ] 09-02: TBD
+- [ ] 09-03: TBD
+
+### Phase 10: mbridge Skill Integration
+**Goal**: mbridge is usable as a Claude Code skill that leverages app code knowledge and mobilecli's existing context/cache
+**Depends on**: Phase 9, Phase 4 (mobilecli skill must be converted)
+**Requirements**: MBRD-07
+**Success Criteria** (what must be TRUE):
+  1. A SKILL.md for mbridge exists in the plugin skills/ directory with instructions for Claude Code
+  2. The skill references mobilecli's context/cache system for app-specific knowledge (screen names, navigation patterns)
+  3. Claude Code can use the mbridge skill to automate a basic multi-step mobile interaction (navigate, tap, verify)
+**Plans**: TBD
+
+Plans:
+- [ ] 10-01: TBD
+- [ ] 10-02: TBD
+
+## Progress
+
+**Execution Order:**
+Phases execute in numeric order: 1 -> 2 -> 3 -> 4 -> 5 -> 6 -> 7 -> 8 -> 9 -> 10
+
+| Phase | Plans Complete | Status | Completed |
+|-------|----------------|--------|-----------|
+| 1. Plugin Scaffold | 0/2 | Not started | - |
+| 2. Plugin Install + Operations | 0/3 | Not started | - |
+| 3. Simple Skill Conversion | 0/2 | Not started | - |
+| 4. Complex Skill Conversion | 0/3 | Not started | - |
+| 5. Credential System | 0/3 | Not started | - |
+| 6. Global Config + Verification | 0/3 | Not started | - |
+| 7. mbridge CLI Foundation | 0/2 | Not started | - |
+| 8. mbridge UI Parsing | 0/3 | Not started | - |
+| 9. mbridge Interaction + OCR | 0/3 | Not started | - |
+| 10. mbridge Skill Integration | 0/2 | Not started | - |

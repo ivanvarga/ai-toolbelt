@@ -15,13 +15,13 @@ Requirements for initial release. Each maps to roadmap phases.
 - [ ] **PLUG-04**: Health check / doctor command that verifies all components working
 - [ ] **PLUG-05**: SessionStart hook that injects toolkit context
 
-### Skill Migration
+### Skill Conversion
 
-- [ ] **MIGR-01**: All 9 commands migrated (catchup, create-figma-component, github-issue, github-pr, investigate-sentry-issue, jira, pr-description, reset-app-data, upload-sentry-sourcemaps)
-- [ ] **MIGR-02**: All 7 skills migrated (gh-upload, mobilecli, qa-description, ship-ticket, daily-summary, create-release-branch, contentful-cli)
-- [ ] **MIGR-03**: All `$HOME/.claude/` paths rewritten to `${CLAUDE_PLUGIN_ROOT}`
-- [ ] **MIGR-04**: Inline bash/logic converted to Node.js helper scripts where appropriate
-- [ ] **MIGR-05**: Each migrated skill verified via /skill-creator benchmarking
+- [ ] **MIGR-01**: All 8 simple items converted to SKILL.md + frontmatter format (catchup, github-issue, github-pr, qa-description, ship-ticket, create-release-branch, daily-summary, reset-app-data)
+- [ ] **MIGR-02**: All 8 complex items converted to SKILL.md + frontmatter format with supporting files (gh-upload, mobilecli, contentful-cli, create-figma-component, jira, investigate-sentry-issue, pr-description, upload-sentry-sourcemaps)
+- [ ] **MIGR-03**: All `$HOME/.claude/` paths rewritten to plugin-relative paths in SKILL.md files and supporting scripts
+- [ ] **MIGR-04**: Inline bash/logic converted to Node.js helper scripts stored as supporting files
+- [ ] **MIGR-05**: Each converted skill verified via /skill-creator benchmarking
 
 ### Credential Management
 
@@ -80,35 +80,35 @@ Which phases cover which requirements. Updated during roadmap creation.
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| PLUG-01 | — | Pending |
-| PLUG-02 | — | Pending |
-| PLUG-03 | — | Pending |
-| PLUG-04 | — | Pending |
-| PLUG-05 | — | Pending |
-| MIGR-01 | — | Pending |
-| MIGR-02 | — | Pending |
-| MIGR-03 | — | Pending |
-| MIGR-04 | — | Pending |
-| MIGR-05 | — | Pending |
-| CRED-01 | — | Pending |
-| CRED-02 | — | Pending |
-| CRED-03 | — | Pending |
-| CRED-04 | — | Pending |
-| CRED-05 | — | Pending |
-| CONF-01 | — | Pending |
-| MBRD-01 | — | Pending |
-| MBRD-02 | — | Pending |
-| MBRD-03 | — | Pending |
-| MBRD-04 | — | Pending |
-| MBRD-05 | — | Pending |
-| MBRD-06 | — | Pending |
-| MBRD-07 | — | Pending |
+| PLUG-01 | Phase 1 | Pending |
+| PLUG-02 | Phase 2 | Pending |
+| PLUG-03 | Phase 2 | Pending |
+| PLUG-04 | Phase 2 | Pending |
+| PLUG-05 | Phase 2 | Pending |
+| MIGR-01 | Phase 3 | Pending |
+| MIGR-02 | Phase 4 | Pending |
+| MIGR-03 | Phase 4 | Pending |
+| MIGR-04 | Phase 4 | Pending |
+| MIGR-05 | Phase 6 | Pending |
+| CRED-01 | Phase 5 | Pending |
+| CRED-02 | Phase 5 | Pending |
+| CRED-03 | Phase 5 | Pending |
+| CRED-04 | Phase 5 | Pending |
+| CRED-05 | Phase 5 | Pending |
+| CONF-01 | Phase 6 | Pending |
+| MBRD-01 | Phase 7 | Pending |
+| MBRD-02 | Phase 7 | Pending |
+| MBRD-03 | Phase 8 | Pending |
+| MBRD-04 | Phase 9 | Pending |
+| MBRD-05 | Phase 8 | Pending |
+| MBRD-06 | Phase 9 | Pending |
+| MBRD-07 | Phase 10 | Pending |
 
 **Coverage:**
 - v1 requirements: 23 total
-- Mapped to phases: 0
-- Unmapped: 23 ⚠️
+- Mapped to phases: 23
+- Unmapped: 0
 
 ---
 *Requirements defined: 2026-03-11*
-*Last updated: 2026-03-11 after initial definition*
+*Last updated: 2026-03-11 after roadmap revision*
