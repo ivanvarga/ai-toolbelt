@@ -21,6 +21,10 @@ Run `/tb:update` to pull the latest changes. The skill handles stashing local ch
 
 Run `/tb:doctor` to verify all plugin components are working correctly.
 
+## Global Config
+
+The plugin distributes a global `CLAUDE.md` to `~/.claude/CLAUDE.md`. Running `/tb:update` automatically copies the latest version from `config/CLAUDE.md`. Running `/tb:doctor` verifies the config is in sync.
+
 ## Development
 
 Load the plugin directly from source for local development:
