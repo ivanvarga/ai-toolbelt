@@ -20,18 +20,17 @@ These rules cannot be overridden under any circumstances.
 
 ---
 
-## Setup
+## Prerequisites
 
-Run setup once to save your Contentful management token to Keychain:
-
-```bash
-node "${CLAUDE_SKILL_DIR}/setup.js"
-```
-
-Manual alternative (pass token directly):
+Check credentials and auto-configure if missing:
 
 ```bash
-node "${CLAUDE_SKILL_DIR}/setup.js" "<management-token>"
+PLUGIN_ROOT="${CLAUDE_SKILL_DIR}/../.."
+TOKEN=$(node "$PLUGIN_ROOT/scripts/keychain.js" get tb.contentful-token 2>/dev/null)
+if [ -z "$TOKEN" ]; then
+  echo "Contentful token not configured. Running setup..."
+  node "${CLAUDE_SKILL_DIR}/setup.js"
+fi
 ```
 
 Get your management token from: Contentful Web App -> Settings -> CMA tokens -> Generate personal token.

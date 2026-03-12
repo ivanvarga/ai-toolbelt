@@ -7,18 +7,17 @@ description: Use when uploading images or videos to GitHub for PR descriptions, 
 
 Upload files to GitHub's CDN. Returns `https://github.com/user-attachments/assets/...` URLs for embedding in PRs and issues.
 
-## Setup
+## Prerequisites
 
-Run setup once to save your GitHub session cookie to Keychain:
-
-```bash
-node "${CLAUDE_SKILL_DIR}/setup.js"
-```
-
-Manual alternative (pass cookie directly):
+Check credentials and auto-configure if missing:
 
 ```bash
-node "${CLAUDE_SKILL_DIR}/setup.js" "<user_session_cookie_value>"
+PLUGIN_ROOT="${CLAUDE_SKILL_DIR}/../.."
+TOKEN=$(node "$PLUGIN_ROOT/scripts/keychain.js" get tb.github-session 2>/dev/null)
+if [ -z "$TOKEN" ]; then
+  echo "GitHub session cookie not configured. Running setup..."
+  node "${CLAUDE_SKILL_DIR}/setup.js"
+fi
 ```
 
 ### Getting the cookie value

@@ -9,14 +9,14 @@ Investigate a Sentry error, analyze the root cause, and find a fix.
 
 ## Prerequisites
 
-Check credentials are configured:
+Check credentials and auto-configure if missing:
 
 ```bash
 PLUGIN_ROOT="${CLAUDE_SKILL_DIR}/../.."
-TOKEN=$(node "$PLUGIN_ROOT/scripts/keychain.js" get tb.sentry-token)
+TOKEN=$(node "$PLUGIN_ROOT/scripts/keychain.js" get tb.sentry-token 2>/dev/null)
 if [ -z "$TOKEN" ]; then
-  echo "Sentry token not configured. Run: node ${CLAUDE_SKILL_DIR}/setup.js"
-  exit 1
+  echo "Sentry token not configured. Running setup..."
+  node "${CLAUDE_SKILL_DIR}/setup.js"
 fi
 ```
 

@@ -7,7 +7,7 @@ description: Use when reading a Jira ticket, investigating a Jira issue by ID or
 
 Fetch, summarize, and analyze a Jira ticket to prepare for implementation.
 
-## Setup
+## Prerequisites
 
 Verify acli is installed and authenticated:
 
