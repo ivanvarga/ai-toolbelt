@@ -25,11 +25,11 @@ Requirements for initial release. Each maps to roadmap phases.
 
 ### Credential Management
 
-- [ ] **CRED-01**: Keychain-based setup for Jira/acli credentials
-- [ ] **CRED-02**: Keychain-based setup for Sentry auth token
-- [ ] **CRED-03**: Keychain-based setup for Contentful management token
-- [ ] **CRED-04**: Keychain-based setup for GitHub upload credentials
-- [ ] **CRED-05**: Per-skill setup.sh scripts following gh-upload pattern
+- [x] **CRED-01**: Keychain-based setup for Jira/acli credentials
+- [x] **CRED-02**: Keychain-based setup for Sentry auth token
+- [x] **CRED-03**: Keychain-based setup for Contentful management token
+- [x] **CRED-04**: Keychain-based setup for GitHub upload credentials
+- [x] **CRED-05**: Per-skill setup.sh scripts following gh-upload pattern
 
 ### Global Config
 
@@ -90,11 +90,11 @@ Which phases cover which requirements. Updated during roadmap creation.
 | MIGR-03 | Phase 4 | Complete |
 | MIGR-04 | Phase 4 | Complete |
 | MIGR-05 | Phase 6 | Pending |
-| CRED-01 | Phase 5 | Pending |
-| CRED-02 | Phase 5 | Pending |
-| CRED-03 | Phase 5 | Pending |
-| CRED-04 | Phase 5 | Pending |
-| CRED-05 | Phase 5 | Pending |
+| CRED-01 | Phase 5 | Complete |
+| CRED-02 | Phase 5 | Complete |
+| CRED-03 | Phase 5 | Complete |
+| CRED-04 | Phase 5 | Complete |
+| CRED-05 | Phase 5 | Complete |
 | CONF-01 | Phase 6 | Pending |
 | MBRD-01 | Phase 7 | Pending |
 | MBRD-02 | Phase 7 | Pending |

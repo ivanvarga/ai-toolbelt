@@ -2,16 +2,16 @@
 gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
-status: completed
-stopped_at: Phase 5 context gathered
-last_updated: "2026-03-12T12:09:34.565Z"
-last_activity: 2026-03-12 -- Completed 04-03-PLAN.md (task-jira, pr-describe, contentful, figma-component)
+status: executing
+stopped_at: Completed 05-01-PLAN.md
+last_updated: "2026-03-12T12:59:31.268Z"
+last_activity: 2026-03-12 -- Completed 05-02-PLAN.md (doctor credential checks)
 progress:
   total_phases: 10
   completed_phases: 4
-  total_plans: 9
-  completed_plans: 9
-  percent: 89
+  total_plans: 12
+  completed_plans: 11
+  percent: 92
 ---
 
 # Project State
@@ -21,16 +21,16 @@ progress:
 See: .planning/PROJECT.md (updated 2026-03-11)
 
 **Core value:** One repo, one install command -- every custom skill, credential setup, and dev tool available on any machine, always up to date.
-**Current focus:** Phase 4: Complex Skill Conversion
+**Current focus:** Phase 5: Credential System
 
 ## Current Position
 
-Phase: 4 of 10 (Complex Skill Conversion) -- COMPLETE
-Plan: 4 of 4 complete in current phase
-Status: All Phase 4 plans complete
-Last activity: 2026-03-12 -- Completed 04-03-PLAN.md (task-jira, pr-describe, contentful, figma-component)
+Phase: 5 of 10 (Credential System)
+Plan: 2 of 3 complete in current phase
+Status: Executing Phase 5
+Last activity: 2026-03-12 -- Completed 05-02-PLAN.md (doctor credential checks)
 
-Progress: [█████████░] 89%
+Progress: [█████████░] 92%
 
 ## Performance Metrics
 
@@ -58,6 +58,8 @@ Progress: [█████████░] 89%
 | Phase 04 P02 | 5min | 2 tasks | 5 files |
 | Phase 04 P03 | 5min | 2 tasks | 6 files |
 | Phase 04 P04 | 4min | 2 tasks | 3 files |
+| Phase 05 P02 | 1min | 2 tasks | 4 files |
+| Phase 05 P01 | 2min | 2 tasks | 5 files |
 
 ## Accumulated Context
 
@@ -93,6 +95,10 @@ Recent decisions affecting current work:
 - [Phase 04]: pr-describe is pure orchestrator delegating to /tb:task-jira and /tb:pr-upload, no own credentials
 - [Phase 04]: contentful kept as single large SKILL.md with migration DSL reference inline (splitting hurts usability)
 - [Phase 04]: contentful uses Keychain tb.contentful-token via -a flag (replacing Doppler)
+- [Phase 05]: Keychain checks use keychain.js get (not raw security command) for consistency
+- [Phase 05]: acli check uses command -v + --help subcommand to verify install and auth without side effects
+- [Phase 05]: verify callback returns true/false/null (null = connection error, triggers store-anyway prompt)
+- [Phase 05]: 3 retry attempts for failed verification before offering store-anyway fallback
 
 ### Pending Todos
 
@@ -105,6 +111,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-03-12T12:09:34.563Z
-Stopped at: Phase 5 context gathered
-Resume file: .planning/phases/05-credential-system/05-CONTEXT.md
+Last session: 2026-03-12T12:59:31.266Z
+Stopped at: Completed 05-01-PLAN.md
+Resume file: None
