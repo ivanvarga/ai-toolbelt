@@ -33,7 +33,7 @@ Requirements for initial release. Each maps to roadmap phases.
 
 ### Global Config
 
-- [ ] **CONF-01**: Global CLAUDE.md distributed via plugin
+- [x] **CONF-01**: Global CLAUDE.md distributed via plugin
 
 ### mbridge
 
@@ -95,7 +95,7 @@ Which phases cover which requirements. Updated during roadmap creation.
 | CRED-03 | Phase 5 | Complete |
 | CRED-04 | Phase 5 | Complete |
 | CRED-05 | Phase 5 | Complete |
-| CONF-01 | Phase 6 | Pending |
+| CONF-01 | Phase 6 | Complete |
 | MBRD-01 | Phase 7 | Pending |
 | MBRD-02 | Phase 7 | Pending |
 | MBRD-03 | Phase 8 | Pending |
