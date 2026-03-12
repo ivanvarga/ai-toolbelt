@@ -1,45 +1,22 @@
 #!/usr/bin/env node
-const { execSync } = require('child_process');
-const path = require('path');
-const readline = require('readline');
-
-const SERVICE = 'tb.sentry-token';
-const PLUGIN_ROOT = path.resolve(__dirname, '..', '..');
-const KEYCHAIN = path.join(PLUGIN_ROOT, 'scripts', 'keychain.js');
-
-function store(value) {
-  execSync(`node "${KEYCHAIN}" set ${SERVICE} "${value}"`, { stdio: ['pipe', 'pipe', 'pipe'] });
-  console.log(`Sentry token saved to Keychain (${SERVICE}).`);
-}
-
-const tokenArg = process.argv[2];
-if (tokenArg) {
-  store(tokenArg);
-  process.exit(0);
-}
-
-let existing = '';
-try {
-  existing = execSync(`node "${KEYCHAIN}" get ${SERVICE}`, { encoding: 'utf8' }).trim();
-} catch {}
-
-if (existing) {
-  console.log(`Sentry token already configured (${SERVICE}).`);
-  process.exit(0);
-}
-
-if (!process.stdin.isTTY) {
-  console.error(`No token found. Provide as argument: node setup.js <TOKEN>`);
-  process.exit(1);
-}
-
-const rl = readline.createInterface({ input: process.stdin, output: process.stdout });
-rl.question('Enter Sentry auth token: ', (token) => {
-  rl.close();
-  const trimmed = token.trim();
-  if (!trimmed) {
-    console.error('No token provided.');
-    process.exit(1);
+const setup = require('../../scripts/setup-credential');
+setup({
+  mode: 'keychain',
+  service: 'tb.sentry-token',
+  name: 'Sentry auth token',
+  prompt: 'Enter Sentry auth token: ',
+  verify: (token) => {
+    const https = require('https');
+    return new Promise((resolve) => {
+      const req = https.get('https://sentry.io/api/0/organizations/', {
+        headers: { Authorization: `Bearer ${token}` }
+      }, (res) => {
+        res.resume();
+        if (res.statusCode === 401 || res.statusCode === 403) return resolve(false);
+        resolve(res.statusCode >= 200 && res.statusCode < 300);
+      });
+      req.on('error', () => resolve(null));
+      req.setTimeout(10000, () => { req.destroy(); resolve(null); });
+    });
   }
-  store(trimmed);
 });
