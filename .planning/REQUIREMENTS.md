@@ -21,7 +21,7 @@ Requirements for initial release. Each maps to roadmap phases.
 - [x] **MIGR-02**: All 8 complex items converted to SKILL.md + frontmatter format with supporting files (gh-upload, mobilecli, contentful-cli, create-figma-component, jira, investigate-sentry-issue, pr-description, upload-sentry-sourcemaps)
 - [x] **MIGR-03**: All `$HOME/.claude/` paths rewritten to plugin-relative paths in SKILL.md files and supporting scripts
 - [x] **MIGR-04**: Inline bash/logic converted to Node.js helper scripts stored as supporting files
-- [ ] **MIGR-05**: Each converted skill verified via /skill-creator benchmarking
+- [x] **MIGR-05**: Each converted skill verified via /skill-creator benchmarking
 
 ### Credential Management
 
@@ -89,7 +89,7 @@ Which phases cover which requirements. Updated during roadmap creation.
 | MIGR-02 | Phase 4 | Complete |
 | MIGR-03 | Phase 4 | Complete |
 | MIGR-04 | Phase 4 | Complete |
-| MIGR-05 | Phase 6 | Pending |
+| MIGR-05 | Phase 6 | Complete |
 | CRED-01 | Phase 5 | Complete |
 | CRED-02 | Phase 5 | Complete |
 | CRED-03 | Phase 5 | Complete |
