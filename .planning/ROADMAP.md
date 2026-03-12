@@ -124,11 +124,12 @@ Plans:
   1. Running `uv tool install` from tools/mbridge/ installs the mbridge CLI globally
   2. Running `mbridge devices` lists connected iOS simulators (via xcrun simctl) and Android emulators (via adb)
   3. The CLI uses Click for command structure and provides help text for all commands
-**Plans**: 2 plans
+**Plans**: 3 plans
 
 Plans:
 - [ ] 07-01-PLAN.md — Python package with Click CLI skeleton, all command groups, setup.js for uv auto-install
 - [ ] 07-02-PLAN.md — Platform modules (ios.py, android.py), coordinate conversion, device/app command implementations
+- [ ] 07-03-PLAN.md — Gap closure: wire orphaned coords.py into ios.py, expand with docstrings
 
 ### Phase 8: mbridge UI Parsing
 **Goal**: mbridge can capture and parse UI hierarchy from iOS and Android devices and find elements within it
@@ -189,7 +190,7 @@ Phases execute in numeric order: 1 -> 2 -> 3 -> 4 -> 5 -> 6 -> 7 -> 8 -> 9 -> 10
 | 4. Complex Skill Conversion | 4/4 | Complete   | 2026-03-12 |
 | 5. Credential System | 0/3 | Not started | - |
 | 6. Global Config + Verification | 0/2 | Not started | - |
-| 7. mbridge CLI Foundation | 0/2 | Not started | - |
+| 7. mbridge CLI Foundation | 2/3 | Gap closure | - |
 | 8. mbridge UI Parsing | 0/3 | Not started | - |
 | 9. mbridge Interaction + OCR | 0/3 | Not started | - |
 | 10. mbridge Skill Integration | 0/2 | Not started | - |
