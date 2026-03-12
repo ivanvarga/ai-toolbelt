@@ -18,8 +18,8 @@ Requirements for initial release. Each maps to roadmap phases.
 ### Skill Conversion
 
 - [x] **MIGR-01**: All 8 simple items converted to SKILL.md + frontmatter format (catchup, github-issue, github-pr, qa-description, ship-ticket, create-release-branch, daily-summary, reset-app-data)
-- [ ] **MIGR-02**: All 8 complex items converted to SKILL.md + frontmatter format with supporting files (gh-upload, mobilecli, contentful-cli, create-figma-component, jira, investigate-sentry-issue, pr-description, upload-sentry-sourcemaps)
-- [ ] **MIGR-03**: All `$HOME/.claude/` paths rewritten to plugin-relative paths in SKILL.md files and supporting scripts
+- [x] **MIGR-02**: All 8 complex items converted to SKILL.md + frontmatter format with supporting files (gh-upload, mobilecli, contentful-cli, create-figma-component, jira, investigate-sentry-issue, pr-description, upload-sentry-sourcemaps)
+- [x] **MIGR-03**: All `$HOME/.claude/` paths rewritten to plugin-relative paths in SKILL.md files and supporting scripts
 - [x] **MIGR-04**: Inline bash/logic converted to Node.js helper scripts stored as supporting files
 - [ ] **MIGR-05**: Each converted skill verified via /skill-creator benchmarking
 
@@ -86,8 +86,8 @@ Which phases cover which requirements. Updated during roadmap creation.
 | PLUG-04 | Phase 2 | Complete |
 | PLUG-05 | Phase 2 | Complete |
 | MIGR-01 | Phase 3 | Complete |
-| MIGR-02 | Phase 4 | Pending |
-| MIGR-03 | Phase 4 | Pending |
+| MIGR-02 | Phase 4 | Complete |
+| MIGR-03 | Phase 4 | Complete |
 | MIGR-04 | Phase 4 | Complete |
 | MIGR-05 | Phase 6 | Pending |
 | CRED-01 | Phase 5 | Pending |
