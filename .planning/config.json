@@ -9,7 +9,8 @@
     "plan_check": true,
     "verifier": true,
     "nyquist_validation": true,
-    "skill_creator_verification": true
+    "skill_creator_verification": true,
+    "_auto_chain_active": false
   },
   "notes": {
     "verifier": "Use /skill-creator for skill creation, verification, and benchmarking wherever applicable"
