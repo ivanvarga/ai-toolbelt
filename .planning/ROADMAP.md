@@ -80,8 +80,8 @@ Plans:
 **Plans**: 4 plans
 
 Plans:
-- [ ] 04-01-PLAN.md — Shared infrastructure: scripts/keychain.js, scripts/sentry-api.js, scripts/github-api.js
-- [ ] 04-02-PLAN.md — Convert pr-upload, sentry-investigate, sentry-sourcemaps (consume shared infra)
+- [x] 04-01-PLAN.md — Shared infrastructure: scripts/keychain.js, scripts/sentry-api.js, scripts/github-api.js
+- [x] 04-02-PLAN.md — Convert pr-upload, sentry-investigate, sentry-sourcemaps (consume shared infra)
 - [ ] 04-03-PLAN.md — Convert task-jira, pr-describe, contentful, figma-component
 - [ ] 04-04-PLAN.md — Convert mobilecli (solo plan, largest skill with test-helpers.sh)
 
@@ -186,7 +186,7 @@ Phases execute in numeric order: 1 -> 2 -> 3 -> 4 -> 5 -> 6 -> 7 -> 8 -> 9 -> 10
 | 1. Plugin Scaffold | 1/1 | Complete   | 2026-03-11 |
 | 2. Plugin Install + Operations | 2/2 | Complete | 2026-03-11 |
 | 3. Simple Skill Conversion | 0/2 | Not started | - |
-| 4. Complex Skill Conversion | 0/4 | Not started | - |
+| 4. Complex Skill Conversion | 2/4 | In Progress | - |
 | 5. Credential System | 0/3 | Not started | - |
 | 6. Global Config + Verification | 0/3 | Not started | - |
 | 7. mbridge CLI Foundation | 0/2 | Not started | - |

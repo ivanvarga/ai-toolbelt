@@ -3,15 +3,15 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: in-progress
-stopped_at: Completed 04-01-PLAN.md (Shared Infrastructure)
+stopped_at: Completed 04-02-PLAN.md (pr-upload, sentry-investigate, sentry-sourcemaps)
 last_updated: "2026-03-12T09:30:00.211Z"
-last_activity: 2026-03-12 -- Completed 04-01-PLAN.md (Shared Infrastructure)
+last_activity: 2026-03-12 -- Completed 04-02-PLAN.md (pr-upload, sentry-investigate, sentry-sourcemaps)
 progress:
   total_phases: 10
   completed_phases: 3
   total_plans: 9
-  completed_plans: 6
-  percent: 67
+  completed_plans: 7
+  percent: 78
 ---
 
 # Project State
@@ -26,11 +26,11 @@ See: .planning/PROJECT.md (updated 2026-03-11)
 ## Current Position
 
 Phase: 4 of 10 (Complex Skill Conversion) -- IN PROGRESS
-Plan: 1 of 4 complete in current phase
-Status: Plan 01 complete, continuing to Plan 02
-Last activity: 2026-03-12 -- Completed 04-01-PLAN.md (Shared Infrastructure)
+Plan: 2 of 4 complete in current phase
+Status: Plan 02 complete, continuing to Plan 03
+Last activity: 2026-03-12 -- Completed 04-02-PLAN.md (pr-upload, sentry-investigate, sentry-sourcemaps)
 
-Progress: [███████░░░] 67%
+Progress: [████████░░] 78%
 
 ## Performance Metrics
 
@@ -55,6 +55,7 @@ Progress: [███████░░░] 67%
 | Phase 03 P01 | 3min | 2 tasks | 4 files |
 | Phase 03 P02 | 2min | 2 tasks | 4 files |
 | Phase 04 P01 | 2min | 2 tasks | 3 files |
+| Phase 04 P02 | 5min | 2 tasks | 5 files |
 
 ## Accumulated Context
 
@@ -82,6 +83,9 @@ Recent decisions affecting current work:
 - [Phase 04]: keychain.js uses -a flag with service name as account for add-generic-password
 - [Phase 04]: github-api.js uses curl for multipart uploads (same as original upload.sh)
 - [Phase 04]: sentry-api.js uses Node.js https module with promise wrapper for API calls
+- [Phase 04]: pr-upload references github-api.js directly (no skill-local upload.js wrapper needed)
+- [Phase 04]: sentry-investigate setup.js serves both Sentry skills via shared tb.sentry-token
+- [Phase 04]: sentry-sourcemaps passes token as SENTRY_AUTH_TOKEN env var to sentry-cli
 
 ### Pending Todos
 
@@ -94,6 +98,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-03-12T09:30:00.209Z
-Stopped at: Completed 04-01-PLAN.md (Shared Infrastructure)
+Last session: 2026-03-12T09:37:08Z
+Stopped at: Completed 04-02-PLAN.md (pr-upload, sentry-investigate, sentry-sourcemaps)
 Resume file: None
