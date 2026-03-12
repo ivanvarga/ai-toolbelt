@@ -50,7 +50,15 @@ git -C "${PLUGIN_ROOT}" stash pop -q 2>/dev/null || true
 
 If stash pop fails (exit code non-zero and there was a stash), warn the user that stashed changes conflicted and they need to resolve manually. The stash is preserved and can be inspected with `git stash show`.
 
-6. **Compare versions** after pulling.
+6. **Copy global config** to the user's home directory.
+
+```bash
+cp "${PLUGIN_ROOT}/config/CLAUDE.md" "$HOME/.claude/CLAUDE.md"
+```
+
+Print: `Global CLAUDE.md updated at ~/.claude/CLAUDE.md`
+
+7. **Compare versions** after pulling.
 
 ```bash
 NEW_VERSION=$(cat "${PLUGIN_ROOT}/.claude-plugin/plugin.json" | python3 -c "import sys,json; print(json.load(sys.stdin)['version'])")
@@ -58,7 +66,7 @@ NEW_VERSION=$(cat "${PLUGIN_ROOT}/.claude-plugin/plugin.json" | python3 -c "impo
 
 If version changed, show: `Updated: {OLD_VERSION} -> {NEW_VERSION}`
 
-7. **Show changelog** -- what changed since the previous commit.
+8. **Show changelog** -- what changed since the previous commit.
 
 ```bash
 git -C "${PLUGIN_ROOT}" log --oneline "${OLD_COMMIT}..HEAD"
@@ -72,4 +80,4 @@ git -C "${PLUGIN_ROOT}" diff --stat "${OLD_COMMIT}..HEAD"
 
 If no new commits, tell the user the plugin is already up to date.
 
-8. **Remind to reload** -- tell the user to run `/reload-plugins` to pick up changes in the current session.
+9. **Remind to reload** -- tell the user to run `/reload-plugins` to pick up changes in the current session.
