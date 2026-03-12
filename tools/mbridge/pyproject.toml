@@ -1,0 +1,15 @@
+[project]
+name = "mbridge"
+version = "0.1.0"
+description = "Mobile device bridge CLI"
+requires-python = ">=3.12"
+dependencies = [
+    "click>=8.0",
+]
+
+[project.scripts]
+mbridge = "mbridge.cli:cli"
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
