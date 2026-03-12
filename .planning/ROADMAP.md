@@ -124,11 +124,11 @@ Plans:
   1. Running `uv tool install` from tools/mbridge/ installs the mbridge CLI globally
   2. Running `mbridge devices` lists connected iOS simulators (via xcrun simctl) and Android emulators (via adb)
   3. The CLI uses Click for command structure and provides help text for all commands
-**Plans**: TBD
+**Plans**: 2 plans
 
 Plans:
-- [ ] 07-01: TBD
-- [ ] 07-02: TBD
+- [ ] 07-01-PLAN.md — Python package with Click CLI skeleton, all command groups, setup.js for uv auto-install
+- [ ] 07-02-PLAN.md — Platform modules (ios.py, android.py), coordinate conversion, device/app command implementations
 
 ### Phase 8: mbridge UI Parsing
 **Goal**: mbridge can capture and parse UI hierarchy from iOS and Android devices and find elements within it
