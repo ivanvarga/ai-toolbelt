@@ -17,7 +17,7 @@ Decimal phases appear between their surrounding integers in numeric order.
 - [ ] **Phase 3: Simple Skill Conversion** - Convert 8 pure-markdown items to skill format in plugin
 - [x] **Phase 4: Complex Skill Conversion** - Convert 8 items with helper scripts and external tool dependencies to skill format (completed 2026-03-12)
 - [ ] **Phase 5: Credential System** - Keychain-based credential setup for all skills needing secrets
-- [ ] **Phase 6: Global Config + Verification** - Distribute global CLAUDE.md and verify all 16 converted skills
+- [ ] **Phase 6: Global Config + Verification** - Distribute global CLAUDE.md and verify all 18 converted skills
 - [ ] **Phase 7: mbridge CLI Foundation** - Python CLI skeleton with device discovery
 - [ ] **Phase 8: mbridge UI Parsing** - UI dump parsing and element finding for iOS and Android
 - [ ] **Phase 9: mbridge Interaction + OCR** - Device interaction commands and OCR-based verification
@@ -103,19 +103,18 @@ Plans:
 - [ ] 05-03-PLAN.md — setup-all orchestrator + SKILL.md Prerequisites standardization
 
 ### Phase 6: Global Config + Verification
-**Goal**: Global CLAUDE.md is distributed via the plugin and all 16 converted skills pass /skill-creator benchmarking
+**Goal**: Global CLAUDE.md is distributed via the plugin and all 18 skills pass /skill-creator verification and benchmarking
 **Depends on**: Phase 4, Phase 5
 **Requirements**: CONF-01, MIGR-05
 **Success Criteria** (what must be TRUE):
-  1. The global CLAUDE.md is included in the plugin and injected into Claude Code sessions
-  2. Each of the 16 converted skills passes /skill-creator verification and benchmarking
-  3. Benchmark results confirm skills produce correct output for their intended use cases
-**Plans**: TBD
+  1. The global CLAUDE.md is included in the plugin and distributed to ~/.claude/ via /tb:update
+  2. Each of the 18 skills (16 converted + doctor + update) passes /skill-creator verification and benchmarking
+  3. /tb:doctor verifies global config sync status
+**Plans**: 2 plans
 
 Plans:
-- [ ] 06-01: TBD
-- [ ] 06-02: TBD
-- [ ] 06-03: TBD
+- [ ] 06-01-PLAN.md — Global config distribution: config/CLAUDE.md, update skill copy step, doctor check, README
+- [ ] 06-02-PLAN.md — Verify all 18 skills via /skill-creator, fix flagged issues
 
 ### Phase 7: mbridge CLI Foundation
 **Goal**: mbridge is an installable Python CLI that can discover connected iOS simulators and Android emulators
@@ -189,7 +188,7 @@ Phases execute in numeric order: 1 -> 2 -> 3 -> 4 -> 5 -> 6 -> 7 -> 8 -> 9 -> 10
 | 3. Simple Skill Conversion | 0/2 | Not started | - |
 | 4. Complex Skill Conversion | 4/4 | Complete   | 2026-03-12 |
 | 5. Credential System | 0/3 | Not started | - |
-| 6. Global Config + Verification | 0/3 | Not started | - |
+| 6. Global Config + Verification | 0/2 | Not started | - |
 | 7. mbridge CLI Foundation | 0/2 | Not started | - |
 | 8. mbridge UI Parsing | 0/3 | Not started | - |
 | 9. mbridge Interaction + OCR | 0/3 | Not started | - |
