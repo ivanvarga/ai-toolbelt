@@ -77,12 +77,13 @@ Plans:
   2. Every `$HOME/.claude/` path reference in SKILL.md files and helper scripts is rewritten to use plugin-relative paths
   3. Inline bash/logic in complex skills is converted to Node.js helper scripts stored as supporting files alongside each SKILL.md
   4. Each skill loads correctly when Claude Code reads the plugin and supporting files are accessible
-**Plans**: TBD
+**Plans**: 4 plans
 
 Plans:
-- [ ] 04-01: TBD
-- [ ] 04-02: TBD
-- [ ] 04-03: TBD
+- [ ] 04-01-PLAN.md — Shared infrastructure: scripts/keychain.js, scripts/sentry-api.js, scripts/github-api.js
+- [ ] 04-02-PLAN.md — Convert pr-upload, sentry-investigate, sentry-sourcemaps (consume shared infra)
+- [ ] 04-03-PLAN.md — Convert task-jira, pr-describe, contentful, figma-component
+- [ ] 04-04-PLAN.md — Convert mobilecli (solo plan, largest skill with test-helpers.sh)
 
 ### Phase 5: Credential System
 **Goal**: Every skill that needs secrets has a keychain-based setup script following a consistent pattern
@@ -185,7 +186,7 @@ Phases execute in numeric order: 1 -> 2 -> 3 -> 4 -> 5 -> 6 -> 7 -> 8 -> 9 -> 10
 | 1. Plugin Scaffold | 1/1 | Complete   | 2026-03-11 |
 | 2. Plugin Install + Operations | 2/2 | Complete | 2026-03-11 |
 | 3. Simple Skill Conversion | 0/2 | Not started | - |
-| 4. Complex Skill Conversion | 0/3 | Not started | - |
+| 4. Complex Skill Conversion | 0/4 | Not started | - |
 | 5. Credential System | 0/3 | Not started | - |
 | 6. Global Config + Verification | 0/3 | Not started | - |
 | 7. mbridge CLI Foundation | 0/2 | Not started | - |
