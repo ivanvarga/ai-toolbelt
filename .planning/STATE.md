@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: completed
-stopped_at: Completed 04-04-PLAN.md
-last_updated: "2026-03-12T09:47:08.281Z"
-last_activity: 2026-03-12 -- Completed 04-04-PLAN.md (mobilecli)
+stopped_at: Completed 04-03-PLAN.md (task-jira, pr-describe, contentful, figma-component)
+last_updated: "2026-03-12T09:50:21.898Z"
+last_activity: 2026-03-12 -- Completed 04-03-PLAN.md (task-jira, pr-describe, contentful, figma-component)
 progress:
   total_phases: 10
-  completed_phases: 3
+  completed_phases: 4
   total_plans: 9
-  completed_plans: 8
+  completed_plans: 9
   percent: 89
 ---
 
@@ -25,10 +25,10 @@ See: .planning/PROJECT.md (updated 2026-03-11)
 
 ## Current Position
 
-Phase: 4 of 10 (Complex Skill Conversion) -- IN PROGRESS
-Plan: 3 of 4 complete in current phase
-Status: Plan 04 complete, Plan 03 remaining
-Last activity: 2026-03-12 -- Completed 04-04-PLAN.md (mobilecli)
+Phase: 4 of 10 (Complex Skill Conversion) -- COMPLETE
+Plan: 4 of 4 complete in current phase
+Status: All Phase 4 plans complete
+Last activity: 2026-03-12 -- Completed 04-03-PLAN.md (task-jira, pr-describe, contentful, figma-component)
 
 Progress: [█████████░] 89%
 
@@ -56,6 +56,7 @@ Progress: [█████████░] 89%
 | Phase 03 P02 | 2min | 2 tasks | 4 files |
 | Phase 04 P01 | 2min | 2 tasks | 3 files |
 | Phase 04 P02 | 5min | 2 tasks | 5 files |
+| Phase 04 P03 | 5min | 2 tasks | 6 files |
 | Phase 04 P04 | 4min | 2 tasks | 3 files |
 
 ## Accumulated Context
@@ -88,6 +89,10 @@ Recent decisions affecting current work:
 - [Phase 04]: sentry-investigate setup.js serves both Sentry skills via shared tb.sentry-token
 - [Phase 04]: sentry-sourcemaps passes token as SENTRY_AUTH_TOKEN env var to sentry-cli
 - [Phase 04]: test-helpers.sh preserved as bash (not Node.js) due to deeply bash-idiomatic patterns
+- [Phase 04]: task-jira setup.js verifies acli install/auth rather than storing credentials (acli manages own OAuth)
+- [Phase 04]: pr-describe is pure orchestrator delegating to /tb:task-jira and /tb:pr-upload, no own credentials
+- [Phase 04]: contentful kept as single large SKILL.md with migration DSL reference inline (splitting hurts usability)
+- [Phase 04]: contentful uses Keychain tb.contentful-token via -a flag (replacing Doppler)
 
 ### Pending Todos
 
@@ -100,6 +105,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-03-12T09:47:08.279Z
-Stopped at: Completed 04-04-PLAN.md
+Last session: 2026-03-12T09:50:04.647Z
+Stopped at: Completed 04-03-PLAN.md (task-jira, pr-describe, contentful, figma-component)
 Resume file: None

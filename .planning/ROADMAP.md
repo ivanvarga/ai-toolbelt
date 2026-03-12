@@ -15,7 +15,7 @@ Decimal phases appear between their surrounding integers in numeric order.
 - [x] **Phase 1: Plugin Scaffold** - Establish plugin manifest, marketplace config, and directory structure (completed 2026-03-11)
 - [x] **Phase 2: Plugin Install + Operations** - Install script, update mechanism, health check, and session hook (completed 2026-03-11)
 - [ ] **Phase 3: Simple Skill Conversion** - Convert 8 pure-markdown items to skill format in plugin
-- [ ] **Phase 4: Complex Skill Conversion** - Convert 8 items with helper scripts and external tool dependencies to skill format
+- [x] **Phase 4: Complex Skill Conversion** - Convert 8 items with helper scripts and external tool dependencies to skill format (completed 2026-03-12)
 - [ ] **Phase 5: Credential System** - Keychain-based credential setup for all skills needing secrets
 - [ ] **Phase 6: Global Config + Verification** - Distribute global CLAUDE.md and verify all 16 converted skills
 - [ ] **Phase 7: mbridge CLI Foundation** - Python CLI skeleton with device discovery
@@ -186,7 +186,7 @@ Phases execute in numeric order: 1 -> 2 -> 3 -> 4 -> 5 -> 6 -> 7 -> 8 -> 9 -> 10
 | 1. Plugin Scaffold | 1/1 | Complete   | 2026-03-11 |
 | 2. Plugin Install + Operations | 2/2 | Complete | 2026-03-11 |
 | 3. Simple Skill Conversion | 0/2 | Not started | - |
-| 4. Complex Skill Conversion | 2/4 | In Progress | - |
+| 4. Complex Skill Conversion | 4/4 | Complete   | 2026-03-12 |
 | 5. Credential System | 0/3 | Not started | - |
 | 6. Global Config + Verification | 0/3 | Not started | - |
 | 7. mbridge CLI Foundation | 0/2 | Not started | - |
