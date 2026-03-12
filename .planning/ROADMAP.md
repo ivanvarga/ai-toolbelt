@@ -86,20 +86,21 @@ Plans:
 - [ ] 04-04-PLAN.md — Convert mobilecli (solo plan, largest skill with test-helpers.sh)
 
 ### Phase 5: Credential System
-**Goal**: Every skill that needs secrets has a keychain-based setup script following a consistent pattern
+**Goal**: Every skill that needs secrets has a keychain-based setup script following a consistent pattern, with shared base module, API verification, doctor integration, and auto-detect in SKILL.md
 **Depends on**: Phase 4
 **Requirements**: CRED-01, CRED-02, CRED-03, CRED-04, CRED-05
 **Success Criteria** (what must be TRUE):
-  1. Each credential-dependent skill (Jira/acli, Sentry, Contentful, GitHub upload) has a setup.sh that stores secrets in macOS Keychain
-  2. Running a skill's setup.sh prompts for credentials, stores them in Keychain, and verifies retrieval
-  3. All setup scripts follow the gh-upload pattern (prompt, store, verify) with no secrets in files or env vars
+  1. Each credential-dependent skill (Jira/acli, Sentry, Contentful, GitHub upload) has a setup.js that stores secrets in macOS Keychain via a shared base module
+  2. Running a skill's setup.js prompts for credentials, verifies via API call (where applicable), stores in Keychain, and confirms retrieval
+  3. All setup scripts follow the shared base pattern with no duplicated logic
   4. Skills can retrieve their credentials from Keychain at runtime without user intervention
-**Plans**: TBD
+  5. /tb:doctor reports credential status via drop-in check scripts
+**Plans**: 3 plans
 
 Plans:
-- [ ] 05-01: TBD
-- [ ] 05-02: TBD
-- [ ] 05-03: TBD
+- [ ] 05-01-PLAN.md — Shared setup-credential.js base module + refactor 4 setup.js wrappers
+- [ ] 05-02-PLAN.md — 4 doctor credential check scripts (cred-github, cred-sentry, cred-contentful, cred-acli)
+- [ ] 05-03-PLAN.md — setup-all orchestrator + SKILL.md Prerequisites standardization
 
 ### Phase 6: Global Config + Verification
 **Goal**: Global CLAUDE.md is distributed via the plugin and all 16 converted skills pass /skill-creator benchmarking
