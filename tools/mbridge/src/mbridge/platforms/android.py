@@ -216,6 +216,20 @@ def keyevent(device_id, keycode):
     run_cmd(["adb", "-s", device_id, "shell", "input", "keyevent", str(keycode)])
 
 
+def screenshot_bytes(device_id):
+    require_adb()
+    result = subprocess.run(
+        ["adb", "-s", device_id, "exec-out", "screencap", "-p"],
+        capture_output=True,
+    )
+    if result.returncode != 0:
+        raise RuntimeError(
+            result.stderr.decode("utf-8", errors="replace").strip()
+            or "screencap failed"
+        )
+    return result.stdout
+
+
 def dump_ui(device_id):
     require_adb()
     result = subprocess.run(

@@ -204,6 +204,11 @@ def key_press(device_id, key_code):
     run_cmd(["idb", "ui", "key", str(key_code), "--udid", device_id])
 
 
+def screenshot(device_id, dest_path):
+    require_xcrun()
+    run_cmd(["xcrun", "simctl", "io", device_id, "screenshot", dest_path])
+
+
 def dump_ui(device_id):
     require_idb()
     result = subprocess.run(
