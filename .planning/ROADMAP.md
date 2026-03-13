@@ -155,12 +155,11 @@ Plans:
   2. Running `mbridge swipe` performs a swipe gesture with configurable direction and distance
   3. Running `mbridge type` inputs text into the currently focused field
   4. Running `mbridge verify` uses pytesseract OCR to confirm expected text is visible on screen
-**Plans**: TBD
+**Plans**: 2 plans
 
 Plans:
-- [ ] 09-01: TBD
-- [ ] 09-02: TBD
-- [ ] 09-03: TBD
+- [ ] 09-01-PLAN.md — Platform interaction functions (tap/swipe/type) + action subcommands with element targeting
+- [ ] 09-02-PLAN.md — Screenshot functions, OCR module, and verify text subcommand
 
 ### Phase 10: mbridge Skill Integration
 **Goal**: mbridge is usable as a Claude Code skill that leverages app code knowledge and mobilecli's existing context/cache
@@ -191,5 +190,5 @@ Phases execute in numeric order: 1 -> 2 -> 3 -> 4 -> 5 -> 6 -> 7 -> 8 -> 9 -> 10
 | 6. Global Config + Verification | 0/2 | Not started | - |
 | 7. mbridge CLI Foundation | 2/3 | Gap closure | - |
 | 8. mbridge UI Parsing | 1/2 | In Progress|  |
-| 9. mbridge Interaction + OCR | 0/3 | Not started | - |
+| 9. mbridge Interaction + OCR | 0/2 | Not started | - |
 | 10. mbridge Skill Integration | 0/2 | Not started | - |
