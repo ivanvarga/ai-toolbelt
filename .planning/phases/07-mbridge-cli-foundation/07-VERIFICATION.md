@@ -1,35 +1,37 @@
 ---
 phase: 07-mbridge-cli-foundation
-verified: 2026-03-12T22:50:00Z
-status: gaps_found
-score: 9/12 must-haves verified
-gaps:
-  - truth: "Coordinate conversion module converts between logical points and physical pixels"
-    status: partial
-    reason: "coords.py exists with correct functions but is orphaned — nothing imports it. The plan key link (ios.py -> coords.py via 'from mbridge.coords') is not wired."
-    artifacts:
-      - path: "tools/mbridge/src/mbridge/coords.py"
-        issue: "6 lines (plan min_lines: 15) and completely unimported by any other module"
-    missing:
-      - "Import and use coords in ios.py (e.g., logical_to_physical called from get_device_info or documented in module as the conversion context for screen info)"
-      - "Alternatively: explicit note in PLAN/SUMMARY that coords is intentionally a standalone utility for Phase 8+ — but if so, the key_link in 07-02-PLAN.md is incorrect and should be removed or deferred"
-  - truth: "Device info includes screen width, height, and scale/density"
-    status: partial
-    reason: "iOS device info returns screen.scale only when device is booted (getenv path). When device is shutdown and fallback 'xcrun simctl io enumerate' is used, scale is never populated — it stays null. Android device info returns 'density' not 'scale' (different key name, correctly documented per platform)."
-    artifacts:
-      - path: "tools/mbridge/src/mbridge/platforms/ios.py"
-        issue: "_get_screen_info: enumerate fallback path never populates screen['scale'], returns None on shutdown simulators"
-    missing:
-      - "Either: accept scale=null as valid for shutdown simulators (document as expected behavior), OR attempt to derive scale from deviceTypeIdentifier in the fallback path"
-      - "This gap is minor/acceptable if null scale for shutdown devices is intentional — requires human judgment"
+verified: 2026-03-13T10:45:00Z
+status: passed
+score: 12/12 must-haves verified
+re_verification:
+  previous_status: gaps_found
+  previous_score: 9/12
+  gaps_closed:
+    - "Coordinate conversion module converts between logical points and physical pixels"
+    - "coords.py is imported and used by ios.py for coordinate conversion context in device info"
+  gaps_remaining: []
+  regressions: []
+human_verification:
+  - test: "Run `mbridge device list --platform ios` on a macOS machine with Xcode installed"
+    expected: "JSON array with id, name, platform=ios, type=simulator, state, os_version fields"
+    why_human: "Requires xcrun simctl available; simulator availability varies per machine"
+  - test: "Run `mbridge device info <udid>` for a booted simulator"
+    expected: "Screen dict includes logical_width and logical_height in addition to physical width/height/scale"
+    why_human: "Requires a live booted simulator; verifies the new logical dimension enrichment end-to-end"
+  - test: "Run `mbridge device info <udid>` for a shutdown simulator"
+    expected: "Screen dict has width/height from enumerate fallback, no logical_width/logical_height keys (scale is null)"
+    why_human: "Requires a shutdown simulator; confirms graceful None-safe handling of screen_logical_size"
+  - test: "Run `node tools/mbridge/setup.js` on a clean machine"
+    expected: "Installs mbridge via uv tool install, prints success message"
+    why_human: "Fresh install path requires a clean environment without mbridge already present"
 ---
 
 # Phase 7: mbridge CLI Foundation Verification Report
 
 **Phase Goal:** mbridge is an installable Python CLI that can discover connected iOS simulators and Android emulators
-**Verified:** 2026-03-12T22:50:00Z
-**Status:** gaps_found
-**Re-verification:** No — initial verification
+**Verified:** 2026-03-13T10:45:00Z
+**Status:** passed
+**Re-verification:** Yes — after gap closure (plan 07-03, commit cec5bc4)
 
 ## Goal Achievement
 
@@ -37,20 +39,20 @@ gaps:
 
 | # | Truth | Status | Evidence |
 |---|-------|--------|---------|
-| 1 | Running `uv tool install` from tools/mbridge/ installs mbridge CLI globally | VERIFIED | pyproject.toml has valid entrypoint `mbridge = "mbridge.cli:cli"`, hatchling build backend, setup.js wired correctly |
+| 1 | Running `uv tool install` from tools/mbridge/ installs mbridge CLI globally | VERIFIED | pyproject.toml has valid entrypoint `mbridge = "mbridge.cli:cli"`, hatchling build backend, setup.js wired |
 | 2 | `mbridge --help` shows root group with device, app, action, verify, ui subgroups | VERIFIED | cli.py registers all 5 via add_command(), all have docstrings |
 | 3 | `mbridge device --help` shows list, boot, info subcommands | VERIFIED | device.py has all three commands with arguments and options |
 | 4 | `mbridge app --help` shows list, foreground, launch, open-url subcommands | VERIFIED | app.py has all four commands |
 | 5 | Click command structure uses nested groups with help text for all commands | VERIFIED | All groups have docstrings; all commands have help text |
-| 6 | `mbridge device list` returns JSON array of connected iOS simulators and Android devices | VERIFIED | device.py list_devices calls both platform modules, outputs result via output() |
+| 6 | `mbridge device list` returns JSON array of connected iOS simulators and Android devices | VERIFIED | device.py list_devices calls both platform modules, outputs via output() |
 | 7 | `mbridge device list --platform ios/android` filters correctly | VERIFIED | --platform Choice option wired, each branch calls correct platform module |
-| 8 | `mbridge device info <id>` returns extended device info including screen dimensions | PARTIAL | Works for booted simulators; screen.scale returns null for shutdown simulators (enumerate fallback has no scale source) |
+| 8 | `mbridge device info <id>` returns extended device info including screen dimensions | VERIFIED | Screen dict includes width, height, scale; logical_width/logical_height added when scale is available; None-safe for shutdown simulators |
 | 9 | `mbridge device boot <id>` boots an iOS simulator | VERIFIED | boot_device() calls xcrun simctl boot, handles already-booted case |
-| 10 | `mbridge app list/launch/open-url` work on discovered devices | VERIFIED | All four app commands delegate to _call_platform() which detects iOS/Android and calls correct platform function |
+| 10 | `mbridge app list/launch/open-url` work on discovered devices | VERIFIED | All four app commands delegate to _call_platform() which detects iOS/Android |
 | 11 | Device list entries have fields: id, name, platform, type, state, os_version | VERIFIED | Both ios.list_devices() and android.list_devices() return all six required fields |
-| 12 | Coordinate conversion module converts between logical points and physical pixels | FAILED | coords.py exists with correct functions (logical_to_physical, physical_to_logical) but is completely orphaned — no module imports it. Plan key link (ios.py -> coords.py via 'from mbridge.coords') is not wired. |
+| 12 | Coordinate conversion module converts between logical points and physical pixels | VERIFIED | coords.py is 41 lines with module docstring, function docstrings, and screen_logical_size helper; ios.py imports and uses screen_logical_size at line 7 and line 64 |
 
-**Score:** 9/12 truths verified (10/12 if null-scale-on-shutdown is accepted as intentional)
+**Score:** 12/12 truths verified
 
 ### Required Artifacts
 
@@ -58,39 +60,39 @@ gaps:
 |----------|----------|--------|---------|
 | `tools/mbridge/pyproject.toml` | Package config with Click dep and mbridge entrypoint | VERIFIED | Contains `mbridge = "mbridge.cli:cli"`, click>=8.0, requires-python>=3.12 |
 | `tools/mbridge/src/mbridge/cli.py` | Root Click group registering all subgroups | VERIFIED | 24 lines, imports all 5 subgroups, registers via add_command() |
-| `tools/mbridge/src/mbridge/device.py` | Device commands with real platform logic | VERIFIED | 94 lines, real xcrun/adb calls via platform modules, platform detection implemented |
+| `tools/mbridge/src/mbridge/device.py` | Device commands with real platform logic | VERIFIED | 94 lines, real xcrun/adb calls via platform modules |
 | `tools/mbridge/src/mbridge/app.py` | App commands with real platform logic | VERIFIED | 76 lines, all 4 commands wired to _call_platform() helper |
-| `tools/mbridge/setup.js` | uv auto-install script following existing setup.js patterns | VERIFIED | Checks existing install, checks uv, runs uv tool install, prints status messages |
-| `tools/mbridge/src/mbridge/platforms/ios.py` | xcrun simctl wrapper for iOS simulator discovery and interaction | VERIFIED | 173 lines (>80 min), all required functions present and substantive |
-| `tools/mbridge/src/mbridge/platforms/android.py` | adb wrapper for Android device discovery and interaction | VERIFIED | 179 lines (>80 min), all required functions present and substantive |
-| `tools/mbridge/src/mbridge/coords.py` | Coordinate conversion between logical points and physical pixels | ORPHANED | 6 lines (plan min_lines: 15), correct functions exist but no module imports or uses them |
+| `tools/mbridge/setup.js` | uv auto-install script following existing setup.js patterns | VERIFIED | Checks existing install, checks uv, runs uv tool install |
+| `tools/mbridge/src/mbridge/platforms/ios.py` | xcrun simctl wrapper for iOS simulator discovery and interaction | VERIFIED | 178 lines, all required functions present; imports screen_logical_size from coords |
+| `tools/mbridge/src/mbridge/platforms/android.py` | adb wrapper for Android device discovery and interaction | VERIFIED | 179 lines, all required functions present and substantive |
+| `tools/mbridge/src/mbridge/coords.py` | Coordinate conversion between logical points and physical pixels | VERIFIED | 41 lines (plan min_lines: 15 — passed); module docstring, per-function docstrings, screen_logical_size helper; imported by ios.py |
 
 ### Key Link Verification
 
 | From | To | Via | Status | Details |
 |------|----|-----|--------|---------|
-| `cli.py` | `device.py` | `cli.add_command(device)` | WIRED | cli.py line 19: `cli.add_command(device)` |
-| `cli.py` | `app.py` | `cli.add_command(app)` | WIRED | cli.py line 20: `cli.add_command(app)` |
+| `cli.py` | `device.py` | `cli.add_command(device)` | WIRED | cli.py line 19 |
+| `cli.py` | `app.py` | `cli.add_command(app)` | WIRED | cli.py line 20 |
 | `pyproject.toml` | `cli.py` | `[project.scripts]` entrypoint | WIRED | `mbridge = "mbridge.cli:cli"` at line 11 |
-| `device.py` | `platforms/ios.py` | `from mbridge.platforms import ... ios` | WIRED | device.py line 4: `from mbridge.platforms import android, ios` |
-| `device.py` | `platforms/android.py` | `from mbridge.platforms import ... android` | WIRED | device.py line 4: `from mbridge.platforms import android, ios` |
-| `app.py` | `platforms/ios.py` | `from mbridge.platforms import ... ios` | WIRED | app.py line 4: `from mbridge.platforms import android, ios` |
-| `platforms/ios.py` | `coords.py` | `from mbridge.coords` | NOT WIRED | No import of coords anywhere in ios.py — coords module is completely orphaned |
+| `device.py` | `platforms/ios.py` | `from mbridge.platforms import ... ios` | WIRED | device.py line 4 |
+| `device.py` | `platforms/android.py` | `from mbridge.platforms import ... android` | WIRED | device.py line 4 |
+| `app.py` | `platforms/ios.py` | `from mbridge.platforms import ... ios` | WIRED | app.py line 4 |
+| `platforms/ios.py` | `coords.py` | `from mbridge.coords import screen_logical_size` | WIRED | ios.py line 7; used at line 64 inside get_device_info |
 
 ### Requirements Coverage
 
 | Requirement | Source Plan | Description | Status | Evidence |
 |-------------|-------------|-------------|--------|---------|
-| MBRD-01 | 07-01-PLAN.md | Python CLI with uv + Click, installable via `uv tool install` | SATISFIED | pyproject.toml with hatchling + Click entrypoint exists; setup.js automates install; CLI responds to --help on all groups |
+| MBRD-01 | 07-01-PLAN.md | Python CLI with uv + Click, installable via `uv tool install` | SATISFIED | pyproject.toml with hatchling + Click entrypoint; setup.js automates install; CLI groups respond to --help |
 | MBRD-02 | 07-02-PLAN.md | Device discovery for iOS simulators and Android emulators | SATISFIED | ios.list_devices() via xcrun simctl JSON, android.list_devices() via adb devices -l; both return required field schema; `mbridge device list` wires to both |
 
-Both MBRD-01 and MBRD-02 are the only requirements mapped to Phase 7 in REQUIREMENTS.md (lines 99-100). No orphaned requirements found.
+No orphaned requirements. MBRD-01 and MBRD-02 are the only IDs mapped to Phase 7 in REQUIREMENTS.md. Both satisfied.
 
 ### Anti-Patterns Found
 
 | File | Line | Pattern | Severity | Impact |
 |------|------|---------|----------|--------|
-| None | — | — | — | No TODO/FIXME/placeholder/stub anti-patterns found in any mbridge source file |
+| None | — | — | — | No TODO/FIXME/placeholder/stub anti-patterns in any mbridge source file |
 
 ### Human Verification Required
 
@@ -100,29 +102,33 @@ Both MBRD-01 and MBRD-02 are the only requirements mapped to Phase 7 in REQUIREM
 **Expected:** JSON array of available simulators with id, name, platform="ios", type="simulator", state, os_version fields. os_version should look like "iOS 17.2" not a raw runtime key.
 **Why human:** Requires xcrun simctl to be available; simulator availability varies per machine.
 
-#### 2. Screen Info for Shutdown Simulator
+#### 2. Logical Screen Dimensions — Booted Simulator
+
+**Test:** Run `mbridge device info <udid>` where the simulator is in "Booted" state.
+**Expected:** Screen dict contains width, height, scale, logical_width, and logical_height. logical_width = round(width / scale).
+**Why human:** Requires a live booted simulator; verifies the new logical dimension enrichment from the gap closure.
+
+#### 3. Logical Screen Dimensions — Shutdown Simulator
 
 **Test:** Run `mbridge device info <udid>` where the simulator is in "Shutdown" state.
-**Expected:** Screen width and height populated from `xcrun simctl io enumerate` fallback; scale may be null.
-**Why human:** Requires a shutdown simulator; need to confirm whether null scale is acceptable output or should be treated as a bug.
+**Expected:** Screen dict contains width/height from enumerate fallback; no logical_width/logical_height keys (scale is null, screen_logical_size returns None).
+**Why human:** Requires a shutdown simulator; confirms graceful None-safe behavior.
 
-#### 3. setup.js Fresh Install Path
+#### 4. setup.js Fresh Install Path
 
 **Test:** Run `node tools/mbridge/setup.js` on a machine where mbridge is NOT already installed.
 **Expected:** Runs uv tool install, prints "mbridge installed successfully."
 **Why human:** The "already installed" branch is verifiable programmatically but the fresh install path requires a clean environment.
 
-### Gaps Summary
+### Gap Closure Summary
 
-Two gaps identified:
+**Gap 1 — coords.py orphaned (closed).**
+coords.py was at 6 lines with no importers. Plan 07-03 expanded it to 41 lines with a module docstring explaining iOS point-space vs Android pixel-space philosophy, function docstrings for both conversion functions, and a new `screen_logical_size` helper with None-safe handling. ios.py now imports `screen_logical_size` at line 7 and calls it in `get_device_info` at line 64, adding `logical_width` and `logical_height` to the screen dict when scale is available. Commit cec5bc4 confirms this change.
 
-**Gap 1 — coords.py is orphaned (blocker for truth #12).**
-The `coords.py` module exists at 6 lines with correct functions (`logical_to_physical`, `physical_to_logical`), but no other module imports it. The plan explicitly defined a key link from `ios.py` → `coords.py` via `from mbridge.coords`. This link was not implemented. The PLAN frontmatter also specifies `min_lines: 15` for this artifact; at 6 lines it fails the substantive check. The module is ready for Phase 8+ but the plan required it to be wired from ios.py as "screen info includes coord conversion context."
-
-**Gap 2 — screen.scale is null for shutdown simulators (minor/partial, truth #8).**
-When an iOS simulator is in Shutdown state, `getenv SIMULATOR_MAINSCREEN_SCALE` fails and the fallback `xcrun simctl io enumerate` does not emit a scale value. The `screen["scale"]` field returns `null` in this case. Whether this is acceptable behavior is a judgment call — the plan says "Scale may not be available from enumerate — omit if not parseable" which suggests the implementation matches intent. This may require human confirmation rather than code change.
+**Gap 2 — screen.scale null for shutdown simulators (resolved as intended behavior).**
+As documented in 07-03-PLAN.md key decisions: `screen_logical_size` returns None when scale is None or 0. The `get_device_info` function only adds logical dimensions when `screen_logical_size` returns a non-None value. Null scale on shutdown simulators is now explicitly handled and documented — no logical dimension keys are emitted, avoiding null clutter in the output. This is correct behavior per the plan.
 
 ---
 
-_Verified: 2026-03-12T22:50:00Z_
+_Verified: 2026-03-13T10:45:00Z_
 _Verifier: Claude (gsd-verifier)_
