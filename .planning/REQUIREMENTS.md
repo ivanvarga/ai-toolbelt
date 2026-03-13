@@ -42,7 +42,7 @@ Requirements for initial release. Each maps to roadmap phases.
 - [x] **MBRD-03**: UI dump parsing — iOS JSON and Android XML
 - [x] **MBRD-04**: Basic interaction commands — tap, swipe, text input
 - [x] **MBRD-05**: Element finding by accessibility ID, text, XPath
-- [ ] **MBRD-06**: OCR-based UI verification via pytesseract
+- [x] **MBRD-06**: OCR-based UI verification via pytesseract
 - [ ] **MBRD-07**: mbridge SKILL.md that leverages app code knowledge and mobilecli context/cache
 
 ## v2 Requirements
@@ -101,7 +101,7 @@ Which phases cover which requirements. Updated during roadmap creation.
 | MBRD-03 | Phase 8 | Complete |
 | MBRD-04 | Phase 9 | Complete |
 | MBRD-05 | Phase 8 | Complete |
-| MBRD-06 | Phase 9 | Pending |
+| MBRD-06 | Phase 9 | Complete |
 | MBRD-07 | Phase 10 | Pending |
 
 **Coverage:**
