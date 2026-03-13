@@ -4,6 +4,8 @@ import re
 import shutil
 import subprocess
 
+from mbridge.coords import screen_logical_size
+
 
 def require_xcrun():
     if not shutil.which("xcrun"):
@@ -59,6 +61,9 @@ def get_device_info(device_id):
         raise RuntimeError(f"iOS device not found: {device_id}")
 
     screen = _get_screen_info(device_id)
+    logical = screen_logical_size(screen["width"], screen["height"], screen["scale"])
+    if logical:
+        screen["logical_width"], screen["logical_height"] = logical
     base = {k: v for k, v in device.items() if not k.startswith("_")}
     base["screen"] = screen
     base["architecture"] = "arm64"
