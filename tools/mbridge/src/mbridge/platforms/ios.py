@@ -184,6 +184,26 @@ def open_url(device_id, url):
     return {"id": device_id, "url": url, "status": "opened"}
 
 
+def tap(device_id, x, y):
+    require_idb()
+    run_cmd(["idb", "ui", "tap", str(x), str(y), "--udid", device_id])
+
+
+def swipe(device_id, x_start, y_start, x_end, y_end):
+    require_idb()
+    run_cmd(["idb", "ui", "swipe", str(x_start), str(y_start), str(x_end), str(y_end), "--udid", device_id])
+
+
+def type_text(device_id, text):
+    require_idb()
+    run_cmd(["idb", "ui", "text", text, "--udid", device_id])
+
+
+def key_press(device_id, key_code):
+    require_idb()
+    run_cmd(["idb", "ui", "key", str(key_code), "--udid", device_id])
+
+
 def dump_ui(device_id):
     require_idb()
     result = subprocess.run(

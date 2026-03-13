@@ -2,6 +2,8 @@ import re
 import shutil
 import subprocess
 
+SHELL_META_CHARS = r'&()<>|;*\"\'~`'
+
 
 def require_adb():
     if not shutil.which("adb"):
@@ -176,6 +178,42 @@ def open_url(device_id, url):
         "am", "start", "-a", "android.intent.action.VIEW", "-d", url,
     ])
     return {"id": device_id, "url": url, "status": "opened"}
+
+
+def tap(device_id, x, y):
+    require_adb()
+    run_cmd(["adb", "-s", device_id, "shell", "input", "tap", str(x), str(y)])
+
+
+def swipe(device_id, x_start, y_start, x_end, y_end, duration_ms=300):
+    require_adb()
+    run_cmd([
+        "adb", "-s", device_id, "shell", "input", "swipe",
+        str(x_start), str(y_start), str(x_end), str(y_end), str(duration_ms),
+    ])
+
+
+def _encode_adb_text(text):
+    encoded = text.replace("%", "%%")
+    encoded = encoded.replace(" ", "%s")
+    result = []
+    for ch in encoded:
+        if ch in SHELL_META_CHARS:
+            result.append("\\" + ch)
+        else:
+            result.append(ch)
+    return "".join(result)
+
+
+def type_text(device_id, text):
+    require_adb()
+    encoded = _encode_adb_text(text)
+    run_cmd(["adb", "-s", device_id, "shell", "input", "text", encoded])
+
+
+def keyevent(device_id, keycode):
+    require_adb()
+    run_cmd(["adb", "-s", device_id, "shell", "input", "keyevent", str(keycode)])
 
 
 def dump_ui(device_id):
