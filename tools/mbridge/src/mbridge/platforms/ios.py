@@ -14,6 +14,13 @@ def require_xcrun():
         )
 
 
+def require_idb():
+    if not shutil.which("idb"):
+        raise RuntimeError(
+            "idb not found. Install: brew tap facebook/fb && brew install idb-companion"
+        )
+
+
 def run_cmd(args, parse_json=False):
     result = subprocess.run(args, capture_output=True, text=True)
     if result.returncode != 0:
@@ -175,3 +182,15 @@ def open_url(device_id, url):
     require_xcrun()
     run_cmd(["xcrun", "simctl", "openurl", device_id, url])
     return {"id": device_id, "url": url, "status": "opened"}
+
+
+def dump_ui(device_id):
+    require_idb()
+    result = subprocess.run(
+        ["idb", "ui", "describe-all", "--udid", device_id],
+        capture_output=True,
+        text=True,
+    )
+    if result.returncode != 0:
+        raise RuntimeError(result.stderr.strip() or "idb ui describe-all failed")
+    return json.loads(result.stdout)

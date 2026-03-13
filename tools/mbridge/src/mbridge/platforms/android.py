@@ -176,3 +176,15 @@ def open_url(device_id, url):
         "am", "start", "-a", "android.intent.action.VIEW", "-d", url,
     ])
     return {"id": device_id, "url": url, "status": "opened"}
+
+
+def dump_ui(device_id):
+    require_adb()
+    result = subprocess.run(
+        ["adb", "-s", device_id, "exec-out", "uiautomator", "dump", "/dev/tty"],
+        capture_output=True,
+        text=True,
+    )
+    if result.returncode != 0:
+        raise RuntimeError(result.stderr.strip() or "uiautomator dump failed")
+    return result.stdout
