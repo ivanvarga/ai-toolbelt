@@ -190,6 +190,6 @@ Phases execute in numeric order: 1 -> 2 -> 3 -> 4 -> 5 -> 6 -> 7 -> 8 -> 9 -> 10
 | 5. Credential System | 0/3 | Not started | - |
 | 6. Global Config + Verification | 0/2 | Not started | - |
 | 7. mbridge CLI Foundation | 2/3 | Gap closure | - |
-| 8. mbridge UI Parsing | 0/2 | Not started | - |
+| 8. mbridge UI Parsing | 1/2 | In Progress|  |
 | 9. mbridge Interaction + OCR | 0/3 | Not started | - |
 | 10. mbridge Skill Integration | 0/2 | Not started | - |

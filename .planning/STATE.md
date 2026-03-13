@@ -2,16 +2,16 @@
 gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
-status: completed
-stopped_at: Phase 8 context gathered
-last_updated: "2026-03-13T12:58:37.917Z"
-last_activity: "2026-03-13 -- Completed 07-03-PLAN.md (gap closure: coords wiring)"
+status: in-progress
+stopped_at: Completed 08-01-PLAN.md
+last_updated: "2026-03-13T13:25:06Z"
+last_activity: "2026-03-13 -- Completed 08-01-PLAN.md (parsing infrastructure)"
 progress:
   total_phases: 10
   completed_phases: 7
-  total_plans: 17
-  completed_plans: 17
-  percent: 100
+  total_plans: 19
+  completed_plans: 18
+  percent: 95
 ---
 
 # Project State
@@ -21,16 +21,16 @@ progress:
 See: .planning/PROJECT.md (updated 2026-03-11)
 
 **Core value:** One repo, one install command -- every custom skill, credential setup, and dev tool available on any machine, always up to date.
-**Current focus:** Phase 7: mbridge CLI Foundation
+**Current focus:** Phase 8: mbridge UI Parsing
 
 ## Current Position
 
-Phase: 7 of 10 (mbridge CLI Foundation)
-Plan: 3 of 3 complete in current phase
-Status: Phase Complete
-Last activity: 2026-03-13 -- Completed 07-03-PLAN.md (gap closure: coords wiring)
+Phase: 8 of 10 (mbridge UI Parsing)
+Plan: 1 of 2 complete in current phase
+Status: In Progress
+Last activity: 2026-03-13 -- Completed 08-01-PLAN.md (parsing infrastructure)
 
-Progress: [██████████] 100%
+Progress: [██████████] 95%
 
 ## Performance Metrics
 
@@ -67,6 +67,7 @@ Progress: [██████████] 100%
 | Phase 07 P01 | 2min | 2 tasks | 11 files |
 | Phase 07 P02 | 2min | 2 tasks | 5 files |
 | Phase 07 P03 | 2min | 1 tasks | 2 files |
+| Phase 08 P01 | 3min | 2 tasks | 13 files |
 
 ## Accumulated Context
 
@@ -119,6 +120,10 @@ Recent decisions affecting current work:
 - [Phase 07]: Android returns empty list when adb unavailable for unfiltered device list
 - [Phase 07]: screen_logical_size returns None when scale is unavailable (shutdown simulators)
 - [Phase 07]: logical_width and logical_height added to screen dict only when computable
+- [Phase 08]: idb called as CLI subprocess (not fb-idb Python import) consistent with xcrun/adb pattern
+- [Phase 08]: iOS elements have children=[] (idb returns flat list per known limitation)
+- [Phase 08]: Android accessibility_id prefers content-desc, falls back to resource-id with package stripped
+- [Phase 08]: Integer division for compute_center; float iOS frame values rounded to int
 
 ### Pending Todos
 
@@ -131,6 +136,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-03-13T12:58:37.915Z
-Stopped at: Phase 8 context gathered
-Resume file: .planning/phases/08-mbridge-ui-parsing/08-CONTEXT.md
+Last session: 2026-03-13T13:25:06Z
+Stopped at: Completed 08-01-PLAN.md
+Resume file: .planning/phases/08-mbridge-ui-parsing/08-01-SUMMARY.md

@@ -39,7 +39,7 @@ Requirements for initial release. Each maps to roadmap phases.
 
 - [x] **MBRD-01**: Python CLI with uv + Click, installable via `uv tool install`
 - [x] **MBRD-02**: Device discovery for iOS simulators and Android emulators
-- [ ] **MBRD-03**: UI dump parsing — iOS JSON and Android XML
+- [x] **MBRD-03**: UI dump parsing — iOS JSON and Android XML
 - [ ] **MBRD-04**: Basic interaction commands — tap, swipe, text input
 - [ ] **MBRD-05**: Element finding by accessibility ID, text, XPath
 - [ ] **MBRD-06**: OCR-based UI verification via pytesseract
@@ -98,7 +98,7 @@ Which phases cover which requirements. Updated during roadmap creation.
 | CONF-01 | Phase 6 | Complete |
 | MBRD-01 | Phase 7 | Complete |
 | MBRD-02 | Phase 7 | Complete |
-| MBRD-03 | Phase 8 | Pending |
+| MBRD-03 | Phase 8 | Complete |
 | MBRD-04 | Phase 9 | Pending |
 | MBRD-05 | Phase 8 | Pending |
 | MBRD-06 | Phase 9 | Pending |
