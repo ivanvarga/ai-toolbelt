@@ -2,10 +2,10 @@
 gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
-status: completed
-stopped_at: Phase 9 context gathered
-last_updated: "2026-03-13T14:13:00.606Z"
-last_activity: 2026-03-13 -- Completed 08-02-PLAN.md (query engine and CLI)
+status: in-progress
+stopped_at: Completed 09-01-PLAN.md
+last_updated: "2026-03-13T14:40:00Z"
+last_activity: 2026-03-13 -- Completed 09-01-PLAN.md (interaction commands)
 progress:
   total_phases: 10
   completed_phases: 8
@@ -21,14 +21,14 @@ progress:
 See: .planning/PROJECT.md (updated 2026-03-11)
 
 **Core value:** One repo, one install command -- every custom skill, credential setup, and dev tool available on any machine, always up to date.
-**Current focus:** Phase 8: mbridge UI Parsing
+**Current focus:** Phase 9: mbridge Interaction + OCR
 
 ## Current Position
 
-Phase: 8 of 10 (mbridge UI Parsing)
-Plan: 2 of 2 complete in current phase
-Status: Phase Complete
-Last activity: 2026-03-13 -- Completed 08-02-PLAN.md (query engine and CLI)
+Phase: 9 of 10 (mbridge Interaction + OCR)
+Plan: 1 of 2 complete in current phase
+Status: In Progress
+Last activity: 2026-03-13 -- Completed 09-01-PLAN.md (interaction commands)
 
 Progress: [██████████] 100%
 
@@ -69,6 +69,7 @@ Progress: [██████████] 100%
 | Phase 07 P03 | 2min | 1 tasks | 2 files |
 | Phase 08 P01 | 3min | 2 tasks | 13 files |
 | Phase 08 P02 | 2min | 2 tasks | 3 files |
+| Phase 09 P01 | 2min | 1 tasks | 4 files |
 
 ## Accumulated Context
 
@@ -127,6 +128,10 @@ Recent decisions affecting current work:
 - [Phase 08]: Integer division for compute_center; float iOS frame values rounded to int
 - [Phase 08]: XPath queries auto-prefixed with . (ElementTree requires relative paths on elements)
 - [Phase 08]: Shared _capture_dump helper extracts dump logic for reuse between dump and find subcommands
+- [Phase 09]: Escape sequences parsed from raw backslash-letter input for CLI-friendly usage
+- [Phase 09]: Android text encoding handles %/space/shell metacharacters via _encode_adb_text helper
+- [Phase 09]: iOS clear sends 500 backspaces; Android sends MOVE_END then 200 DEL keyevents
+- [Phase 09]: type command named type_text_cmd internally to avoid Python builtin shadowing
 
 ### Pending Todos
 
@@ -139,6 +144,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-03-13T14:13:00.604Z
-Stopped at: Phase 9 context gathered
-Resume file: .planning/phases/09-mbridge-interaction-ocr/09-CONTEXT.md
+Last session: 2026-03-13T14:40:00Z
+Stopped at: Completed 09-01-PLAN.md
+Resume file: .planning/phases/09-mbridge-interaction-ocr/09-01-SUMMARY.md

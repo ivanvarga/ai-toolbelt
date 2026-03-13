@@ -158,7 +158,7 @@ Plans:
 **Plans**: 2 plans
 
 Plans:
-- [ ] 09-01-PLAN.md — Platform interaction functions (tap/swipe/type) + action subcommands with element targeting
+- [x] 09-01-PLAN.md — Platform interaction functions (tap/swipe/type) + action subcommands with element targeting
 - [ ] 09-02-PLAN.md — Screenshot functions, OCR module, and verify text subcommand
 
 ### Phase 10: mbridge Skill Integration
@@ -190,5 +190,5 @@ Phases execute in numeric order: 1 -> 2 -> 3 -> 4 -> 5 -> 6 -> 7 -> 8 -> 9 -> 10
 | 6. Global Config + Verification | 0/2 | Not started | - |
 | 7. mbridge CLI Foundation | 2/3 | Gap closure | - |
 | 8. mbridge UI Parsing | 1/2 | In Progress|  |
-| 9. mbridge Interaction + OCR | 0/2 | Not started | - |
+| 9. mbridge Interaction + OCR | 1/2 | In Progress | - |
 | 10. mbridge Skill Integration | 0/2 | Not started | - |
