@@ -140,12 +140,11 @@ Plans:
   2. Running `mbridge dump` on an Android emulator produces a parsed XML UI hierarchy
   3. Elements can be found by accessibility ID, text content, or XPath expression
   4. Element results include position coordinates sufficient for interaction
-**Plans**: TBD
+**Plans**: 2 plans
 
 Plans:
-- [ ] 08-01: TBD
-- [ ] 08-02: TBD
-- [ ] 08-03: TBD
+- [ ] 08-01-PLAN.md — Parsing infrastructure: normalize.py, ios_parser.py, android_parser.py with test fixtures and unit tests
+- [ ] 08-02-PLAN.md — Query engine (query.py) and CLI wiring (ui dump + ui find subcommands)
 
 ### Phase 9: mbridge Interaction + OCR
 **Goal**: mbridge can interact with device UIs via tap/swipe/text and verify results using OCR
@@ -191,6 +190,6 @@ Phases execute in numeric order: 1 -> 2 -> 3 -> 4 -> 5 -> 6 -> 7 -> 8 -> 9 -> 10
 | 5. Credential System | 0/3 | Not started | - |
 | 6. Global Config + Verification | 0/2 | Not started | - |
 | 7. mbridge CLI Foundation | 2/3 | Gap closure | - |
-| 8. mbridge UI Parsing | 0/3 | Not started | - |
+| 8. mbridge UI Parsing | 0/2 | Not started | - |
 | 9. mbridge Interaction + OCR | 0/3 | Not started | - |
 | 10. mbridge Skill Integration | 0/2 | Not started | - |
