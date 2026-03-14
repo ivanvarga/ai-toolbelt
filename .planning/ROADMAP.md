@@ -208,18 +208,20 @@ Plans:
 - [ ] 12-01-PLAN.md — Replace mobilecli references in pr-describe, pr-upload, pr-qa; remove dead coords.py exports
 
 ### Phase 13: Create attachment-documenter Agent
-**Goal**: The attachment-documenter agent definition exists in agents/ so skills referencing it via the Task tool can invoke it at runtime
+**Goal**: The attachment-documenter agent definition and orchestrating skill exist in the plugin so consumer skills can invoke it via the Agent tool at runtime
 **Depends on**: Phase 4
 **Requirements**: MIGR-02
 **Gap Closure**: Closes INT-03 from audit
 **Success Criteria** (what must be TRUE):
-  1. `agents/attachment-documenter/` contains a valid agent definition file
-  2. Skills that reference attachment-documenter (task-jira, sentry-investigate, task-github, pr-read) can invoke it via the Task tool without error
-  3. No `.gitkeep`-only state in `agents/` directory
-**Plans**: 0 plans
+  1. `agents/attachment-documenter.md` contains a valid agent definition with keychain-based auth
+  2. `skills/attachment-documenter/SKILL.md` acts as a catch-all orchestrating skill for attachment contexts
+  3. All 4 consumer skills (task-jira, sentry-investigate, task-github, pr-read) use named `subagent_type: "attachment-documenter"` via Agent tool
+  4. No `.gitkeep`-only state in `agents/` directory
+  5. Original files at `~/.claude/agents/` and `~/.claude/skills/attachment-documenter/` are removed
+**Plans**: 1 plan
 
 Plans:
-- (none yet)
+- [ ] 13-01-PLAN.md — Agent definition, orchestrating skill, consumer skill updates, cleanup
 
 ## Progress
 
@@ -240,4 +242,4 @@ Phases execute in numeric order: 1 -> 2 -> 3 -> 4 -> 5 -> 6 -> 7 -> 8 -> 9 -> 10
 | 10. mbridge Skill Integration | 1/1 | Complete | 2026-03-14 |
 | 11. mbridge Deploy + Setup Hardening | 1/1 | Complete   | 2026-03-14 |
 | 12. Purge mobilecli References | 1/1 | Complete    | 2026-03-14 |
-| 13. Create attachment-documenter Agent | 0/0 | Not started | - |
+| 13. Create attachment-documenter Agent | 0/1 | Not started | - |
