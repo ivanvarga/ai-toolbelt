@@ -87,7 +87,8 @@ Before fixing, determine impact:
 
 If the Sentry issue or event data contains screenshots or images:
 
-1. Invoke the `attachment-documenter` agent via Task tool, passing:
+1. Invoke the `attachment-documenter` agent via Agent tool with:
+   - subagent_type: "attachment-documenter"
    - Image URLs
    - Naming: `sentry_{issue-id}_{filename}`
    - Task context: error title + culprit + 1-2 sentence summary

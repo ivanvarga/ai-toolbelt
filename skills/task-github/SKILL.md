@@ -58,7 +58,8 @@ Present a summary covering:
 
 If the issue body or comments contain images (markdown `![` syntax or URLs ending in `.png`, `.jpg`, `.gif`, etc.):
 
-1. Invoke the `attachment-documenter` agent via Task tool with:
+1. Invoke the `attachment-documenter` agent via Agent tool with:
+   - subagent_type: "attachment-documenter"
    - The image URLs found
    - Naming convention: `gh-issue_{owner}-{repo}-{number}_{filename}`
    - Task context: issue title + 1-2 sentence description summary

@@ -68,7 +68,8 @@ gh api repos/{owner}/{repo}/pulls/{number}/reviews --jq '.[] | {user: .user.logi
 
 If the PR body, comments, or reviews contain images (markdown `![` syntax or URLs ending in `.png`, `.jpg`, `.gif`, etc.):
 
-1. Invoke the `attachment-documenter` agent via Task tool with:
+1. Invoke the `attachment-documenter` agent via Agent tool with:
+   - subagent_type: "attachment-documenter"
    - The image URLs found
    - Naming convention: `gh-pr_{owner}-{repo}-{number}_{filename}`
    - Task context: PR title + 1-2 sentence description summary

@@ -52,7 +52,8 @@ Always run this step even if you expect no attachments.
 
 If attachments exist and include images:
 
-1. Invoke the `attachment-documenter` agent via Task tool with:
+1. Invoke the `attachment-documenter` agent via Agent tool with:
+   - subagent_type: "attachment-documenter"
    - Jira attachment URLs: `https://stadion.atlassian.net/rest/api/3/attachment/content/<ATTACHMENT_ID>`
    - Naming convention: `jira_<TICKET>_<ATTACHMENT_ID>`
    - Task context: ticket title + description summary (1-2 sentences) so the agent can analyze images in context
