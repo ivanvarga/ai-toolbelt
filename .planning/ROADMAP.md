@@ -21,7 +21,7 @@ Decimal phases appear between their surrounding integers in numeric order.
 - [ ] **Phase 7: mbridge CLI Foundation** - Python CLI skeleton with device discovery
 - [ ] **Phase 8: mbridge UI Parsing** - UI dump parsing and element finding for iOS and Android
 - [ ] **Phase 9: mbridge Interaction + OCR** - Device interaction commands and OCR-based verification
-- [ ] **Phase 10: mbridge Skill Integration** - SKILL.md that connects mbridge to app code knowledge and mobilecli context
+- [x] **Phase 10: mbridge Skill Integration** - SKILL.md that connects mbridge to app code knowledge and mobilecli context (completed 2026-03-14)
 
 ## Phase Details
 
@@ -190,4 +190,4 @@ Phases execute in numeric order: 1 -> 2 -> 3 -> 4 -> 5 -> 6 -> 7 -> 8 -> 9 -> 10
 | 7. mbridge CLI Foundation | 2/3 | Gap closure | - |
 | 8. mbridge UI Parsing | 1/2 | In Progress|  |
 | 9. mbridge Interaction + OCR | 1/2 | In Progress | - |
-| 10. mbridge Skill Integration | 0/1 | Not started | - |
+| 10. mbridge Skill Integration | 1/1 | Complete   | 2026-03-14 |
