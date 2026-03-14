@@ -162,18 +162,17 @@ Plans:
 - [ ] 09-02-PLAN.md — Screenshot functions, OCR module, and verify text subcommand
 
 ### Phase 10: mbridge Skill Integration
-**Goal**: mbridge is usable as a Claude Code skill that leverages app code knowledge and mobilecli's existing context/cache
+**Goal**: mbridge is usable as a Claude Code skill with full command reference, app context bootstrapping, and doctor integration, replacing mobilecli entirely
 **Depends on**: Phase 9, Phase 4 (mobilecli skill must be converted)
 **Requirements**: MBRD-07
 **Success Criteria** (what must be TRUE):
   1. A SKILL.md for mbridge exists in the plugin skills/ directory with instructions for Claude Code
   2. The skill references mobilecli's context/cache system for app-specific knowledge (screen names, navigation patterns)
   3. Claude Code can use the mbridge skill to automate a basic multi-step mobile interaction (navigate, tap, verify)
-**Plans**: TBD
+**Plans**: 1 plan
 
 Plans:
-- [ ] 10-01: TBD
-- [ ] 10-02: TBD
+- [ ] 10-01-PLAN.md — mbridge SKILL.md (~500 lines), doctor check script, delete mobilecli
 
 ## Progress
 
@@ -191,4 +190,4 @@ Phases execute in numeric order: 1 -> 2 -> 3 -> 4 -> 5 -> 6 -> 7 -> 8 -> 9 -> 10
 | 7. mbridge CLI Foundation | 2/3 | Gap closure | - |
 | 8. mbridge UI Parsing | 1/2 | In Progress|  |
 | 9. mbridge Interaction + OCR | 1/2 | In Progress | - |
-| 10. mbridge Skill Integration | 0/2 | Not started | - |
+| 10. mbridge Skill Integration | 0/1 | Not started | - |
