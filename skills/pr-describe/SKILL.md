@@ -46,8 +46,10 @@ Options:
 
 #### If screenshots selected:
 
-1. Ask which device -- run `mobilecli devices` and present options
-2. Take "After" screenshot (current state): `mobilecli screenshot --device <id> -o /tmp/pr-after.png`
+1. Ask which device -- run `mbridge device list` and present options
+2. Take "After" screenshot (current state):
+   - iOS: `xcrun simctl io <device_id> screenshot /tmp/pr-after.png`
+   - Android: `adb -s <device_id> exec-out screencap -p > /tmp/pr-after.png`
 3. Ask if user has a "Before" screenshot or wants to capture one (e.g., by switching branches)
 4. Upload images using /tb:pr-upload
 5. Embed returned URLs in the Screenshots table

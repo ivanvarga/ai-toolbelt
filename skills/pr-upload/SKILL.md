@@ -51,11 +51,14 @@ Embed in markdown:
 ![description]($URL)
 ```
 
-## With mobilecli screenshots
+## With device screenshots
 
 ```bash
 PLUGIN_ROOT="${CLAUDE_SKILL_DIR}/../.."
-mobilecli screenshot --device <id> -o /tmp/screenshot.png
+# iOS:
+xcrun simctl io <device_id> screenshot /tmp/screenshot.png
+# Android:
+# adb -s <device_id> exec-out screencap -p > /tmp/screenshot.png
 URL=$(node "$PLUGIN_ROOT/scripts/github-api.js" upload /tmp/screenshot.png)
 echo "![screenshot]($URL)"
 ```

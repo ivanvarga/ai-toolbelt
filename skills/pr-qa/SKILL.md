@@ -47,7 +47,7 @@ Keep it short. QA knows the app and the CMS. Don't over-explain.
 
 ## Finding Data
 
-- **Deeplinks:** Check `.mobilecli/deeplinks.md` cache first. If not available, research via codebase (app.config.ts, linking config, route definitions).
+- **Deeplinks:** Check `.mbridge/deeplinks.md` cache first. If not available, research via codebase (app.config.ts, linking config, route definitions).
 - **CMS entry URLs:** Export entries via CLI, construct URL: `https://app.contentful.com/spaces/{spaceId}/environments/{envId}/entries/{entryId}`
 - **Content IDs:** Export a few entries of the relevant content type to get real `sys.id` values for deeplinks
 
