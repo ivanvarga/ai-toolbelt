@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: completed
-stopped_at: Completed 10-01-PLAN.md
-last_updated: "2026-03-14T07:40:12.099Z"
-last_activity: 2026-03-14 -- Completed 10-01-PLAN.md (mbridge SKILL.md + doctor check)
+stopped_at: Completed 11-01-PLAN.md
+last_updated: "2026-03-14T08:20:50.178Z"
+last_activity: 2026-03-14 -- Completed 11-01-PLAN.md (deploy + setup hardening)
 progress:
-  total_phases: 10
-  completed_phases: 10
-  total_plans: 22
-  completed_plans: 22
+  total_phases: 12
+  completed_phases: 11
+  total_plans: 23
+  completed_plans: 23
   percent: 100
 ---
 
@@ -21,14 +21,14 @@ progress:
 See: .planning/PROJECT.md (updated 2026-03-11)
 
 **Core value:** One repo, one install command -- every custom skill, credential setup, and dev tool available on any machine, always up to date.
-**Current focus:** Phase 10: mbridge Skill Integration
+**Current focus:** Phase 11: mbridge Deploy + Setup Hardening
 
 ## Current Position
 
-Phase: 10 of 10 (mbridge Skill Integration)
+Phase: 11 of 12 (mbridge Deploy + Setup Hardening)
 Plan: 1 of 1 complete in current phase
 Status: Phase Complete
-Last activity: 2026-03-14 -- Completed 10-01-PLAN.md (mbridge SKILL.md + doctor check)
+Last activity: 2026-03-14 -- Completed 11-01-PLAN.md (deploy + setup hardening)
 
 Progress: [██████████] 100%
 
@@ -72,6 +72,7 @@ Progress: [██████████] 100%
 | Phase 09 P01 | 2min | 1 tasks | 4 files |
 | Phase 09 P02 | 2min | 1 tasks | 6 files |
 | Phase 10 P01 | 3min | 2 tasks | 5 files |
+| Phase 11 P01 | 2min | 3 tasks | 3 files |
 
 ## Accumulated Context
 
@@ -139,6 +140,9 @@ Recent decisions affecting current work:
 - [Phase 10]: JSON config file at .mbridge/config.json for persistent device/bundle/scheme settings
 - [Phase 10]: Doctor check with 3 prerequisite checks: mbridge CLI, Python 3.12+, tesseract
 - [Phase 10]: Direct CLI skill pattern: no test-helpers.sh, no sourcing, each mbridge command is self-contained
+- [Phase 11]: click.version_option with __version__ import for CLI version detection
+- [Phase 11]: setup.js compares pyproject.toml version vs mbridge --version (replaces --help check)
+- [Phase 11]: Doctor check consolidated to 1 line with fast-path/slow-path pattern
 
 ### Pending Todos
 
@@ -151,6 +155,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-03-14T07:37:16.613Z
-Stopped at: Completed 10-01-PLAN.md
+Last session: 2026-03-14T08:20:50.176Z
+Stopped at: Completed 11-01-PLAN.md
 Resume file: None

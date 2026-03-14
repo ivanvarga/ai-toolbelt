@@ -22,7 +22,7 @@ Decimal phases appear between their surrounding integers in numeric order.
 - [ ] **Phase 8: mbridge UI Parsing** - UI dump parsing and element finding for iOS and Android
 - [ ] **Phase 9: mbridge Interaction + OCR** - Device interaction commands and OCR-based verification
 - [x] **Phase 10: mbridge Skill Integration** - SKILL.md that connects mbridge to app code knowledge and mobilecli context (completed 2026-03-14)
-- [ ] **Phase 11: mbridge Deploy + Setup Hardening** - Reinstall stale binary, harden setup.js version detection, fix doctor output
+- [x] **Phase 11: mbridge Deploy + Setup Hardening** - Reinstall stale binary, harden setup.js version detection, fix doctor output (completed 2026-03-14)
 - [ ] **Phase 12: Purge mobilecli References** - Replace all dead mobilecli references with mbridge equivalents, remove dead code
 
 ## Phase Details
@@ -223,5 +223,5 @@ Phases execute in numeric order: 1 -> 2 -> 3 -> 4 -> 5 -> 6 -> 7 -> 8 -> 9 -> 10
 | 8. mbridge UI Parsing | 1/2 | In Progress | - |
 | 9. mbridge Interaction + OCR | 1/2 | In Progress | - |
 | 10. mbridge Skill Integration | 1/1 | Complete | 2026-03-14 |
-| 11. mbridge Deploy + Setup Hardening | 0/1 | Not started | - |
+| 11. mbridge Deploy + Setup Hardening | 1/1 | Complete   | 2026-03-14 |
 | 12. Purge mobilecli References | 0/1 | Not started | - |
