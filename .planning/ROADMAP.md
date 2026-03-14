@@ -22,6 +22,8 @@ Decimal phases appear between their surrounding integers in numeric order.
 - [ ] **Phase 8: mbridge UI Parsing** - UI dump parsing and element finding for iOS and Android
 - [ ] **Phase 9: mbridge Interaction + OCR** - Device interaction commands and OCR-based verification
 - [x] **Phase 10: mbridge Skill Integration** - SKILL.md that connects mbridge to app code knowledge and mobilecli context (completed 2026-03-14)
+- [ ] **Phase 11: mbridge Deploy + Setup Hardening** - Reinstall stale binary, harden setup.js version detection, fix doctor output
+- [ ] **Phase 12: Purge mobilecli References** - Replace all dead mobilecli references with mbridge equivalents, remove dead code
 
 ## Phase Details
 
@@ -174,20 +176,52 @@ Plans:
 Plans:
 - [ ] 10-01-PLAN.md — mbridge SKILL.md (~500 lines), doctor check script, delete mobilecli
 
+### Phase 11: mbridge Deploy + Setup Hardening
+**Goal**: mbridge installed binary is current with source, setup.js detects staleness, and doctor output follows conventions
+**Depends on**: Phase 10
+**Requirements**: MBRD-03, MBRD-04, MBRD-05, MBRD-06
+**Gap Closure**: Closes INT-01, FLOW-01 from audit
+**Success Criteria** (what must be TRUE):
+  1. Running `mbridge ui dump` on a connected device succeeds (binary includes Phase 8-10 code)
+  2. setup.js detects when the installed binary version differs from source and triggers reinstall
+  3. tool-mbridge.sh doctor check emits exactly 1 output line per convention
+**Plans**: 1 plan
+
+Plans:
+- [ ] 11-01-PLAN.md — Reinstall binary, harden setup.js version detection, fix doctor output
+
+### Phase 12: Purge mobilecli References
+**Goal**: All references to the deleted mobilecli CLI are replaced with mbridge equivalents, dead code removed
+**Depends on**: Phase 11
+**Requirements**: MBRD-07
+**Gap Closure**: Closes INT-02, FLOW-02 from audit
+**Success Criteria** (what must be TRUE):
+  1. pr-describe SKILL.md uses mbridge commands instead of mobilecli for device screenshots
+  2. pr-upload SKILL.md uses mbridge commands instead of mobilecli for screenshots
+  3. pr-qa SKILL.md references `.mbridge/deeplinks.md` instead of `.mobilecli/deeplinks.md`
+  4. No remaining references to `mobilecli` in any SKILL.md file
+  5. coords.py has no unused exports (logical_to_physical, physical_to_logical removed or wired)
+**Plans**: 1 plan
+
+Plans:
+- [ ] 12-01-PLAN.md — Replace mobilecli references in pr-describe, pr-upload, pr-qa; remove dead coords.py exports
+
 ## Progress
 
 **Execution Order:**
-Phases execute in numeric order: 1 -> 2 -> 3 -> 4 -> 5 -> 6 -> 7 -> 8 -> 9 -> 10
+Phases execute in numeric order: 1 -> 2 -> 3 -> 4 -> 5 -> 6 -> 7 -> 8 -> 9 -> 10 -> 11 -> 12
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
-| 1. Plugin Scaffold | 1/1 | Complete   | 2026-03-11 |
+| 1. Plugin Scaffold | 1/1 | Complete | 2026-03-11 |
 | 2. Plugin Install + Operations | 2/2 | Complete | 2026-03-11 |
 | 3. Simple Skill Conversion | 0/2 | Not started | - |
-| 4. Complex Skill Conversion | 4/4 | Complete   | 2026-03-12 |
+| 4. Complex Skill Conversion | 4/4 | Complete | 2026-03-12 |
 | 5. Credential System | 0/3 | Not started | - |
 | 6. Global Config + Verification | 0/2 | Not started | - |
 | 7. mbridge CLI Foundation | 2/3 | Gap closure | - |
-| 8. mbridge UI Parsing | 1/2 | In Progress|  |
+| 8. mbridge UI Parsing | 1/2 | In Progress | - |
 | 9. mbridge Interaction + OCR | 1/2 | In Progress | - |
-| 10. mbridge Skill Integration | 1/1 | Complete    | 2026-03-14 |
+| 10. mbridge Skill Integration | 1/1 | Complete | 2026-03-14 |
+| 11. mbridge Deploy + Setup Hardening | 0/1 | Not started | - |
+| 12. Purge mobilecli References | 0/1 | Not started | - |
