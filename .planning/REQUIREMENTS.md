@@ -86,7 +86,7 @@ Which phases cover which requirements. Updated during roadmap creation.
 | PLUG-04 | Phase 2 | Complete |
 | PLUG-05 | Phase 2 | Complete |
 | MIGR-01 | Phase 3 | Complete |
-| MIGR-02 | Phase 4 | Complete |
+| MIGR-02 | Phase 4, Phase 13 | Complete |
 | MIGR-03 | Phase 4 | Complete |
 | MIGR-04 | Phase 4 | Complete |
 | MIGR-05 | Phase 6 | Complete |
