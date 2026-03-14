@@ -1,11 +1,24 @@
 #!/usr/bin/env node
 const { execSync } = require("child_process");
+const { readFileSync } = require("fs");
+const { join } = require("path");
 
+const pyproject = readFileSync(join(__dirname, "pyproject.toml"), "utf8");
+const sourceVersion = pyproject.match(/^version\s*=\s*"([^"]+)"/m)?.[1];
+
+let installedVersion;
 try {
-  execSync("mbridge --help", { stdio: "pipe" });
-  console.log("mbridge is already installed.");
-  process.exit(0);
+  const output = execSync("mbridge --version", {
+    stdio: "pipe",
+    encoding: "utf8",
+  });
+  installedVersion = output.match(/(\d+\.\d+\.\d+)/)?.[1];
 } catch {}
+
+if (installedVersion === sourceVersion) {
+  console.log("mbridge is up to date.");
+  process.exit(0);
+}
 
 try {
   execSync("which uv", { stdio: "pipe" });
