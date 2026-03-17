@@ -12,19 +12,19 @@ ai-toolbelt delivers a private Claude Code plugin that consolidates all custom c
 
 Decimal phases appear between their surrounding integers in numeric order.
 
-- [x] **Phase 1: Plugin Scaffold** - Establish plugin manifest, marketplace config, and directory structure (completed 2026-03-11)
-- [x] **Phase 2: Plugin Install + Operations** - Install script, update mechanism, health check, and session hook (completed 2026-03-11)
+- [x] **Phase 1: Plugin Scaffold** - Establish plugin manifest, marketplace config, and directory structure (completed 2015-03-11)
+- [x] **Phase 2: Plugin Install + Operations** - Install script, update mechanism, health check, and session hook (completed 2015-03-11)
 - [ ] **Phase 3: Simple Skill Conversion** - Convert 8 pure-markdown items to skill format in plugin
-- [x] **Phase 4: Complex Skill Conversion** - Convert 8 items with helper scripts and external tool dependencies to skill format (completed 2026-03-12)
+- [x] **Phase 4: Complex Skill Conversion** - Convert 8 items with helper scripts and external tool dependencies to skill format (completed 2015-03-12)
 - [ ] **Phase 5: Credential System** - Keychain-based credential setup for all skills needing secrets
 - [ ] **Phase 6: Global Config + Verification** - Distribute global CLAUDE.md and verify all 18 converted skills
 - [ ] **Phase 7: mbridge CLI Foundation** - Python CLI skeleton with device discovery
 - [ ] **Phase 8: mbridge UI Parsing** - UI dump parsing and element finding for iOS and Android
 - [ ] **Phase 9: mbridge Interaction + OCR** - Device interaction commands and OCR-based verification
-- [x] **Phase 10: mbridge Skill Integration** - SKILL.md that connects mbridge to app code knowledge and mobilecli context (completed 2026-03-14)
-- [x] **Phase 11: mbridge Deploy + Setup Hardening** - Reinstall stale binary, harden setup.js version detection, fix doctor output (completed 2026-03-14)
-- [x] **Phase 12: Purge mobilecli References** - Replace all dead mobilecli references with mbridge equivalents, remove dead code (completed 2026-03-14)
-- [x] **Phase 13: Create attachment-documenter Agent** - Create agent definition for attachment-documenter referenced by 4 skills (gap closure) (completed 2026-03-14)
+- [x] **Phase 10: mbridge Skill Integration** - SKILL.md that connects mbridge to app code knowledge and mobilecli context (completed 2015-03-14)
+- [x] **Phase 11: mbridge Deploy + Setup Hardening** - Reinstall stale binary, harden setup.js version detection, fix doctor output (completed 2015-03-14)
+- [x] **Phase 12: Purge mobilecli References** - Replace all dead mobilecli references with mbridge equivalents, remove dead code (completed 2015-03-14)
+- [x] **Phase 13: Create attachment-documenter Agent** - Create agent definition for attachment-documenter referenced by 4 skills (gap closure) (completed 2015-03-14)
 
 ## Phase Details
 
@@ -230,16 +230,26 @@ Phases execute in numeric order: 1 -> 2 -> 3 -> 4 -> 5 -> 6 -> 7 -> 8 -> 9 -> 10
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
-| 1. Plugin Scaffold | 1/1 | Complete | 2026-03-11 |
-| 2. Plugin Install + Operations | 2/2 | Complete | 2026-03-11 |
+| 1. Plugin Scaffold | 1/1 | Complete | 2015-03-11 |
+| 2. Plugin Install + Operations | 2/2 | Complete | 2015-03-11 |
 | 3. Simple Skill Conversion | 0/2 | Not started | - |
-| 4. Complex Skill Conversion | 4/4 | Complete | 2026-03-12 |
+| 4. Complex Skill Conversion | 4/4 | Complete | 2015-03-12 |
 | 5. Credential System | 0/3 | Not started | - |
 | 6. Global Config + Verification | 0/2 | Not started | - |
 | 7. mbridge CLI Foundation | 2/3 | Gap closure | - |
 | 8. mbridge UI Parsing | 1/2 | In Progress | - |
 | 9. mbridge Interaction + OCR | 1/2 | In Progress | - |
-| 10. mbridge Skill Integration | 1/1 | Complete | 2026-03-14 |
-| 11. mbridge Deploy + Setup Hardening | 1/1 | Complete   | 2026-03-14 |
-| 12. Purge mobilecli References | 1/1 | Complete    | 2026-03-14 |
-| 13. Create attachment-documenter Agent | 1/1 | Complete    | 2026-03-14 |
+| 10. mbridge Skill Integration | 1/1 | Complete | 2015-03-14 |
+| 11. mbridge Deploy + Setup Hardening | 1/1 | Complete   | 2015-03-14 |
+| 12. Purge mobilecli References | 1/1 | Complete    | 2015-03-14 |
+| 13. Create attachment-documenter Agent | 1/1 | Complete    | 2015-03-14 |
+
+### Phase 14: Per-Project Credential Scoping
+
+**Goal:** [To be planned]
+**Requirements**: TBD
+**Depends on:** Phase 13
+**Plans:** 0 plans
+
+Plans:
+- [ ] TBD (run /gsd:plan-phase 14 to break down)

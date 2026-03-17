@@ -1,6 +1,6 @@
 ---
 name: pr-describe
-description: Use when generating a PR description for the current branch, creating a pull request body with Jira context and screenshots, or when pr-submit needs a PR body.
+description: Use when the user asks to generate, write, draft, or create a PR description, pull request body, or PR summary for their current branch. This skill fetches Jira ticket context, captures before/after screenshots from iOS/Android simulators, and produces a structured PR body with Scope, Implementation, Screenshots, and Video sections. Trigger this whenever the user mentions writing a PR description, PR body, pull request summary, or documenting changes for a pull request — even casual requests like "write something for the PR" or "put together the PR text". Do NOT trigger for reading/reviewing existing PRs (use pr-read), adding QA steps to PRs (use pr-qa), uploading images to GitHub (use pr-upload), or shipping/committing code end-to-end (use pr-submit).
 ---
 
 # Generate PR Description
@@ -11,11 +11,12 @@ Generate a pull request description with Jira ticket context, code changes summa
 
 ### 1. Gather Context
 
-Get the current branch name and extract the Jira ticket ID:
+Get the current branch and detect base branch:
 
 ```bash
+PLUGIN_ROOT="${CLAUDE_SKILL_DIR}/../.."
 BRANCH=$(git branch --show-current)
-echo "$BRANCH"
+BASE=$(bash "$PLUGIN_ROOT/scripts/git-base-branch.sh" --fetch)
 ```
 
 Extract the Jira ticket ID from the branch name (e.g., `LFCR-360` from branch `lfcr-360` or `feature/LFCR-360`).
@@ -23,8 +24,9 @@ Extract the Jira ticket ID from the branch name (e.g., `LFCR-360` from branch `l
 ### 2. Get Diff Summary
 
 ```bash
-git diff main --stat
-git diff main --name-only
+PLUGIN_ROOT="${CLAUDE_SKILL_DIR}/../.."
+bash "$PLUGIN_ROOT/scripts/git-diff-filtered.sh" "origin/$BASE...HEAD" --stat
+git diff "origin/$BASE" --name-only
 ```
 
 ### 3. Get Jira Ticket Details

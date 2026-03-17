@@ -178,6 +178,20 @@ def launch_app(device_id, bundle_id):
     return {"id": device_id, "bundle_id": bundle_id, "status": "launched"}
 
 
+def clear_app_data(device_id, bundle_id):
+    require_xcrun()
+    try:
+        run_cmd(["xcrun", "simctl", "terminate", device_id, bundle_id])
+    except RuntimeError:
+        pass
+    run_cmd(["xcrun", "simctl", "privacy", device_id, "reset", "all", bundle_id])
+    try:
+        run_cmd(["xcrun", "simctl", "uninstall", device_id, bundle_id])
+    except RuntimeError:
+        pass
+    return {"id": device_id, "bundle_id": bundle_id, "status": "cleared"}
+
+
 def open_url(device_id, url):
     require_xcrun()
     run_cmd(["xcrun", "simctl", "openurl", device_id, url])

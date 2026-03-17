@@ -1,10 +1,26 @@
 #!/usr/bin/env node
-const setup = require('../../scripts/setup-credential');
-setup({
-  mode: 'cli-check',
-  name: 'acli (Atlassian CLI)',
-  checks: [
-    { cmd: 'which acli', failMsg: 'acli is not installed. Install via Homebrew: brew install acli' },
-    { cmd: 'acli jira workitem view --help', failMsg: 'acli is installed but may not be authenticated. Run: acli login' }
-  ]
-});
+const { execSync } = require('child_process');
+const path = require('path');
+
+const checks = [
+  { cmd: 'which acli', failMsg: 'acli is not installed. Install via Homebrew: brew install acli' },
+  { cmd: 'acli jira workitem view --help', failMsg: 'acli is installed but may not be authenticated. Run: acli login' }
+];
+
+for (const check of checks) {
+  try {
+    execSync(check.cmd, { stdio: ['pipe', 'pipe', 'pipe'] });
+  } catch {
+    console.error(check.failMsg);
+    process.exit(1);
+  }
+}
+console.log('acli (Atlassian CLI) is installed and configured.');
+
+try {
+  execSync('security find-generic-password -s "tb.jira-token" 2>/dev/null', { stdio: ['pipe', 'pipe', 'pipe'] });
+  console.log('Jira API token configured.');
+} catch {
+  console.error('Jira API token missing (needed for attachment downloads). Run: node ' + path.join(__dirname, 'setup-token.js'));
+  process.exit(1);
+}

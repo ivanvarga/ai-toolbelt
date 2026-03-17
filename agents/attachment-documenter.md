@@ -53,13 +53,13 @@ Extract the email from the output (line starting with "Email:"). You need this f
 
 **If URL contains `github.com` or `githubusercontent.com`:**
 
-Get GitHub token from macOS Keychain (optional for public repos):
+Get GitHub token from gh CLI (always available if gh is authenticated):
 
 ```bash
-GH_TOKEN=$(security find-generic-password -s "tb.github-session" -w 2>/dev/null)
+GH_TOKEN=$(gh auth token 2>/dev/null)
 ```
 
-If the token is empty, continue without it -- public repo downloads will work without auth. Private repo downloads will fail.
+If the token is empty, continue without it -- public repo downloads will work without auth. Private repo and `user-attachments` downloads will fail.
 
 **If URL is Sentry/other:** No auth needed, skip to Step 4.
 

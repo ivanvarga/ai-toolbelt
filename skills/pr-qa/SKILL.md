@@ -1,6 +1,6 @@
 ---
 name: pr-qa
-description: Use when writing or updating PR descriptions that need QA testing instructions, or when the user asks to add QA steps to a pull request
+description: Use when the user wants to add, write, or update QA testing instructions on a pull request. This skill generates actionable QA steps with deeplinks to affected screens, direct CMS entry links, and verification criteria so QA can test in under 5 minutes. Trigger this whenever the user mentions QA steps, QA instructions, testing instructions for a PR, QA section, verification steps, "add QA to the PR", "write testing steps", or wants to help QA test their changes. Do NOT trigger for writing the main PR description/body (use pr-describe), reading/reviewing PRs (use pr-read), or shipping code end-to-end (use pr-submit).
 ---
 
 # QA Description for Pull Requests

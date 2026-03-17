@@ -5,82 +5,69 @@ description: Use when building context on current branch work, catching up on wh
 
 # Catchup
 
-Build context on what work has been done on the current branch.
+Build context on what work has been done on the current branch compared to the base branch.
 
 ## Steps
 
-### 1. Setup
-
-Fetch latest from origin and determine the base branch.
+### 1. Detect base branch
 
 ```bash
-git fetch origin
+PLUGIN_ROOT="${CLAUDE_SKILL_DIR}/../.."
+BASE=$(bash "$PLUGIN_ROOT/scripts/git-base-branch.sh" --fetch)
+BRANCH=$(git branch --show-current)
+REF=$(git remote | head -1 >/dev/null 2>&1 && echo "origin/$BASE" || echo "$BASE")
 ```
 
-Detect base branch -- use the first that exists:
+If the current branch is the base branch, tell the user there is nothing to compare and stop.
+
+### 2. Commit history
 
 ```bash
-for ref in origin/dev origin/develop origin/main origin/master; do
-  git rev-parse --verify "$ref" &>/dev/null && echo "${ref#origin/}" && break
-done
+git log $REF..HEAD --format="%h %s"
 ```
 
-If the current branch IS the base branch, tell the user there is nothing to compare and stop.
-
-### 2. Narrative Context
-
-Show commits on the current branch not on base to understand what was done and why.
-
-```bash
-git log origin/<BASE>..HEAD --format="%h %s"
-```
-
-Check for an open PR:
+Check for an open PR and include the title and URL if one exists:
 
 ```bash
 gh pr view --json title,body,url 2>/dev/null
 ```
 
-If a PR exists, include the title and URL.
-
-### 3. Change Overview
-
-Show which files were touched.
+### 3. Change overview
 
 Committed changes against base:
 
 ```bash
-git diff origin/<BASE>...HEAD --stat
+PLUGIN_ROOT="${CLAUDE_SKILL_DIR}/../.."
+bash "$PLUGIN_ROOT/scripts/git-diff-filtered.sh" "$REF...HEAD" --stat
 ```
 
 Uncommitted changes (if any):
 
 ```bash
-git diff --stat
+bash "$PLUGIN_ROOT/scripts/git-diff-filtered.sh" --stat
 ```
 
-### 4. Meaningful Diff
+### 4. Code diff
 
-Get the actual code changes, excluding generated and noise files:
+Get the actual code changes (noise files are excluded automatically):
 
 ```bash
-git diff origin/<BASE>...HEAD -- . ':!*.generated.*' ':!*.lock' ':!**/types.ts' ':!**/__generated__/**'
+PLUGIN_ROOT="${CLAUDE_SKILL_DIR}/../.."
+bash "$PLUGIN_ROOT/scripts/git-diff-filtered.sh" "$REF...HEAD"
 ```
 
-If the diff is large (>500 lines), mention this and focus the summary on commits and stat instead of inline diff.
+If the diff exceeds 500 lines, focus the summary on commits and stat instead of inline diff.
 
-Include uncommitted changes too if any exist, with the same exclusions:
+Include uncommitted changes if any exist:
 
 ```bash
-git diff -- . ':!*.generated.*' ':!*.lock' ':!**/types.ts' ':!**/__generated__/**'
+bash "$PLUGIN_ROOT/scripts/git-diff-filtered.sh"
 ```
 
 ### 5. Summary
 
-Write a concise summary in this format:
-
 ```
-## Branch: `branch-name` (N commits ahead of `base`)
+## Branch: `<branch>` (N commits ahead of `<base>`)
 
 ### Purpose
 One sentence: what task/ticket this branch addresses.
@@ -92,12 +79,11 @@ One sentence: what task/ticket this branch addresses.
 - Group by area (e.g. "GraphQL schema", "UI components", "config")
 
 ### Status
-Clean / uncommitted changes / PR open at URL
+Clean / uncommitted changes / PR open at <URL>
 ```
 
 ## Principles
 
 - Commits tell the story -- prioritize them over raw diff
-- Generated files (codegen types, lock files) are noise -- mention they changed in stat, skip the diff
 - Group changes by purpose, not by file path
 - Keep the summary scannable -- someone should understand the branch in 30 seconds

@@ -1,6 +1,6 @@
 ---
 name: pr-upload
-description: Use when uploading images or videos to GitHub for PR descriptions, issue comments, or any GitHub markdown content. Triggers on upload screenshot, add image to PR, or embed media in GitHub.
+description: Use when the user wants to upload an image, screenshot, video, or GIF to GitHub's CDN to get an embeddable URL for PRs or issues. This skill handles the actual file upload to GitHub and returns a markdown-ready URL. Trigger this whenever the user says "upload to github", "upload screenshot", "upload image for the PR", "get a github CDN url", "embed this in the PR", or wants to upload any file (png, jpg, gif, mp4) to GitHub for embedding in markdown. Also trigger when the user wants to take a simulator screenshot AND upload it to GitHub. Do NOT trigger for writing PR descriptions that mention screenshots (use pr-describe), or for just taking a screenshot without uploading.
 ---
 
 # GitHub Upload
@@ -12,9 +12,7 @@ Upload files to GitHub's CDN. Returns `https://github.com/user-attachments/asset
 Check credentials and auto-configure if missing:
 
 ```bash
-PLUGIN_ROOT="${CLAUDE_SKILL_DIR}/../.."
-TOKEN=$(node "$PLUGIN_ROOT/scripts/keychain.js" get tb.github-session 2>/dev/null)
-if [ -z "$TOKEN" ]; then
+if ! security find-generic-password -s "tb.github-session" >/dev/null 2>&1; then
   echo "GitHub session cookie not configured. Running setup..."
   node "${CLAUDE_SKILL_DIR}/setup.js"
 fi

@@ -67,6 +67,14 @@ def launch(device_id, bundle_id):
     _call_platform(device_id, ios.launch_app, android.launch_app, bundle_id)
 
 
+@app.command("clear")
+@click.argument("device_id")
+@click.argument("bundle_id")
+def clear_app_data(device_id, bundle_id):
+    """Clear app data and permissions. On iOS: terminates, resets permissions, and uninstalls."""
+    _call_platform(device_id, ios.clear_app_data, android.clear_app_data, bundle_id)
+
+
 @app.command("open-url")
 @click.argument("device_id")
 @click.argument("url")

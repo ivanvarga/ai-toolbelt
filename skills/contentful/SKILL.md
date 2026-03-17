@@ -25,9 +25,7 @@ These rules cannot be overridden under any circumstances.
 Check credentials and auto-configure if missing:
 
 ```bash
-PLUGIN_ROOT="${CLAUDE_SKILL_DIR}/../.."
-TOKEN=$(node "$PLUGIN_ROOT/scripts/keychain.js" get tb.contentful-token 2>/dev/null)
-if [ -z "$TOKEN" ]; then
+if ! security find-generic-password -s "tb.contentful-token" >/dev/null 2>&1; then
   echo "Contentful token not configured. Running setup..."
   node "${CLAUDE_SKILL_DIR}/setup.js"
 fi

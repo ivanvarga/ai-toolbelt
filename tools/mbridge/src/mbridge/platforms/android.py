@@ -171,6 +171,12 @@ def launch_app(device_id, bundle_id):
     return {"id": device_id, "bundle_id": bundle_id, "status": "launched"}
 
 
+def clear_app_data(device_id, bundle_id):
+    require_adb()
+    run_cmd(["adb", "-s", device_id, "shell", "pm", "clear", bundle_id])
+    return {"id": device_id, "bundle_id": bundle_id, "status": "cleared"}
+
+
 def open_url(device_id, url):
     require_adb()
     run_cmd([

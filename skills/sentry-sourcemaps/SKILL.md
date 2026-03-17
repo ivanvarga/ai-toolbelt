@@ -12,10 +12,8 @@ Upload missing source maps to Sentry for a specific release.
 Check Sentry token is configured:
 
 ```bash
-PLUGIN_ROOT="${CLAUDE_SKILL_DIR}/../.."
-TOKEN=$(node "$PLUGIN_ROOT/scripts/keychain.js" get tb.sentry-token)
-if [ -z "$TOKEN" ]; then
-  echo "Sentry token not configured. Run: node $PLUGIN_ROOT/skills/sentry-investigate/setup.js"
+if ! security find-generic-password -s "tb.sentry-token" >/dev/null 2>&1; then
+  echo "Sentry token not configured. Run: node ${CLAUDE_SKILL_DIR}/../../skills/sentry-investigate/setup.js"
   exit 1
 fi
 ```

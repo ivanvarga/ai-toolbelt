@@ -77,6 +77,7 @@ mbridge device info DEVICE_ID
 mbridge app list DEVICE_ID
 mbridge app foreground DEVICE_ID
 mbridge app launch DEVICE_ID BUNDLE_ID
+mbridge app clear DEVICE_ID BUNDLE_ID
 mbridge app open-url DEVICE_ID URL
 ```
 
@@ -87,6 +88,8 @@ mbridge app open-url DEVICE_ID URL
 ```
 
 **app launch** starts an app by bundle/package ID.
+
+**app clear** resets app data and permissions. On iOS: terminates the app, resets all privacy permissions, and uninstalls. On Android: clears all app data via `pm clear`. Use this for fresh-state testing.
 
 **app open-url** opens a deeplink or URL on the device. Use this for navigation when you do not need to test the navigation path itself.
 

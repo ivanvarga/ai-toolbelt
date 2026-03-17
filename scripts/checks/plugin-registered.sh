@@ -35,5 +35,5 @@ sys.exit(1)
     exit 0
 fi
 
-echo "FAIL plugin-registered Plugin not registered. Run: claude plugin install $PLUGIN_ROOT or claude --plugin-dir $PLUGIN_ROOT"
+echo "WARN plugin-registered Plugin not formally installed (OK if using --plugin-dir for development)"
 exit 0
