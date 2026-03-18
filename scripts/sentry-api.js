@@ -13,7 +13,7 @@ function getToken() {
 
 function request(apiPath) {
   const token = getToken();
-  return new Promise((resolve, reject) => {
+  return new Promise((resolve) => {
     const req = https.get(`https://sentry.io${apiPath}`, {
       headers: { Authorization: `Bearer ${token}` }
     }, (res) => {

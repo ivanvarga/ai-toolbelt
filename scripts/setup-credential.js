@@ -29,7 +29,7 @@ function prompt(question) {
 }
 
 async function runKeychainMode(config) {
-  const { service, name, verify } = config;
+  const { name, verify } = config;
   const promptText = config.prompt;
 
   const org = resolveOrg();
