@@ -45,6 +45,17 @@ Requirements for initial release. Each maps to roadmap phases.
 - [x] **MBRD-06**: OCR-based UI verification via pytesseract
 - [x] **MBRD-07**: mbridge SKILL.md that leverages app code knowledge and mobilecli context/cache
 
+### Per-Organization Credential Scoping
+
+- [ ] **SCOPE-01**: Org extraction from git remote URL (SSH, HTTPS, ssh:// formats)
+- [ ] **SCOPE-02**: Org-aware credential resolution with global fallback (resolve-credential.js)
+- [ ] **SCOPE-03**: Setup scripts auto-detect org and store to scoped Keychain key
+- [ ] **SCOPE-04**: --global flag on setup scripts to bypass org scoping
+- [ ] **SCOPE-05**: API scripts (sentry-api.js, github-api.js) use org-aware resolution
+- [ ] **SCOPE-06**: SKILL.md auto-detect and runtime retrieval use resolve-credential.js
+- [ ] **SCOPE-07**: Doctor credential checks report org-scoped vs global vs missing status
+- [ ] **SCOPE-08**: One-time migration script copies global credentials to org-scoped keys
+
 ## v2 Requirements
 
 ### Setup & Polish
@@ -103,12 +114,20 @@ Which phases cover which requirements. Updated during roadmap creation.
 | MBRD-05 | Phase 8 | Complete |
 | MBRD-06 | Phase 9 | Complete |
 | MBRD-07 | Phase 10 | Complete |
+| SCOPE-01 | Phase 14 | Planned |
+| SCOPE-02 | Phase 14 | Planned |
+| SCOPE-03 | Phase 14 | Planned |
+| SCOPE-04 | Phase 14 | Planned |
+| SCOPE-05 | Phase 14 | Planned |
+| SCOPE-06 | Phase 14 | Planned |
+| SCOPE-07 | Phase 14 | Planned |
+| SCOPE-08 | Phase 14 | Planned |
 
 **Coverage:**
-- v1 requirements: 23 total
-- Mapped to phases: 23
+- v1 requirements: 31 total (23 original + 8 credential scoping)
+- Mapped to phases: 31
 - Unmapped: 0
 
 ---
 *Requirements defined: 2026-03-11*
-*Last updated: 2026-03-11 after roadmap revision*
+*Last updated: 2026-03-18 after Phase 14 planning*

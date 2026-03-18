@@ -223,36 +223,26 @@ Plans:
 Plans:
 - [ ] 13-01-PLAN.md — Agent definition, orchestrating skill, consumer skill updates, cleanup
 
-## Progress
-
-**Execution Order:**
-Phases execute in numeric order: 1 -> 2 -> 3 -> 4 -> 5 -> 6 -> 7 -> 8 -> 9 -> 10 -> 11 -> 12 -> 13
-
-| Phase | Plans Complete | Status | Completed |
-|-------|----------------|--------|-----------|
-| 1. Plugin Scaffold | 1/1 | Complete | 2015-03-11 |
-| 2. Plugin Install + Operations | 2/2 | Complete | 2015-03-11 |
-| 3. Simple Skill Conversion | 0/2 | Not started | - |
-| 4. Complex Skill Conversion | 4/4 | Complete | 2015-03-12 |
-| 5. Credential System | 0/3 | Not started | - |
-| 6. Global Config + Verification | 0/2 | Not started | - |
-| 7. mbridge CLI Foundation | 2/3 | Gap closure | - |
-| 8. mbridge UI Parsing | 1/2 | In Progress | - |
-| 9. mbridge Interaction + OCR | 1/2 | In Progress | - |
-| 10. mbridge Skill Integration | 1/1 | Complete | 2015-03-14 |
-| 11. mbridge Deploy + Setup Hardening | 1/1 | Complete   | 2015-03-14 |
-| 12. Purge mobilecli References | 1/1 | Complete    | 2015-03-14 |
-| 13. Create attachment-documenter Agent | 1/1 | Complete    | 2015-03-14 |
-
-### Phase 14: Per-Project Credential Scoping
-
-**Goal:** [To be planned]
-**Requirements**: TBD
-**Depends on:** Phase 13
-**Plans:** 0 plans
+### Phase 14: Per-Organization Credential Scoping
+**Goal**: The credential system is organization-aware: credentials resolve as tb.{service}.{org} (auto-detected from git remote) with tb.{service} as fallback. Setup, doctor, API scripts, SKILL.md auto-detect, and the agent all use the org-aware resolution layer. A migration script copies globals to org-scoped keys.
+**Depends on**: Phase 13
+**Requirements**: SCOPE-01, SCOPE-02, SCOPE-03, SCOPE-04, SCOPE-05, SCOPE-06, SCOPE-07, SCOPE-08
+**Success Criteria** (what must be TRUE):
+  1. `scripts/resolve-org.js` extracts org from git remote (SSH, HTTPS, ssh:// formats)
+  2. `scripts/resolve-credential.js` tries org-scoped key first, falls back to global
+  3. `scripts/setup-credential.js` auto-detects org and stores to scoped key (--global flag overrides)
+  4. All SKILL.md auto-detect and runtime credential retrieval uses resolve-credential.js
+  5. `scripts/sentry-api.js` and `scripts/github-api.js` use resolve-credential.js
+  6. `agents/attachment-documenter.md` uses resolve-credential.js with plugin path discovery
+  7. Doctor credential checks report org-scoped vs global vs missing status
+  8. Migration script discovers orgs from repos, copies globals to org-scoped keys after confirmation
+**Plans**: 4 plans
 
 Plans:
-- [ ] TBD (run /gsd:plan-phase 14 to break down)
+- [ ] 14-01-PLAN.md — Foundation: resolve-org.js and resolve-credential.js modules
+- [ ] 14-02-PLAN.md — Setup layer: org-awareness in setup-credential.js and setup-all.js
+- [ ] 14-03-PLAN.md — Consumers: API scripts, SKILL.md files, agent use resolve-credential.js
+- [ ] 14-04-PLAN.md — Doctor checks and migration script
 
 ### Phase 15: Credential-Blocked Skill Testing
 
@@ -273,3 +263,25 @@ Plans:
 
 Plans:
 - [ ] TBD (run /gsd:plan-phase 16 to break down)
+
+## Progress
+
+**Execution Order:**
+Phases execute in numeric order: 1 -> 2 -> 3 -> 4 -> 5 -> 6 -> 7 -> 8 -> 9 -> 10 -> 11 -> 12 -> 13 -> 14
+
+| Phase | Plans Complete | Status | Completed |
+|-------|----------------|--------|-----------|
+| 1. Plugin Scaffold | 1/1 | Complete | 2015-03-11 |
+| 2. Plugin Install + Operations | 2/2 | Complete | 2015-03-11 |
+| 3. Simple Skill Conversion | 0/2 | Not started | - |
+| 4. Complex Skill Conversion | 4/4 | Complete | 2015-03-12 |
+| 5. Credential System | 0/3 | Not started | - |
+| 6. Global Config + Verification | 0/2 | Not started | - |
+| 7. mbridge CLI Foundation | 2/3 | Gap closure | - |
+| 8. mbridge UI Parsing | 1/2 | In Progress | - |
+| 9. mbridge Interaction + OCR | 1/2 | In Progress | - |
+| 10. mbridge Skill Integration | 1/1 | Complete | 2015-03-14 |
+| 11. mbridge Deploy + Setup Hardening | 1/1 | Complete   | 2015-03-14 |
+| 12. Purge mobilecli References | 1/1 | Complete    | 2015-03-14 |
+| 13. Create attachment-documenter Agent | 1/1 | Complete    | 2015-03-14 |
+| 14. Per-Organization Credential Scoping | 0/4 | Planned | - |
