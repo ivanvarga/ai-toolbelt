@@ -245,14 +245,21 @@ Plans:
 - [ ] 14-04-PLAN.md — Doctor checks and migration script
 
 ### Phase 15: Credential-Blocked Skill Testing
-
-**Goal:** [To be planned]
-**Requirements**: TBD
+**Goal**: The entire credential system is verified end-to-end: credential resolution paths, setup flows, SKILL.md auto-detect, and doctor reporting all work correctly with org-scoped and global credentials
 **Depends on:** Phase 14
-**Plans:** 4/4 plans complete
+**Requirements**: SCOPE-01, SCOPE-02, SCOPE-03, SCOPE-04, SCOPE-05, SCOPE-06, SCOPE-07, SCOPE-08
+**Success Criteria** (what must be TRUE):
+  1. resolve-org.js correctly extracts org from git remotes (SSH, HTTPS, no-remote)
+  2. resolve-credential.js resolves org-scoped credentials with global fallback
+  3. Setup scripts detect org and store credentials with org-scoped Keychain names
+  4. All SKILL.md auto-detect blocks reference resolve-credential.js with correct service names
+  5. All 5 doctor check scripts report correct PASS/FAIL status
+  6. Interactive setup round-trip works (delete cred, run setup, re-enter, verify)
+**Plans**: 2 plans
 
 Plans:
-- [ ] TBD (run /gsd:plan-phase 15 to break down)
+- [ ] 15-01-PLAN.md — Static audit of credential wiring + create executable test checklist
+- [ ] 15-02-PLAN.md — Execute automated CLI tests + human verification of interactive flows
 
 ### Phase 16: mbridge Testing and Hardening
 
@@ -267,7 +274,7 @@ Plans:
 ## Progress
 
 **Execution Order:**
-Phases execute in numeric order: 1 -> 2 -> 3 -> 4 -> 5 -> 6 -> 7 -> 8 -> 9 -> 10 -> 11 -> 12 -> 13 -> 14
+Phases execute in numeric order: 1 -> 2 -> 3 -> 4 -> 5 -> 6 -> 7 -> 8 -> 9 -> 10 -> 11 -> 12 -> 13 -> 14 -> 15
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
@@ -285,3 +292,4 @@ Phases execute in numeric order: 1 -> 2 -> 3 -> 4 -> 5 -> 6 -> 7 -> 8 -> 9 -> 10
 | 12. Purge mobilecli References | 1/1 | Complete    | 2015-03-14 |
 | 13. Create attachment-documenter Agent | 1/1 | Complete    | 2015-03-14 |
 | 14. Per-Organization Credential Scoping | 4/4 | Complete    | 2026-03-18 |
+| 15. Credential-Blocked Skill Testing | 0/2 | Not started | - |
