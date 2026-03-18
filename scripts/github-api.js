@@ -2,16 +2,15 @@
 const { execSync } = require('child_process');
 const fs = require('fs');
 const path = require('path');
-
-const KEYCHAIN = path.join(__dirname, 'keychain.js');
+const { getCredential } = require('./resolve-credential');
 
 function getSession() {
-  try {
-    return execSync(`node "${KEYCHAIN}" get tb.github-session`, { encoding: 'utf8' }).trim();
-  } catch {
+  const session = getCredential('tb.github-session');
+  if (!session) {
     process.stderr.write('GitHub session not found. Run setup for pr-upload skill.\n');
     process.exit(1);
   }
+  return session;
 }
 
 function cookieHeader(session) {

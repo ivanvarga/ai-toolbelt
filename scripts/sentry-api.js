@@ -1,17 +1,14 @@
 #!/usr/bin/env node
-const { execSync } = require('child_process');
 const https = require('https');
-const path = require('path');
-
-const KEYCHAIN = path.join(__dirname, 'keychain.js');
+const { getCredential } = require('./resolve-credential');
 
 function getToken() {
-  try {
-    return execSync(`node "${KEYCHAIN}" get tb.sentry-token`, { encoding: 'utf8' }).trim();
-  } catch {
+  const token = getCredential('tb.sentry-token');
+  if (!token) {
     process.stderr.write('Sentry token not found. Run setup for sentry-investigate skill.\n');
     process.exit(1);
   }
+  return token;
 }
 
 function request(apiPath) {
