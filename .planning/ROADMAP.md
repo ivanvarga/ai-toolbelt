@@ -284,4 +284,4 @@ Phases execute in numeric order: 1 -> 2 -> 3 -> 4 -> 5 -> 6 -> 7 -> 8 -> 9 -> 10
 | 11. mbridge Deploy + Setup Hardening | 1/1 | Complete   | 2015-03-14 |
 | 12. Purge mobilecli References | 1/1 | Complete    | 2015-03-14 |
 | 13. Create attachment-documenter Agent | 1/1 | Complete    | 2015-03-14 |
-| 14. Per-Organization Credential Scoping | 4/4 | Complete   | 2026-03-18 |
+| 14. Per-Organization Credential Scoping | 4/4 | Complete    | 2026-03-18 |
