@@ -3,6 +3,7 @@ const { execSync } = require('child_process');
 const path = require('path');
 const readline = require('readline');
 
+const resolveOrg = require('./resolve-org');
 const KEYCHAIN = path.join(__dirname, 'keychain.js');
 
 function keychainGet(service) {
@@ -31,6 +32,14 @@ async function runKeychainMode(config) {
   const { service, name, verify } = config;
   const promptText = config.prompt;
 
+  const org = resolveOrg();
+  const globalFlag = process.argv.includes('--global');
+  const effectiveService = (globalFlag || !org) ? config.service : `${config.service}.${org}`;
+
+  if (org && !globalFlag) {
+    console.log(`Detected org: ${org}. Storing ${config.name.toLowerCase()} for ${org}.`);
+  }
+
   const cliArg = process.argv[2];
   if (cliArg) {
     if (verify) {
@@ -43,14 +52,14 @@ async function runKeychainMode(config) {
         console.error(`Warning: Could not verify ${name} (connection error). Storing anyway.`);
       }
     }
-    keychainSet(service, cliArg);
-    console.log(`${name} saved to Keychain (${service}).`);
+    keychainSet(effectiveService, cliArg);
+    console.log(`${name} saved to Keychain (${effectiveService}).`);
     process.exit(0);
   }
 
-  const existing = keychainGet(service);
+  const existing = keychainGet(effectiveService);
   if (existing) {
-    console.log(`${name} already configured (${service}).`);
+    console.log(`${name} already configured (${effectiveService}).`);
     process.exit(0);
   }
 
@@ -69,23 +78,23 @@ async function runKeychainMode(config) {
     }
 
     if (!verify) {
-      keychainSet(service, value);
-      console.log(`${name} saved to Keychain (${service}).`);
+      keychainSet(effectiveService, value);
+      console.log(`${name} saved to Keychain (${effectiveService}).`);
       process.exit(0);
     }
 
     const result = await verify(value);
     if (result === true) {
-      keychainSet(service, value);
-      console.log(`${name} saved to Keychain (${service}).`);
+      keychainSet(effectiveService, value);
+      console.log(`${name} saved to Keychain (${effectiveService}).`);
       process.exit(0);
     }
 
     if (result === null) {
       const answer = (await prompt('Connection error during verification. Store anyway? (y/N) ')).trim().toLowerCase();
       if (answer === 'y') {
-        keychainSet(service, value);
-        console.log(`${name} saved to Keychain (${service}) (unverified).`);
+        keychainSet(effectiveService, value);
+        console.log(`${name} saved to Keychain (${effectiveService}) (unverified).`);
         process.exit(0);
       }
       if (attempt < MAX_ATTEMPTS) continue;
@@ -99,8 +108,8 @@ async function runKeychainMode(config) {
   const answer = (await prompt('All verification attempts failed. Store anyway? (y/N) ')).trim().toLowerCase();
   if (answer === 'y') {
     const value = (await prompt(promptText)).trim();
-    keychainSet(service, value);
-    console.log(`${name} saved to Keychain (${service}) (unverified).`);
+    keychainSet(effectiveService, value);
+    console.log(`${name} saved to Keychain (${effectiveService}) (unverified).`);
     process.exit(0);
   }
   process.exit(1);
