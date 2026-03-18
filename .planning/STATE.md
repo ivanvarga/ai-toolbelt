@@ -3,15 +3,15 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: executing
-stopped_at: Completed 14-01-PLAN.md
-last_updated: "2026-03-18T15:58:12.614Z"
-last_activity: 2026-03-18 -- Completed 14-01-PLAN.md (foundation modules for org-aware credentials)
+stopped_at: Completed 14-04-PLAN.md
+last_updated: "2026-03-18T16:02:16.943Z"
+last_activity: 2026-03-18 -- Completed 14-04-PLAN.md (doctor checks & credential migration)
 progress:
   total_phases: 16
-  completed_phases: 13
+  completed_phases: 14
   total_plans: 29
-  completed_plans: 26
-  percent: 90
+  completed_plans: 29
+  percent: 100
 ---
 
 # Project State
@@ -26,11 +26,11 @@ See: .planning/PROJECT.md (updated 2026-03-11)
 ## Current Position
 
 Phase: 14 of 16 (Per-Project Credential Scoping)
-Plan: 1 of 4 complete in current phase
+Plan: 2 of 4 complete in current phase
 Status: In Progress
-Last activity: 2026-03-18 -- Completed 14-01-PLAN.md (foundation modules for org-aware credentials)
+Last activity: 2026-03-18 -- Completed 14-04-PLAN.md (doctor checks & credential migration)
 
-Progress: [█████████░] 90%
+Progress: [██████████] 100%
 
 ## Performance Metrics
 
@@ -76,6 +76,7 @@ Progress: [█████████░] 90%
 | Phase 12 P01 | 2min | 2 tasks | 6 files |
 | Phase 13 P01 | 3min | 2 tasks | 6 files |
 | Phase 14 P01 | 1min | 1 tasks | 2 files |
+| Phase 14 P04 | 1min | 2 tasks | 5 files |
 
 ## Accumulated Context
 
@@ -155,6 +156,8 @@ Recent decisions affecting current work:
 - [Dev workflow]: Always run `claude --plugin-dir ./` from repo root for live skill/agent testing without formal install
 - [Phase 14]: Regex-based URL parsing for git remote org extraction (no URL library dependency)
 - [Phase 14]: keychainGet helper wraps keychain.js CLI call for clean credential resolution
+- [Phase 14]: Doctor checks try org-scoped key first, fall back to global, report mode in PASS message
+- [Phase 14]: Migration script preserves global credentials as fallback after copying to org-scoped keys
 
 ### Roadmap Evolution
 
@@ -171,5 +174,5 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-03-18T15:58:12.612Z
-Stopped at: Completed 14-01-PLAN.md
+Last session: 2026-03-18T16:02:16.940Z
+Stopped at: Completed 14-04-PLAN.md

@@ -53,8 +53,8 @@ Requirements for initial release. Each maps to roadmap phases.
 - [ ] **SCOPE-04**: --global flag on setup scripts to bypass org scoping
 - [ ] **SCOPE-05**: API scripts (sentry-api.js, github-api.js) use org-aware resolution
 - [ ] **SCOPE-06**: SKILL.md auto-detect and runtime retrieval use resolve-credential.js
-- [ ] **SCOPE-07**: Doctor credential checks report org-scoped vs global vs missing status
-- [ ] **SCOPE-08**: One-time migration script copies global credentials to org-scoped keys
+- [x] **SCOPE-07**: Doctor credential checks report org-scoped vs global vs missing status
+- [x] **SCOPE-08**: One-time migration script copies global credentials to org-scoped keys
 
 ## v2 Requirements
 
