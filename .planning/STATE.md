@@ -3,8 +3,8 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: executing
-stopped_at: Completed 14-04-PLAN.md
-last_updated: "2026-03-18T16:02:16.943Z"
+stopped_at: Completed 14-02-PLAN.md
+last_updated: "2026-03-18T16:02:34.811Z"
 last_activity: 2026-03-18 -- Completed 14-04-PLAN.md (doctor checks & credential migration)
 progress:
   total_phases: 16
@@ -77,6 +77,7 @@ Progress: [██████████] 100%
 | Phase 13 P01 | 3min | 2 tasks | 6 files |
 | Phase 14 P01 | 1min | 1 tasks | 2 files |
 | Phase 14 P04 | 1min | 2 tasks | 5 files |
+| Phase 14 P02 | 2min | 2 tasks | 2 files |
 
 ## Accumulated Context
 
@@ -158,6 +159,8 @@ Recent decisions affecting current work:
 - [Phase 14]: keychainGet helper wraps keychain.js CLI call for clean credential resolution
 - [Phase 14]: Doctor checks try org-scoped key first, fall back to global, report mode in PASS message
 - [Phase 14]: Migration script preserves global credentials as fallback after copying to org-scoped keys
+- [Phase 14]: effectiveService computed once at function start, used throughout all code paths
+- [Phase 14]: --global flag checked via process.argv.includes (available from any position)
 
 ### Roadmap Evolution
 
@@ -174,5 +177,5 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-03-18T16:02:16.940Z
-Stopped at: Completed 14-04-PLAN.md
+Last session: 2026-03-18T16:02:34.809Z
+Stopped at: Completed 14-02-PLAN.md

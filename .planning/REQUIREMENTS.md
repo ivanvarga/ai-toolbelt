@@ -49,8 +49,8 @@ Requirements for initial release. Each maps to roadmap phases.
 
 - [x] **SCOPE-01**: Org extraction from git remote URL (SSH, HTTPS, ssh:// formats)
 - [x] **SCOPE-02**: Org-aware credential resolution with global fallback (resolve-credential.js)
-- [ ] **SCOPE-03**: Setup scripts auto-detect org and store to scoped Keychain key
-- [ ] **SCOPE-04**: --global flag on setup scripts to bypass org scoping
+- [x] **SCOPE-03**: Setup scripts auto-detect org and store to scoped Keychain key
+- [x] **SCOPE-04**: --global flag on setup scripts to bypass org scoping
 - [ ] **SCOPE-05**: API scripts (sentry-api.js, github-api.js) use org-aware resolution
 - [ ] **SCOPE-06**: SKILL.md auto-detect and runtime retrieval use resolve-credential.js
 - [x] **SCOPE-07**: Doctor credential checks report org-scoped vs global vs missing status
