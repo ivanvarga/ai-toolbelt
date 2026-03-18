@@ -12,7 +12,7 @@ Investigate a Sentry error, analyze the root cause, and find a fix.
 Check credentials and auto-configure if missing:
 
 ```bash
-if ! security find-generic-password -s "tb.sentry-token" >/dev/null 2>&1; then
+if ! node "$PLUGIN_ROOT/scripts/resolve-credential.js" tb.sentry-token >/dev/null 2>&1; then
   echo "Sentry token not configured. Running setup..."
   node "${CLAUDE_SKILL_DIR}/setup.js"
 fi

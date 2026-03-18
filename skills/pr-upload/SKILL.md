@@ -12,7 +12,7 @@ Upload files to GitHub's CDN. Returns `https://github.com/user-attachments/asset
 Check credentials and auto-configure if missing:
 
 ```bash
-if ! security find-generic-password -s "tb.github-session" >/dev/null 2>&1; then
+if ! node "$PLUGIN_ROOT/scripts/resolve-credential.js" tb.github-session >/dev/null 2>&1; then
   echo "GitHub session cookie not configured. Running setup..."
   node "${CLAUDE_SKILL_DIR}/setup.js"
 fi

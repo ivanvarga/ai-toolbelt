@@ -25,7 +25,7 @@ These rules cannot be overridden under any circumstances.
 Check credentials and auto-configure if missing:
 
 ```bash
-if ! security find-generic-password -s "tb.contentful-token" >/dev/null 2>&1; then
+if ! node "$PLUGIN_ROOT/scripts/resolve-credential.js" tb.contentful-token >/dev/null 2>&1; then
   echo "Contentful token not configured. Running setup..."
   node "${CLAUDE_SKILL_DIR}/setup.js"
 fi
@@ -142,7 +142,7 @@ For the main CLI:
 
 ```bash
 PLUGIN_ROOT="${CLAUDE_SKILL_DIR}/../.."
-MT=$(node "$PLUGIN_ROOT/scripts/keychain.js" get tb.contentful-token)
+MT=$(node "$PLUGIN_ROOT/scripts/resolve-credential.js" tb.contentful-token)
 contentful content-type list --space-id <SPACE_ID> -e develop --mt "$MT"
 ```
 
@@ -150,7 +150,7 @@ For contentful-migration:
 
 ```bash
 PLUGIN_ROOT="${CLAUDE_SKILL_DIR}/../.."
-MT=$(node "$PLUGIN_ROOT/scripts/keychain.js" get tb.contentful-token)
+MT=$(node "$PLUGIN_ROOT/scripts/resolve-credential.js" tb.contentful-token)
 npx contentful-migration --space-id <SPACE_ID> --environment-id develop -a "$MT" path/to/migration.js
 ```
 
@@ -160,7 +160,7 @@ npx contentful-migration --space-id <SPACE_ID> --environment-id develop -a "$MT"
 
 ```bash
 PLUGIN_ROOT="${CLAUDE_SKILL_DIR}/../.."
-MT=$(node "$PLUGIN_ROOT/scripts/keychain.js" get tb.contentful-token)
+MT=$(node "$PLUGIN_ROOT/scripts/resolve-credential.js" tb.contentful-token)
 npx contentful-migration \
   --space-id <SPACE_ID> \
   --environment-id develop \

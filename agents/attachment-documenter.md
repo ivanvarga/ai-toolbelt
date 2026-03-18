@@ -38,10 +38,15 @@ If file exists, read it with Read tool and skip to Step 6. Otherwise continue.
 Get Jira API token from macOS Keychain:
 
 ```bash
-JIRA_TOKEN=$(security find-generic-password -s "tb.jira-token" -w 2>/dev/null)
+RESOLVE_CRED=$(find ~/.claude/plugins -name resolve-credential.js -path '*/ai-toolbelt/*' 2>/dev/null | head -1)
+if [ -z "$RESOLVE_CRED" ]; then
+  JIRA_TOKEN=$(security find-generic-password -s "tb.jira-token" -w 2>/dev/null)
+else
+  JIRA_TOKEN=$(node "$RESOLVE_CRED" tb.jira-token 2>/dev/null)
+fi
 ```
 
-If the token is empty, report an error: "Jira token not found in keychain. Set it with: `security add-generic-password -s "tb.jira-token" -a "tb.jira-token" -w "<token>" -U`"
+If the token is empty, report an error: "Jira token not found. Run: node <plugin_root>/skills/task-jira/setup-token.js"
 
 Run this command to get the email needed for auth:
 

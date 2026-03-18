@@ -18,7 +18,7 @@ for (const check of checks) {
 console.log('acli (Atlassian CLI) is installed and configured.');
 
 try {
-  execSync('security find-generic-password -s "tb.jira-token" 2>/dev/null', { stdio: ['pipe', 'pipe', 'pipe'] });
+  execSync(`node "${path.join(__dirname, '../../scripts/resolve-credential.js')}" tb.jira-token`, { stdio: ['pipe', 'pipe', 'pipe'] });
   console.log('Jira API token configured.');
 } catch {
   console.error('Jira API token missing (needed for attachment downloads). Run: node ' + path.join(__dirname, 'setup-token.js'));

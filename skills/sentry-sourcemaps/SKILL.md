@@ -12,7 +12,7 @@ Upload missing source maps to Sentry for a specific release.
 Check Sentry token is configured:
 
 ```bash
-if ! security find-generic-password -s "tb.sentry-token" >/dev/null 2>&1; then
+if ! node "$PLUGIN_ROOT/scripts/resolve-credential.js" tb.sentry-token >/dev/null 2>&1; then
   echo "Sentry token not configured. Run: node ${CLAUDE_SKILL_DIR}/../../skills/sentry-investigate/setup.js"
   exit 1
 fi
@@ -86,7 +86,7 @@ npx expo run:ios --configuration Release --no-install
 
 # 4. Upload source maps (pass token from Keychain)
 # Android:
-SENTRY_AUTH_TOKEN=$(node "$PLUGIN_ROOT/scripts/keychain.js" get tb.sentry-token) \
+SENTRY_AUTH_TOKEN=$(node "$PLUGIN_ROOT/scripts/resolve-credential.js" tb.sentry-token) \
 npx sentry-cli sourcemaps upload \
   --release "{release}" \
   --dist "{build_number}" \
@@ -97,7 +97,7 @@ npx sentry-cli sourcemaps upload \
   android/app/build/generated/sourcemaps/react/release/index.android.bundle.map
 
 # iOS:
-SENTRY_AUTH_TOKEN=$(node "$PLUGIN_ROOT/scripts/keychain.js" get tb.sentry-token) \
+SENTRY_AUTH_TOKEN=$(node "$PLUGIN_ROOT/scripts/resolve-credential.js" tb.sentry-token) \
 npx sentry-cli sourcemaps upload \
   --release "{release}" \
   --dist "{build_number}" \
@@ -108,7 +108,7 @@ npx sentry-cli sourcemaps upload \
   ios/build/Build/Products/Release-iphoneos/main.jsbundle.map
 
 # 5. Verify upload
-SENTRY_AUTH_TOKEN=$(node "$PLUGIN_ROOT/scripts/keychain.js" get tb.sentry-token) \
+SENTRY_AUTH_TOKEN=$(node "$PLUGIN_ROOT/scripts/resolve-credential.js" tb.sentry-token) \
 npx sentry-cli sourcemaps list --org stadion --project liverpool-app --release "{release}"
 
 # 6. Cleanup
@@ -146,7 +146,7 @@ sed -i '' 's/{generated_debug_id}/{sentry_debug_id}/g' dist/_expo/static/js/{pla
 sed -i '' 's/"debugId":"{sentry_debug_id}"/"debug_id":"{sentry_debug_id}","debugId":"{sentry_debug_id}"/g' dist/_expo/static/js/{platform}/*.hbc.map
 
 # 5. Upload BOTH bundle and source map
-SENTRY_AUTH_TOKEN=$(node "$PLUGIN_ROOT/scripts/keychain.js" get tb.sentry-token) \
+SENTRY_AUTH_TOKEN=$(node "$PLUGIN_ROOT/scripts/resolve-credential.js" tb.sentry-token) \
 npx sentry-cli sourcemaps upload \
   --release "{release}" \
   --dist "{build_number}" \
@@ -157,7 +157,7 @@ npx sentry-cli sourcemaps upload \
   dist/_expo/static/js/{platform}/*.hbc.map
 
 # 6. Verify upload
-SENTRY_AUTH_TOKEN=$(node "$PLUGIN_ROOT/scripts/keychain.js" get tb.sentry-token) \
+SENTRY_AUTH_TOKEN=$(node "$PLUGIN_ROOT/scripts/resolve-credential.js" tb.sentry-token) \
 npx sentry-cli sourcemaps list --org stadion --project liverpool-app --release "{release}"
 
 # 7. Cleanup
@@ -193,7 +193,7 @@ npx eas-cli build:list --platform ios --json --non-interactive --limit 50 2>/dev
 
 ```bash
 PLUGIN_ROOT="${CLAUDE_SKILL_DIR}/../.."
-SENTRY_AUTH_TOKEN=$(node "$PLUGIN_ROOT/scripts/keychain.js" get tb.sentry-token) \
+SENTRY_AUTH_TOKEN=$(node "$PLUGIN_ROOT/scripts/resolve-credential.js" tb.sentry-token) \
 npx sentry-cli releases list -o stadion -p liverpool-app | grep "{build_number}"
 ```
 
