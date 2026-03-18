@@ -2,16 +2,16 @@
 gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
-status: completed
-stopped_at: Phase 14 context gathered
-last_updated: "2026-03-18T13:44:41.965Z"
-last_activity: 2026-03-14 -- Completed 13-01-PLAN.md (create attachment-documenter agent)
+status: executing
+stopped_at: Completed 14-01-PLAN.md
+last_updated: "2026-03-18T15:58:12.614Z"
+last_activity: 2026-03-18 -- Completed 14-01-PLAN.md (foundation modules for org-aware credentials)
 progress:
   total_phases: 16
   completed_phases: 13
-  total_plans: 25
-  completed_plans: 25
-  percent: 100
+  total_plans: 29
+  completed_plans: 26
+  percent: 90
 ---
 
 # Project State
@@ -21,16 +21,16 @@ progress:
 See: .planning/PROJECT.md (updated 2026-03-11)
 
 **Core value:** One repo, one install command -- every custom skill, credential setup, and dev tool available on any machine, always up to date.
-**Current focus:** Phase 13: Create attachment-documenter Agent
+**Current focus:** Phase 14: Per-Project Credential Scoping
 
 ## Current Position
 
-Phase: 13 of 11 (Create attachment-documenter Agent)
-Plan: 1 of 1 complete in current phase
-Status: Phase Complete
-Last activity: 2026-03-14 -- Completed 13-01-PLAN.md (create attachment-documenter agent)
+Phase: 14 of 16 (Per-Project Credential Scoping)
+Plan: 1 of 4 complete in current phase
+Status: In Progress
+Last activity: 2026-03-18 -- Completed 14-01-PLAN.md (foundation modules for org-aware credentials)
 
-Progress: [██████████] 100%
+Progress: [█████████░] 90%
 
 ## Performance Metrics
 
@@ -75,6 +75,7 @@ Progress: [██████████] 100%
 | Phase 11 P01 | 2min | 3 tasks | 3 files |
 | Phase 12 P01 | 2min | 2 tasks | 6 files |
 | Phase 13 P01 | 3min | 2 tasks | 6 files |
+| Phase 14 P01 | 1min | 1 tasks | 2 files |
 
 ## Accumulated Context
 
@@ -152,6 +153,8 @@ Recent decisions affecting current work:
 - [Phase 13]: Agent definition as flat file at agents/attachment-documenter.md per official docs pattern
 
 - [Dev workflow]: Always run `claude --plugin-dir ./` from repo root for live skill/agent testing without formal install
+- [Phase 14]: Regex-based URL parsing for git remote org extraction (no URL library dependency)
+- [Phase 14]: keychainGet helper wraps keychain.js CLI call for clean credential resolution
 
 ### Roadmap Evolution
 
@@ -168,5 +171,5 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-03-18T13:44:41.961Z
-Stopped at: Phase 14 context gathered
+Last session: 2026-03-18T15:58:12.612Z
+Stopped at: Completed 14-01-PLAN.md

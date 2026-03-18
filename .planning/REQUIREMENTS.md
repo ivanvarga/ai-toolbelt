@@ -47,8 +47,8 @@ Requirements for initial release. Each maps to roadmap phases.
 
 ### Per-Organization Credential Scoping
 
-- [ ] **SCOPE-01**: Org extraction from git remote URL (SSH, HTTPS, ssh:// formats)
-- [ ] **SCOPE-02**: Org-aware credential resolution with global fallback (resolve-credential.js)
+- [x] **SCOPE-01**: Org extraction from git remote URL (SSH, HTTPS, ssh:// formats)
+- [x] **SCOPE-02**: Org-aware credential resolution with global fallback (resolve-credential.js)
 - [ ] **SCOPE-03**: Setup scripts auto-detect org and store to scoped Keychain key
 - [ ] **SCOPE-04**: --global flag on setup scripts to bypass org scoping
 - [ ] **SCOPE-05**: API scripts (sentry-api.js, github-api.js) use org-aware resolution
