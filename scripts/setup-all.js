@@ -1,10 +1,19 @@
 #!/usr/bin/env node
 const { execSync } = require('child_process');
 const path = require('path');
+const resolveOrg = require('./resolve-org');
 
 if (!process.stdin.isTTY) {
   console.error('setup-all requires an interactive terminal. Run individual setup scripts with arguments instead.');
   process.exit(1);
+}
+
+const org = resolveOrg();
+if (org) {
+  console.log(`Detected org: ${org}. Credentials will be scoped to this org.\n`);
+  console.log('Use --global flag on individual setup scripts to store globally instead.\n');
+} else {
+  console.log('No git remote detected. Credentials will be stored globally.\n');
 }
 
 const setups = [
