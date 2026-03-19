@@ -40,7 +40,7 @@ async function runKeychainMode(config) {
     console.log(`Detected org: ${org}. Storing ${config.name.toLowerCase()} for ${org}.`);
   }
 
-  const cliArg = process.argv[2];
+  const cliArg = process.argv.filter(a => a !== '--global')[2];
   if (cliArg) {
     if (verify) {
       const result = await verify(cliArg);
