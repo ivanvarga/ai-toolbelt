@@ -2,16 +2,16 @@
 gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
-status: completed
-stopped_at: Phase 16 context gathered
-last_updated: "2026-03-21T09:59:22.397Z"
-last_activity: 2026-03-19 -- Completed 15-02-PLAN.md (credential system test execution)
+status: executing
+stopped_at: Completed 16-01-PLAN.md
+last_updated: "2026-03-21T12:46:19.060Z"
+last_activity: 2026-03-21 -- Completed 16-01-PLAN.md (test infrastructure and wait-for command)
 progress:
   total_phases: 16
   completed_phases: 15
-  total_plans: 31
-  completed_plans: 31
-  percent: 100
+  total_plans: 34
+  completed_plans: 32
+  percent: 94
 ---
 
 # Project State
@@ -21,16 +21,16 @@ progress:
 See: .planning/PROJECT.md (updated 2026-03-11)
 
 **Core value:** One repo, one install command -- every custom skill, credential setup, and dev tool available on any machine, always up to date.
-**Current focus:** Phase 15: Credential-Blocked Skill Testing
+**Current focus:** Phase 16: mbridge Testing and Hardening
 
 ## Current Position
 
-Phase: 15 of 16 (Credential-Blocked Skill Testing)
-Plan: 2 of 2 complete in current phase
-Status: Phase Complete
-Last activity: 2026-03-19 -- Completed 15-02-PLAN.md (credential system test execution)
+Phase: 16 of 16 (mbridge Testing and Hardening)
+Plan: 1 of 3 complete in current phase
+Status: In Progress
+Last activity: 2026-03-21 -- Completed 16-01-PLAN.md (test infrastructure and wait-for command)
 
-Progress: [██████████] 100%
+Progress: [█████████░] 94%
 
 ## Performance Metrics
 
@@ -81,6 +81,7 @@ Progress: [██████████] 100%
 | Phase 14 P03 | 1min | 2 tasks | 8 files |
 | Phase 15 P01 | 3min | 2 tasks | 1 files |
 | Phase 15 P02 | 5min | 2 tasks | 2 files |
+| Phase 16 P01 | 2min | 3 tasks | 7 files |
 
 ## Accumulated Context
 
@@ -168,6 +169,9 @@ Recent decisions affecting current work:
 - [Phase 15]: Static audit performed inline during checklist creation
 - [Phase 15]: Sentry token absence is expected config state, not a test failure
 - [Phase 15]: Tests 2.6 and 4.6 skipped as non-critical (partially covered by automated tests)
+- [Phase 16]: Deleted all 112 unit tests per Phase 7 no-unit-tests decision
+- [Phase 16]: wait-for uses time.monotonic for clock-change immunity
+- [Phase 16]: Integration tests use subprocess.run against installed mbridge binary
 
 ### Roadmap Evolution
 
@@ -184,5 +188,5 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-03-21T09:59:22.394Z
-Stopped at: Phase 16 context gathered
+Last session: 2026-03-21T12:46:19.058Z
+Stopped at: Completed 16-01-PLAN.md
