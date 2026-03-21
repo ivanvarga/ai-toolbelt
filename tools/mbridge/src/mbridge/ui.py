@@ -1,3 +1,5 @@
+import time
+
 import click
 
 from mbridge.device import _detect_platform
@@ -61,3 +63,42 @@ def find(device_id, element_id, text, exact, element_type, xpath):
         output(results)
     except RuntimeError as e:
         error(str(e))
+
+
+@ui.command("wait-for")
+@click.argument("device_id")
+@click.option("--text", default=None, help="Wait for element with matching text")
+@click.option("--id", "element_id", default=None, help="Wait for element with matching accessibility ID")
+@click.option("--type", "element_type", default=None, help="Wait for element with matching type")
+@click.option("--exact", is_flag=True, default=False, help="Require exact text match")
+@click.option("--timeout", type=float, default=10.0, help="Maximum wait time in seconds")
+@click.option("--interval", type=float, default=0.5, help="Poll interval in seconds")
+def wait_for(device_id, text, element_id, element_type, exact, timeout, interval):
+    """Wait for an element to appear in the UI hierarchy."""
+    if not text and not element_id and not element_type:
+        error("Provide at least one query flag: --text, --id, or --type")
+
+    deadline = time.monotonic() + timeout
+    last_error = None
+
+    while time.monotonic() < deadline:
+        try:
+            elements = _capture_dump(device_id)
+            results = find_elements(
+                elements, id=element_id, text=text, exact=exact,
+                element_type=element_type,
+            )
+            if results:
+                output(results[0])
+                return
+        except RuntimeError as e:
+            last_error = str(e)
+
+        remaining = deadline - time.monotonic()
+        if remaining > 0:
+            time.sleep(min(interval, remaining))
+
+    if last_error:
+        error(f"Timeout after {timeout}s waiting for element (last error: {last_error})")
+    else:
+        error(f"Timeout after {timeout}s waiting for element")
