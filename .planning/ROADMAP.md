@@ -263,18 +263,29 @@ Plans:
 
 ### Phase 16: mbridge Testing and Hardening
 
-**Goal:** [To be planned]
-**Requirements**: TBD
+**Goal:** Every mbridge CLI command passes on all 4 device environments (iOS simulator, iOS real device, Android emulator, Android real device), with all bugs fixed, a new `ui wait-for` command added, and SKILL.md updated to reflect changes
 **Depends on:** Phase 15
-**Plans:** 2/2 plans complete
+**Requirements**: None (testing/hardening phase, all MBRD requirements already satisfied)
+**Success Criteria** (what must be TRUE):
+  1. All existing unit tests deleted (consistent with Phase 7 "no unit tests" decision)
+  2. `mbridge ui wait-for` command implemented with polling, timeout, and interval support
+  3. Every mbridge command (device, app, ui, action, verify) passes on iOS simulator
+  4. Every mbridge command passes on iOS real device
+  5. Every mbridge command passes on Android emulator
+  6. Every mbridge command passes on Android real device
+  7. All bugs discovered during testing are fixed with root-cause investigation
+  8. SKILL.md updated with `ui wait-for` documentation and testing discoveries
+**Plans**: 3 plans
 
 Plans:
-- [ ] TBD (run /gsd:plan-phase 16 to break down)
+- [ ] 16-01-PLAN.md — Delete unit tests, implement ui wait-for, create integration test infrastructure
+- [ ] 16-02-PLAN.md — iOS testing (simulator + real device) with human checkpoints and bug fixing
+- [ ] 16-03-PLAN.md — Android testing (emulator + real device) with bug fixing and SKILL.md update
 
 ## Progress
 
 **Execution Order:**
-Phases execute in numeric order: 1 -> 2 -> 3 -> 4 -> 5 -> 6 -> 7 -> 8 -> 9 -> 10 -> 11 -> 12 -> 13 -> 14 -> 15
+Phases execute in numeric order: 1 -> 2 -> 3 -> 4 -> 5 -> 6 -> 7 -> 8 -> 9 -> 10 -> 11 -> 12 -> 13 -> 14 -> 15 -> 16
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
@@ -293,3 +304,4 @@ Phases execute in numeric order: 1 -> 2 -> 3 -> 4 -> 5 -> 6 -> 7 -> 8 -> 9 -> 10
 | 13. Create attachment-documenter Agent | 1/1 | Complete    | 2015-03-14 |
 | 14. Per-Organization Credential Scoping | 4/4 | Complete    | 2026-03-18 |
 | 15. Credential-Blocked Skill Testing | 2/2 | Complete    | 2026-03-19 |
+| 16. mbridge Testing and Hardening | 0/3 | Not started | - |
