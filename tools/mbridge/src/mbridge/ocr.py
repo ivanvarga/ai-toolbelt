@@ -2,9 +2,6 @@ import io
 import os
 import tempfile
 
-import easyocr
-from PIL import Image
-
 from mbridge.platforms import android, ios
 
 _reader = None
@@ -13,11 +10,14 @@ _reader = None
 def _get_reader():
     global _reader
     if _reader is None:
+        import easyocr
         _reader = easyocr.Reader(["en"], gpu=False)
     return _reader
 
 
 def ocr_screenshot(device_id, platform):
+    from PIL import Image
+
     reader = _get_reader()
 
     if platform == "ios":

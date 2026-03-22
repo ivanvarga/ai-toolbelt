@@ -217,9 +217,9 @@ def tap(device_id, x, y):
     run_cmd(["idb", "ui", "tap", str(x), str(y), "--udid", device_id])
 
 
-def swipe(device_id, x_start, y_start, x_end, y_end):
+def swipe(device_id, x_start, y_start, x_end, y_end, duration=0.3):
     require_idb()
-    run_cmd(["idb", "ui", "swipe", str(x_start), str(y_start), str(x_end), str(y_end), "--udid", device_id])
+    run_cmd(["idb", "ui", "swipe", str(x_start), str(y_start), str(x_end), str(y_end), "--duration", str(duration), "--udid", device_id])
 
 
 def type_text(device_id, text):

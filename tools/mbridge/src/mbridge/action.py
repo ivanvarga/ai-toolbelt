@@ -1,3 +1,5 @@
+import time
+
 import click
 
 from mbridge.device import _detect_platform
@@ -122,10 +124,7 @@ def swipe(device_id, direction, distance, text, element_id, element_type, exact,
         if not platform:
             error(f"Device not found: {device_id}")
 
-        if platform == "ios":
-            screen = ios._get_screen_info(device_id)
-        else:
-            screen = android._get_screen_info(device_id)
+        screen = _get_logical_screen(device_id, platform)
 
         start_x, start_y = None, None
         if text or element_id or element_type:
@@ -152,6 +151,84 @@ def swipe(device_id, direction, distance, text, element_id, element_type, exact,
             "from": {"x": x1, "y": y1},
             "to": {"x": x2, "y": y2},
         })
+    except RuntimeError as e:
+        error(str(e))
+
+
+def _get_logical_screen(device_id, platform):
+    if platform == "ios":
+        screen = ios._get_screen_info(device_id)
+        if screen.get("scale"):
+            screen["width"] = int(screen["width"] / screen["scale"])
+            screen["height"] = int(screen["height"] / screen["scale"])
+    else:
+        screen = android._get_screen_info(device_id)
+    return screen
+
+
+def _perform_swipe(device_id, platform, screen, direction, distance_pct=0.3):
+    x1, y1, x2, y2 = compute_swipe_coords(
+        screen["width"], screen["height"], direction, distance_pct=distance_pct,
+    )
+    if platform == "ios":
+        ios.swipe(device_id, x1, y1, x2, y2)
+    else:
+        android.swipe(device_id, x1, y1, x2, y2)
+
+
+def _is_on_screen(element, screen_width, screen_height):
+    cy = element.get("center", {}).get("y")
+    cx = element.get("center", {}).get("x")
+    if cy is None or cx is None:
+        return False
+    return 0 <= cx <= screen_width and 0 <= cy <= screen_height
+
+
+def _find_visible(elements, screen, **query):
+    results = find_elements(elements, **query)
+    return [r for r in results if _is_on_screen(r, screen["width"], screen["height"])]
+
+
+@action.command("swipe-to")
+@click.argument("device_id")
+@click.option("--text", default=None, help="Target element text to find")
+@click.option("--id", "element_id", default=None, help="Target element accessibility ID")
+@click.option("--type", "element_type", default=None, help="Target element type")
+@click.option("--exact", is_flag=True, default=False, help="Require exact text match")
+@click.option("--direction", type=click.Choice(["up", "down", "left", "right"]), default="up", help="Swipe direction")
+@click.option("--distance", type=float, default=0.3, help="Swipe distance per step as screen fraction")
+@click.option("--max-swipes", type=int, default=10, help="Maximum swipe attempts")
+@click.option("--pause", type=float, default=0.2, help="Pause between swipes for UI to settle")
+def swipe_to(device_id, text, element_id, element_type, exact, direction, distance, max_swipes, pause):
+    """Swipe until a target element is visible on screen."""
+    if not text and not element_id and not element_type:
+        error("Provide at least one target: --text, --id, or --type")
+
+    try:
+        platform = _detect_platform(device_id)
+        if not platform:
+            error(f"Device not found: {device_id}")
+
+        screen = _get_logical_screen(device_id, platform)
+        query = dict(id=element_id, text=text, exact=exact, element_type=element_type)
+
+        elements = _capture_dump(device_id)
+        visible = _find_visible(elements, screen, **query)
+        if visible:
+            output({"status": "found", "swipes": 0, "element": visible[0]})
+            return
+
+        for i in range(max_swipes):
+            _perform_swipe(device_id, platform, screen, direction, distance)
+            time.sleep(pause)
+
+            elements = _capture_dump(device_id)
+            visible = _find_visible(elements, screen, **query)
+            if visible:
+                output({"status": "found", "swipes": i + 1, "element": visible[0]})
+                return
+
+        error(f"Element not found after {max_swipes} swipes")
     except RuntimeError as e:
         error(str(e))
 
