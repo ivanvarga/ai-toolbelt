@@ -1,23 +1,24 @@
 import io
 import os
-import shutil
 import tempfile
 
-import pytesseract
+import easyocr
 from PIL import Image
 
 from mbridge.platforms import android, ios
 
+_reader = None
 
-def require_tesseract():
-    if not shutil.which("tesseract"):
-        raise RuntimeError(
-            "tesseract not found. Install: brew install tesseract"
-        )
+
+def _get_reader():
+    global _reader
+    if _reader is None:
+        _reader = easyocr.Reader(["en"], gpu=False)
+    return _reader
 
 
 def ocr_screenshot(device_id, platform):
-    require_tesseract()
+    reader = _get_reader()
 
     if platform == "ios":
         tmp = tempfile.NamedTemporaryFile(suffix=".png", delete=False)
@@ -25,11 +26,12 @@ def ocr_screenshot(device_id, platform):
         tmp.close()
         try:
             ios.screenshot(device_id, tmp_path)
-            img = Image.open(tmp_path)
-            return pytesseract.image_to_string(img)
+            results = reader.readtext(tmp_path)
         finally:
             os.unlink(tmp_path)
+    else:
+        raw = android.screenshot_bytes(device_id)
+        img = Image.open(io.BytesIO(raw))
+        results = reader.readtext(img)
 
-    raw = android.screenshot_bytes(device_id)
-    img = Image.open(io.BytesIO(raw))
-    return pytesseract.image_to_string(img)
+    return "\n".join(text for _, text, _ in results)

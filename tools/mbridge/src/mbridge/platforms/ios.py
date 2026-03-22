@@ -129,21 +129,35 @@ def boot_device(device_id):
 
 def list_apps(device_id):
     require_xcrun()
-    result = subprocess.run(
+    simctl = subprocess.Popen(
         ["xcrun", "simctl", "listapps", device_id],
-        capture_output=True,
+        stdout=subprocess.PIPE,
+        stderr=subprocess.PIPE,
     )
-    if result.returncode != 0:
-        stderr_text = result.stderr.decode("utf-8", errors="replace").strip()
+    plutil = subprocess.Popen(
+        ["plutil", "-convert", "xml1", "-o", "-", "--", "-"],
+        stdin=simctl.stdout,
+        stdout=subprocess.PIPE,
+        stderr=subprocess.PIPE,
+    )
+    simctl.stdout.close()
+    xml_data, plutil_err = plutil.communicate()
+    simctl.wait()
+
+    if simctl.returncode != 0:
+        stderr_text = simctl.stderr.read().decode("utf-8", errors="replace").strip()
         raise RuntimeError(stderr_text or f"Failed to list apps on {device_id}")
+    if plutil.returncode != 0:
+        raise RuntimeError("Failed to convert app list plist")
 
     try:
-        apps_plist = plistlib.loads(result.stdout)
+        apps_plist = plistlib.loads(xml_data)
     except Exception:
         raise RuntimeError("Failed to parse app list output")
 
+    entries = apps_plist.values() if isinstance(apps_plist, dict) else apps_plist
     apps = []
-    for app_info in apps_plist:
+    for app_info in entries:
         apps.append({
             "bundle_id": app_info.get("CFBundleIdentifier", "unknown"),
             "name": app_info.get("CFBundleDisplayName")
