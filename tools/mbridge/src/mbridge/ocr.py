@@ -42,8 +42,10 @@ def ocr_screenshot(device_id, platform):
         finally:
             os.unlink(tmp_path)
     else:
+        import numpy as np
+
         raw = android.screenshot_bytes(device_id)
         img = Image.open(io.BytesIO(raw))
-        results = reader.readtext(img)
+        results = reader.readtext(np.array(img))
 
     return "\n".join(text for _, text, _ in results)
