@@ -14,6 +14,18 @@ ANDROID_KEY_MAP = {"\n": 66, "\b": 67, "\t": 61, "\x1b": 111}
 ESCAPE_MAP = {"n": "\n", "b": "\b", "t": "\t", "e": "\x1b"}
 
 
+def _dismiss_android_keyboard(device_id):
+    try:
+        result = android.run_cmd([
+            "adb", "-s", device_id, "shell",
+            "dumpsys", "input_method",
+        ])
+        if "mInputShown=true" in result.stdout:
+            android.keyevent(device_id, 4)
+    except RuntimeError:
+        pass
+
+
 def _resolve_element(device_id, text=None, element_id=None, element_type=None,
                      exact=False, unique=False):
     elements = _capture_dump(device_id)
@@ -280,6 +292,9 @@ def type_text_cmd(device_id, text, element_text, element_id, element_type, exact
                     ios.key_press(device_id, code)
                 else:
                     android.keyevent(device_id, code)
+
+        if platform == "android":
+            _dismiss_android_keyboard(device_id)
 
         output({"status": "typed", "text": text})
     except RuntimeError as e:
