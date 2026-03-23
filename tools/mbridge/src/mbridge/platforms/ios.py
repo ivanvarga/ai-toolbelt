@@ -30,6 +30,50 @@ def run_cmd(args, parse_json=False):
     return result
 
 
+REAL_DEVICE_MSG = (
+    "iOS real devices are not supported. "
+    "mbridge uses idb (Facebook iOS Development Bridge) for iOS automation, "
+    "but idb-companion has not been updated since 2022 and does not work with iOS 17+. "
+    "No maintained open-source tool provides iOS real device UI automation. "
+    "Use an iOS simulator instead: mbridge device list --platform ios"
+)
+
+
+def _is_real_device(device_id):
+    device = _find_device(device_id)
+    return device is not None and device.get("type") == "device"
+
+
+def _require_simulator(device_id):
+    if _is_real_device(device_id):
+        raise RuntimeError(REAL_DEVICE_MSG)
+
+
+def _list_real_devices():
+    try:
+        result = subprocess.run(
+            ["idb", "list-targets", "--json"],
+            capture_output=True, text=True,
+        )
+        if result.returncode != 0:
+            return []
+        devices = []
+        for line in result.stdout.strip().splitlines():
+            target = json.loads(line)
+            if target.get("type") == "device":
+                devices.append({
+                    "id": target["udid"],
+                    "name": target.get("name", "Unknown"),
+                    "platform": "ios",
+                    "type": "device",
+                    "state": target.get("state", "unknown").lower(),
+                    "os_version": f"iOS {target.get('os_version', '')}",
+                })
+        return devices
+    except (RuntimeError, FileNotFoundError):
+        return []
+
+
 def list_devices():
     require_xcrun()
     data = run_cmd(["xcrun", "simctl", "list", "devices", "--json"], parse_json=True)
@@ -49,6 +93,7 @@ def list_devices():
                 "_deviceTypeIdentifier": dev.get("deviceTypeIdentifier", ""),
                 "_dataPath": dev.get("dataPath", ""),
             })
+    devices.extend(_list_real_devices())
     return devices
 
 
@@ -118,6 +163,7 @@ def _get_screen_info(device_id):
 
 
 def boot_device(device_id):
+    _require_simulator(device_id)
     require_xcrun()
     try:
         run_cmd(["xcrun", "simctl", "boot", device_id])
@@ -128,6 +174,7 @@ def boot_device(device_id):
 
 
 def list_apps(device_id):
+    _require_simulator(device_id)
     require_xcrun()
     simctl = subprocess.Popen(
         ["xcrun", "simctl", "listapps", device_id],
@@ -168,6 +215,7 @@ def list_apps(device_id):
 
 
 def get_foreground_app(device_id):
+    _require_simulator(device_id)
     require_idb()
     raw = dump_ui(device_id)
     for node in raw:
@@ -205,12 +253,14 @@ def get_foreground_app(device_id):
 
 
 def launch_app(device_id, bundle_id):
+    _require_simulator(device_id)
     require_xcrun()
     run_cmd(["xcrun", "simctl", "launch", device_id, bundle_id])
     return {"id": device_id, "bundle_id": bundle_id, "status": "launched"}
 
 
 def clear_app_data(device_id, bundle_id):
+    _require_simulator(device_id)
     require_xcrun()
     try:
         run_cmd(["xcrun", "simctl", "terminate", device_id, bundle_id])
@@ -225,37 +275,44 @@ def clear_app_data(device_id, bundle_id):
 
 
 def open_url(device_id, url):
+    _require_simulator(device_id)
     require_xcrun()
     run_cmd(["xcrun", "simctl", "openurl", device_id, url])
     return {"id": device_id, "url": url, "status": "opened"}
 
 
 def tap(device_id, x, y):
+    _require_simulator(device_id)
     require_idb()
     run_cmd(["idb", "ui", "tap", str(x), str(y), "--udid", device_id])
 
 
 def swipe(device_id, x_start, y_start, x_end, y_end, duration=0.3):
+    _require_simulator(device_id)
     require_idb()
     run_cmd(["idb", "ui", "swipe", str(x_start), str(y_start), str(x_end), str(y_end), "--duration", str(duration), "--udid", device_id])
 
 
 def type_text(device_id, text):
+    _require_simulator(device_id)
     require_idb()
     run_cmd(["idb", "ui", "text", text, "--udid", device_id])
 
 
 def key_press(device_id, key_code):
+    _require_simulator(device_id)
     require_idb()
     run_cmd(["idb", "ui", "key", str(key_code), "--udid", device_id])
 
 
 def screenshot(device_id, dest_path):
+    _require_simulator(device_id)
     require_xcrun()
     run_cmd(["xcrun", "simctl", "io", device_id, "screenshot", dest_path])
 
 
 def dump_ui(device_id):
+    _require_simulator(device_id)
     require_idb()
     result = subprocess.run(
         ["idb", "ui", "describe-all", "--udid", device_id],
@@ -263,5 +320,8 @@ def dump_ui(device_id):
         text=True,
     )
     if result.returncode != 0:
-        raise RuntimeError(result.stderr.strip() or "idb ui describe-all failed")
+        stderr = result.stderr.strip()
+        if "FBAccessibilityCommands" in stderr or "protocol" in stderr.lower():
+            raise RuntimeError(REAL_DEVICE_MSG)
+        raise RuntimeError(stderr or "idb ui describe-all failed")
     return json.loads(result.stdout)

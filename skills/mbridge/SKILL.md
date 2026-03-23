@@ -1,6 +1,6 @@
 ---
 name: mbridge
-description: Use when interacting with mobile apps on iOS simulators, Android emulators, or real devices. Use when tapping UI elements, navigating screens, testing mobile flows, verifying screen content, opening deeplinks, or automating any mobile device interaction.
+description: Use when interacting with mobile apps on iOS simulators, Android emulators, or Android real devices. Use when tapping UI elements, navigating screens, testing mobile flows, verifying screen content, opening deeplinks, or automating any mobile device interaction. Note: iOS real devices are NOT supported.
 allowed-tools: Bash(mbridge:*)
 ---
 
@@ -8,7 +8,9 @@ allowed-tools: Bash(mbridge:*)
 
 ## Overview
 
-mbridge is a CLI for controlling iOS and Android devices (real + simulators/emulators). The core principle: **element targeting replaces dump+jq+tap**. One mbridge command replaces the 3-step pattern of dumping UI, querying with jq, and tapping coordinates.
+mbridge is a CLI for controlling iOS simulators, Android emulators, and Android real devices. The core principle: **element targeting replaces dump+jq+tap**. One mbridge command replaces the 3-step pattern of dumping UI, querying with jq, and tapping coordinates.
+
+> **iOS real devices are not supported.** mbridge uses idb (Facebook iOS Development Bridge) for iOS automation, but idb-companion has not been updated since 2022 and does not work with iOS 17+. No maintained open-source tool provides iOS real device UI automation. Use an iOS simulator instead.
 
 Every mbridge command is self-contained. No wrapper scripts, no bash helpers, no sourcing boilerplate. Claude sequences raw `mbridge` commands directly in Bash tool calls.
 
@@ -40,9 +42,10 @@ If `foreground` does not return the expected bundle ID after several attempts, t
 When `mbridge device list` returns multiple devices, **ask the user which one to use**.
 
 **Tradeoffs:**
-- **Simulator/emulator:** No signing config needed, faster to reset, but may not match real device behavior
-- **Real Android device:** Zero signing setup, true device behavior, best for quick testing
-- **Real iOS device:** Requires Apple Developer team + provisioning, but most accurate iOS testing
+- **iOS simulator:** No signing config needed, faster to reset, full mbridge support
+- **Android emulator:** No signing config needed, all mbridge commands supported
+- **Real Android device:** Zero signing setup, true device behavior, all mbridge commands supported
+- **Real iOS device:** NOT SUPPORTED — `device list` and `device info` work (discovery only), but all other commands (app, ui, action, verify) will fail. If the user selects an iOS real device, warn them and suggest using a simulator instead.
 
 When in doubt, ask the user which device they prefer.
 
@@ -417,6 +420,14 @@ mbridge ui find $DEV --text "Submit" --exact
 Returns full element details including bounds, center, type, and accessibility_id. Use this to debug tapping issues or verify element state.
 
 ## Known Limitations
+
+### iOS real devices not supported
+
+mbridge cannot automate iOS real devices. Only `device list` and `device info` work (for discovery). All other commands (app, ui, action, verify) return an error explaining the limitation. This affects all iOS physical devices running iOS 17+.
+
+**Root cause:** mbridge relies on idb (Facebook iOS Development Bridge) for iOS UI automation. idb-companion was last updated in August 2022 (v1.1.8) and is incompatible with iOS 17+ due to Apple's migration to the CoreDevice framework. No maintained open-source alternative exists for iOS real device UI automation.
+
+**Workaround:** Use an iOS simulator. Simulators provide full mbridge support including UI automation, app management, and verification.
 
 ### UIAutomator idle state issue (Android)
 
