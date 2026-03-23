@@ -168,6 +168,24 @@ def list_apps(device_id):
 
 
 def get_foreground_app(device_id):
+    require_idb()
+    raw = dump_ui(device_id)
+    for node in raw:
+        if isinstance(node, dict) and node.get("role") == "AXApplication":
+            name = node.get("AXLabel", "unknown")
+            bundle_id = None
+            try:
+                for a in list_apps(device_id):
+                    if a.get("name") == name:
+                        bundle_id = a["bundle_id"]
+                        break
+            except RuntimeError:
+                pass
+            result = {"name": name}
+            if bundle_id:
+                result["bundle_id"] = bundle_id
+            return result
+
     require_xcrun()
     try:
         result = run_cmd([

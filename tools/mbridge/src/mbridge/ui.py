@@ -30,12 +30,35 @@ def _capture_dump(device_id):
         error(f"Device not found: {device_id}")
 
 
+def _get_screen_logical(device_id):
+    platform = _detect_platform(device_id)
+    if platform == "ios":
+        screen = ios._get_screen_info(device_id)
+        scale = screen.get("scale", 1)
+        return int(screen["width"] / scale), int(screen["height"] / scale)
+    else:
+        screen = android._get_screen_info(device_id)
+        return screen["width"], screen["height"]
+
+
+def _filter_visible(elements, screen_w, screen_h):
+    return [
+        e for e in elements
+        if 0 <= e.get("center", {}).get("x", -1) <= screen_w
+        and 0 <= e.get("center", {}).get("y", -1) <= screen_h
+    ]
+
+
 @ui.command()
 @click.argument("device_id")
-def dump(device_id):
+@click.option("--visible", is_flag=True, default=False, help="Only show elements visible on screen")
+def dump(device_id, visible):
     """Dump normalized UI element tree."""
     try:
         elements = _capture_dump(device_id)
+        if visible:
+            sw, sh = _get_screen_logical(device_id)
+            elements = _filter_visible(elements, sw, sh)
         output(elements)
     except RuntimeError as e:
         error(str(e))
@@ -48,7 +71,8 @@ def dump(device_id):
 @click.option("--exact", is_flag=True, default=False, help="Require exact text match")
 @click.option("--type", "element_type", default=None, help="Filter by element type")
 @click.option("--xpath", default=None, help="Filter by XPath expression")
-def find(device_id, element_id, text, exact, element_type, xpath):
+@click.option("--visible", is_flag=True, default=False, help="Only show elements visible on screen")
+def find(device_id, element_id, text, exact, element_type, xpath, visible):
     """Find elements in the UI hierarchy."""
     try:
         elements = _capture_dump(device_id)
@@ -60,6 +84,9 @@ def find(device_id, element_id, text, exact, element_type, xpath):
             element_type=element_type,
             xpath=xpath,
         )
+        if visible:
+            sw, sh = _get_screen_logical(device_id)
+            results = _filter_visible(results, sw, sh)
         output(results)
     except RuntimeError as e:
         error(str(e))

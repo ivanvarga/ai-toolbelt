@@ -7,11 +7,23 @@ from mbridge.platforms import android, ios
 _reader = None
 
 
+def _detect_gpu():
+    try:
+        import torch
+        if torch.cuda.is_available() or torch.backends.mps.is_available():
+            return True
+    except (ImportError, AttributeError):
+        pass
+    return False
+
+
 def _get_reader():
     global _reader
     if _reader is None:
+        import warnings
+        warnings.filterwarnings("ignore", message=".*pin_memory.*")
         import easyocr
-        _reader = easyocr.Reader(["en"], gpu=False)
+        _reader = easyocr.Reader(["en"], gpu=_detect_gpu(), verbose=False)
     return _reader
 
 

@@ -259,12 +259,12 @@ def type_text_cmd(device_id, text, element_text, element_id, element_type, exact
 
         if clear:
             if platform == "ios":
-                for _ in range(500):
-                    ios.key_press(device_id, IOS_KEY_MAP["\b"])
+                from mbridge.platforms.ios import run_cmd
+                run_cmd(["idb", "ui", "key-sequence"] + ["42"] * 200 + ["--udid", device_id])
             else:
                 android.keyevent(device_id, 123)
-                for _ in range(200):
-                    android.keyevent(device_id, ANDROID_KEY_MAP["\b"])
+                from mbridge.platforms.android import run_cmd as adb_run
+                adb_run(["adb", "-s", device_id, "shell", "input", "keyevent"] + ["67"] * 200)
 
         key_map = IOS_KEY_MAP if platform == "ios" else ANDROID_KEY_MAP
         segments = _parse_text_segments(text)
