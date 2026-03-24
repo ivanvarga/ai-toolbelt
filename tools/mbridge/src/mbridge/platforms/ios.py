@@ -67,7 +67,7 @@ def _list_real_devices():
                     "platform": "ios",
                     "type": "device",
                     "state": target.get("state", "unknown").lower(),
-                    "os_version": f"iOS {target.get('os_version', '')}",
+                    "os_version": target.get("os_version", ""),
                 })
         return devices
     except (RuntimeError, FileNotFoundError):
