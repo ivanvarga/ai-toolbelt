@@ -308,9 +308,16 @@ Phases execute in numeric order: 1 -> 2 -> 3 -> 4 -> 5 -> 6 -> 7 -> 8 -> 9 -> 10
 
 ### Phase 17: Android emulator boot command
 
-**Goal:** [To be planned]
+**Goal:** `mbridge device boot` supports Android emulators: discover AVDs via `emulator -list-avds`, launch with correct flags for macOS Tahoe (SwiftShader GPU fallback), wait for adb connection + `sys.boot_completed`, and open Simulator.app for iOS. Also harden `device boot` error handling (stop swallowing RuntimeError silently).
 **Requirements**: TBD
 **Depends on:** Phase 16
+
+**Known issues to address:**
+- Android emulator 36.x on macOS Tahoe: GPU detection reports UNKNOWN, intermittent adb connection failures. SwiftShader mode works but is slow. Needs retry logic.
+- `device boot` for iOS simulators: silent `except RuntimeError: pass` hides real errors (e.g., idb timeout when real device connected). Should propagate errors.
+- iOS simulator boot doesn't open Simulator.app GUI window — needs `open -a Simulator` after `xcrun simctl boot`.
+- `swipe-to` stops when element is barely visible at screen edge (thin line). Should scroll one more time to bring element fully into view.
+
 **Plans:** 0 plans
 
 Plans:
