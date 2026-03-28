@@ -2,9 +2,10 @@
 gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
-status: unknown
-stopped_at: Completed 16-01-PLAN.md
-last_updated: "2026-03-23T12:43:27.827Z"
+status: verifying
+stopped_at: Completed 17-01-PLAN.md
+last_updated: "2026-03-28T11:49:03.159Z"
+last_activity: 2026-03-28
 progress:
   total_phases: 16
   completed_phases: 15
@@ -19,12 +20,14 @@ progress:
 See: .planning/PROJECT.md (updated 2026-03-11)
 
 **Core value:** One repo, one install command -- every custom skill, credential setup, and dev tool available on any machine, always up to date.
-**Current focus:** Phase 16 — mbridge-testing-and-hardening
+**Current focus:** Phase 17 — android-emulator-boot-command
 
 ## Current Position
 
-Phase: 16 (mbridge-testing-and-hardening) — EXECUTING
-Plan: 1 of 3
+Phase: 17 (android-emulator-boot-command) — EXECUTING
+Plan: 1 of 2 complete in current phase
+Status: Phase executing — Wave 1 complete
+Last activity: 2026-03-28
 
 ## Performance Metrics
 
@@ -78,6 +81,7 @@ Plan: 1 of 3
 | Phase 15 P01 | 3min | 2 tasks | 1 files |
 | Phase 15 P02 | 5min | 2 tasks | 2 files |
 | Phase 16 P01 | 2min | 3 tasks | 7 files |
+| Phase 17 P01 | 2min | 2 tasks | 3 files |
 
 ## Accumulated Context
 
@@ -153,7 +157,6 @@ Recent decisions affecting current work:
 - [Phase 13]: acli jira auth status for runtime email extraction (no separate keychain entry for email)
 - [Phase 13]: GitHub auth optional -- falls back to unauthenticated for public repos
 - [Phase 13]: Agent definition as flat file at agents/attachment-documenter.md per official docs pattern
-
 - [Dev workflow]: Always run `claude --plugin-dir ./` from repo root for live skill/agent testing without formal install
 - [Phase 14]: Regex-based URL parsing for git remote org extraction (no URL library dependency)
 - [Phase 14]: keychainGet helper wraps keychain.js CLI call for clean credential resolution
@@ -168,6 +171,8 @@ Recent decisions affecting current work:
 - [Phase 16]: Deleted all 112 unit tests per Phase 7 no-unit-tests decision
 - [Phase 16]: wait-for uses time.monotonic for clock-change immunity
 - [Phase 16]: Integration tests use subprocess.run against installed mbridge binary
+- [Phase 17]: GPU fallback uses host then software, version-gated at 36.4.9+
+- [Phase 17]: Boot command tries iOS first then Android, propagates errors from both
 
 ### Roadmap Evolution
 
@@ -185,5 +190,5 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-03-21T12:46:19.058Z
-Stopped at: Completed 16-01-PLAN.md
+Last session: 2026-03-28T11:49:03.157Z
+Stopped at: Completed 17-01-PLAN.md
