@@ -2,9 +2,9 @@
 gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
-status: verifying
-stopped_at: Completed 17-01-PLAN.md
-last_updated: "2026-03-28T11:49:03.159Z"
+status: checkpoint
+stopped_at: Checkpoint at 17-02-PLAN.md Task 2 (human-verify)
+last_updated: "2026-03-28T11:56:48.440Z"
 last_activity: 2026-03-28
 progress:
   total_phases: 16
@@ -82,6 +82,7 @@ Last activity: 2026-03-28
 | Phase 15 P02 | 5min | 2 tasks | 2 files |
 | Phase 16 P01 | 2min | 3 tasks | 7 files |
 | Phase 17 P01 | 2min | 2 tasks | 3 files |
+| Phase 17 P02 | 3min | 1 tasks | 2 files |
 
 ## Accumulated Context
 
@@ -173,6 +174,7 @@ Recent decisions affecting current work:
 - [Phase 16]: Integration tests use subprocess.run against installed mbridge binary
 - [Phase 17]: GPU fallback uses host then software, version-gated at 36.4.9+
 - [Phase 17]: Boot command tries iOS first then Android, propagates errors from both
+- [Phase 17]: swipe_to created as new command with full helper functions (_is_on_screen, _find_visible, _perform_swipe, _get_logical_screen)
 
 ### Roadmap Evolution
 

@@ -1,6 +1,6 @@
 ---
 name: mbridge
-description: Use when interacting with mobile apps on iOS simulators, Android emulators, or Android real devices. Use when tapping UI elements, navigating screens, testing mobile flows, verifying screen content, opening deeplinks, or automating any mobile device interaction. Note: iOS real devices are NOT supported.
+description: Use when interacting with mobile apps on iOS simulators, Android emulators, or real devices. Use when tapping UI elements, navigating screens, testing mobile flows, verifying screen content, opening deeplinks, or automating any mobile device interaction.
 allowed-tools: Bash(mbridge:*)
 ---
 
@@ -8,9 +8,7 @@ allowed-tools: Bash(mbridge:*)
 
 ## Overview
 
-mbridge is a CLI for controlling iOS simulators, Android emulators, and Android real devices. The core principle: **element targeting replaces dump+jq+tap**. One mbridge command replaces the 3-step pattern of dumping UI, querying with jq, and tapping coordinates.
-
-> **iOS real devices are not supported.** mbridge uses idb (Facebook iOS Development Bridge) for iOS automation, but idb-companion has not been updated since 2022 and does not work with iOS 17+. No maintained open-source tool provides iOS real device UI automation. Use an iOS simulator instead.
+mbridge is a CLI for controlling iOS and Android devices (real + simulators/emulators). The core principle: **element targeting replaces dump+jq+tap**. One mbridge command replaces the 3-step pattern of dumping UI, querying with jq, and tapping coordinates.
 
 Every mbridge command is self-contained. No wrapper scripts, no bash helpers, no sourcing boilerplate. Claude sequences raw `mbridge` commands directly in Bash tool calls.
 
@@ -19,12 +17,11 @@ Every mbridge command is self-contained. No wrapper scripts, no bash helpers, no
 ## Quick Start
 
 ```bash
+mbridge device boot <device-id>
 mbridge device list
 mbridge action tap $DEV --text "Sign Up"
 mbridge action type $DEV "user@test.com" --text "Email" --clear
 mbridge app open-url $DEV "myapp://settings"
-mbridge ui wait-for $DEV --text "Settings" --timeout 10
-mbridge action swipe-to $DEV --text "Privacy Policy" --direction up
 mbridge verify text $DEV "Welcome"
 ```
 
@@ -44,12 +41,28 @@ If `foreground` does not return the expected bundle ID after several attempts, t
 When `mbridge device list` returns multiple devices, **ask the user which one to use**.
 
 **Tradeoffs:**
-- **iOS simulator:** No signing config needed, faster to reset, full mbridge support
-- **Android emulator:** No signing config needed, all mbridge commands supported
-- **Real Android device:** Zero signing setup, true device behavior, all mbridge commands supported
-- **Real iOS device:** NOT SUPPORTED — `device list` and `device info` work (discovery only), but all other commands (app, ui, action, verify) will fail. If the user selects an iOS real device, warn them and suggest using a simulator instead.
+- **Simulator/emulator:** No signing config needed, faster to reset, but may not match real device behavior
+- **Real Android device:** Zero signing setup, true device behavior, best for quick testing
+- **Real iOS device:** Requires Apple Developer team + provisioning, but most accurate iOS testing
 
 When in doubt, ask the user which device they prefer.
+
+## Booting Devices
+
+Boot a device before interacting with it. `device boot` supports both iOS simulators and Android emulators.
+
+```bash
+mbridge device boot <simulator-uuid>
+
+mbridge device boot <avd-name> --timeout 120
+```
+
+For Android, the emulator launches with hardware GPU acceleration. If the GPU crashes (common on macOS), it automatically falls back to software rendering. The result JSON includes `gpu_mode` ("host" or "software").
+
+To see available but not-yet-running Android emulators:
+```bash
+mbridge device list --available
+```
 
 ## Command Reference
 
@@ -61,18 +74,23 @@ All commands produce JSON output to stdout. Errors produce `{"error": "..."}` to
 mbridge device list
 mbridge device list --platform ios
 mbridge device list --platform android
+mbridge device list --available
 mbridge device boot DEVICE_ID
+mbridge device boot AVD_NAME --timeout 120
 mbridge device info DEVICE_ID
 ```
 
-**device list** returns an array of connected devices:
+**device list** returns an array of connected devices. Use `--available` to include unbooted Android emulators (AVDs):
 
 ```json
 [
   {"id": "ABCD-1234-...", "name": "iPhone 16 Pro", "state": "Booted", "platform": "ios"},
-  {"id": "emulator-5554", "name": "Pixel_8", "state": "device", "platform": "android"}
+  {"id": "emulator-5554", "name": "Pixel_8", "state": "device", "platform": "android"},
+  {"name": "Medium_Phone_API_36", "state": "available", "platform": "android", "type": "emulator"}
 ]
 ```
+
+**device boot** boots an iOS simulator (by UUID) or Android emulator (by AVD name). Android boot uses `--timeout` (default 120s) and includes GPU fallback (host -> software). Result JSON includes `gpu_mode` for Android.
 
 **device info** returns extended info including screen dimensions.
 
@@ -103,12 +121,11 @@ mbridge app open-url DEVICE_ID URL
 ```bash
 mbridge ui dump DEVICE_ID
 mbridge ui find DEVICE_ID [--id ID] [--text TEXT] [--exact] [--type TYPE] [--xpath XPATH]
-mbridge ui wait-for DEVICE_ID [--text TEXT] [--id ID] [--type TYPE] [--exact] [--timeout SECS] [--interval SECS]
 ```
 
-**ui dump** returns the full normalized UI element tree as a JSON array. On Android, the tree is hierarchical (1 root with nested children). Use `ui find` to flatten and search.
+**ui dump** returns the full normalized UI element tree as a JSON array.
 
-**ui find** filters elements by one or more criteria. Flattens the tree and searches all descendants:
+**ui find** filters elements by one or more criteria:
 
 - `--text TEXT` -- substring match on label/text content
 - `--id ID` -- match by accessibility ID
@@ -130,23 +147,6 @@ mbridge ui wait-for DEVICE_ID [--text TEXT] [--id ID] [--type TYPE] [--exact] [-
   }
 ]
 ```
-
-**ui wait-for** polls the UI hierarchy until a matching element appears or timeout expires:
-
-```bash
-mbridge ui wait-for DEVICE_ID --text "Submit"
-mbridge ui wait-for DEVICE_ID --id "login_btn" --timeout 15
-mbridge ui wait-for DEVICE_ID --type "Button" --text "OK" --exact --timeout 5 --interval 1
-```
-
-- `--text TEXT` -- wait for element with matching text (substring)
-- `--id ID` -- wait for element with matching accessibility ID
-- `--type TYPE` -- wait for element with matching type
-- `--exact` -- require exact text match
-- `--timeout SECONDS` -- maximum wait time (default: 10)
-- `--interval SECONDS` -- poll interval (default: 0.5)
-
-Returns the first matching element on success (same format as `ui find`). Returns error on timeout.
 
 ### action
 
@@ -200,22 +200,23 @@ Swipes in a direction from screen center, an element, or explicit coordinates.
 
 ```bash
 mbridge action swipe-to DEVICE_ID --text "Privacy Policy" --direction up
-mbridge action swipe-to DEVICE_ID --text "Submit" --direction up --distance 0.3 --max-swipes 10 --pause 1
+mbridge action swipe-to DEVICE_ID --id "terms_link" --direction down --max-swipes 15
+mbridge action swipe-to DEVICE_ID --text "Submit" --direction up --distance 0.5
 ```
 
-Swipes repeatedly until a target element appears in the UI hierarchy. Use this instead of manual swipe + find loops.
+Swipes repeatedly until an element is visible on screen. Replaces the manual swipe-then-find loop. If the element is found near a screen edge (outside the middle 80%), one extra swipe is performed automatically to bring it fully into view.
 
-- `--text TEXT` -- target element text to find
-- `--id ID` -- target element accessibility ID
-- `--type TYPE` -- target element type
+- `--direction` -- up, down, left, right (default: up)
+- `--distance FLOAT` -- swipe distance as fraction of screen (default 0.3)
+- `--max-swipes INT` -- maximum swipe attempts (default 10)
+- `--pause FLOAT` -- pause between swipes in seconds (default 0.5)
+- `--text TEXT` -- find element by text
+- `--id ID` -- find element by accessibility ID
+- `--type TYPE` -- find element by type
 - `--exact` -- require exact text match
-- `--direction` -- swipe direction: up, down, left, right (default: up)
-- `--distance FLOAT` -- swipe distance per step as screen fraction (default: 0.3)
-- `--max-swipes INT` -- maximum swipe attempts (default: 10)
-- `--pause FLOAT` -- pause between swipes in seconds (default: 0.2)
 
 ```json
-{"status": "found", "swipes": 3, "element": {"type": "Label", "label": "Privacy Policy", ...}}
+{"status": "found", "swipes": 3, "element": {"type": "Button", "label": "Privacy Policy", ...}}
 ```
 
 #### type
@@ -227,7 +228,7 @@ mbridge action type DEVICE_ID "new value" --id "name_field" --clear
 mbridge action type DEVICE_ID "line1\nline2"
 ```
 
-Types text with optional element targeting (taps element first) and escape sequences. On Android, the keyboard is automatically dismissed after typing.
+Types text with optional element targeting (taps element first) and escape sequences.
 
 - `TEXT` -- text to type (required argument). Supports escape sequences: `\n` (enter), `\b` (backspace), `\t` (tab), `\e` (escape)
 - `--text ELEMENT_TEXT` -- find element by text and tap it before typing
@@ -247,7 +248,7 @@ mbridge verify text DEVICE_ID "Welcome"
 mbridge verify text DEVICE_ID "Exact Title" --exact
 ```
 
-Takes a screenshot and uses OCR (easyocr) to verify expected text is visible on screen.
+Takes a screenshot and uses OCR (pytesseract) to verify expected text is visible on screen.
 
 - `EXPECTED` -- text to look for (required argument)
 - `--exact` -- require the entire OCR text to match exactly (rarely needed)
@@ -287,9 +288,8 @@ Priority order for reaching a screen:
 
 1. **Deeplinks** -- `mbridge app open-url $DEV "myapp://target"` for instant navigation. Use when you do not need to test the navigation path itself.
 2. **Element targeting** -- `mbridge action tap $DEV --text "Settings"` to navigate through UI. Use when testing that navigation actually works.
-3. **Wait-for** -- `mbridge ui wait-for $DEV --text "Expected" --timeout 10` to wait for screen transitions before interacting. Use after navigation actions to confirm the target screen loaded.
-4. **Scroll-to** -- `mbridge action swipe-to $DEV --text "Target" --direction up` to scroll until an element appears. Use for off-screen elements in scrollable lists.
-5. **OCR verify** -- `mbridge verify text $DEV "Expected"` as a verification fallback when UI elements lack identifiers, the text is rendered in a non-standard way, or UIAutomator cannot reach idle state (animated screens).
+3. **Swipe-to** -- `mbridge action swipe-to $DEV --text "Label" --direction up` to find off-screen elements automatically. Replaces manual swipe + find loops.
+4. **OCR verify** -- `mbridge verify text $DEV "Expected"` as a verification fallback when UI elements lack identifiers or the text is rendered in a non-standard way.
 
 **When to use deeplinks vs taps:**
 - Deeplink: setup/reset, navigating to a starting point, when the navigation flow itself is not under test
@@ -313,11 +313,10 @@ Batch 3-5 mbridge commands per Bash tool call using `&&`. Each command is self-c
 ```bash
 DEV="ABCD-1234"
 mbridge app open-url $DEV "myapp://signup" && \
-mbridge ui wait-for $DEV --text "Email" --timeout 10 && \
 mbridge action type $DEV "user@test.com" --text "Email" && \
 mbridge action type $DEV "secret123" --text "Password" && \
 mbridge action tap $DEV --text "Sign Up" && \
-mbridge ui wait-for $DEV --text "Welcome" --timeout 15
+mbridge verify text $DEV "Welcome"
 ```
 
 Batching reduces context overhead. Do not make one Bash tool call per mbridge command.
@@ -426,11 +425,7 @@ DEV="ABCD-1234"
 mbridge action swipe-to $DEV --text "Privacy Policy" --direction up
 ```
 
-This automatically swipes and retries until the element appears. If you need more control:
-
-```bash
-mbridge action swipe-to $DEV --text "Privacy Policy" --direction up --distance 0.3 --max-swipes 15 --pause 1
-```
+`swipe-to` handles the swipe + find loop automatically. If the element is near a screen edge, an extra swipe brings it fully into view.
 
 ### Multi-step UAT flow
 
@@ -462,25 +457,11 @@ Returns full element details including bounds, center, type, and accessibility_i
 
 ## Known Limitations
 
-### iOS real devices not supported
-
-mbridge cannot automate iOS real devices. Only `device list` and `device info` work (for discovery). All other commands (app, ui, action, verify) return an error explaining the limitation. This affects all iOS physical devices running iOS 17+.
-
-**Root cause:** mbridge relies on idb (Facebook iOS Development Bridge) for iOS UI automation. idb-companion was last updated in August 2022 (v1.1.8) and is incompatible with iOS 17+ due to Apple's migration to the CoreDevice framework. No maintained open-source alternative exists for iOS real device UI automation.
-
-**Workaround:** Use an iOS simulator. Simulators provide full mbridge support including UI automation, app management, and verification.
-
 ### UIAutomator idle state issue (Android)
 
-Screens with constantly updating timers, animations, or React Native animated components prevent UIAutomator from reaching idle state. Both `mbridge ui dump` and `mbridge ui find` may return 0 elements. `mbridge action tap --text` will also fail since it uses ui dump internally. Disabling system animations via developer settings does NOT fix this for app-level animations (Lottie, RN Animated).
+Screens with constantly updating timers or animations prevent UIAutomator from reaching idle state. Both `mbridge ui dump` and `mbridge ui find` may return 0 elements. `mbridge action tap --text` will also fail since it uses ui dump internally.
 
-**Workaround:** Use `mbridge verify text` (OCR-based, does not rely on UIAutomator) for verification. Navigate away from the animated screen to do UI operations, then navigate back.
-
-### Offscreen elements not in UI dump (Android)
-
-On Android, `ui dump` and `ui find` only return elements currently rendered in the view hierarchy. Items below the fold in a ScrollView or RecyclerView/FlatList do not exist in the accessibility tree until scrolled into view. There is no `visible: false` for offscreen items — they simply are not present.
-
-**Workaround:** Use `mbridge action swipe-to --text "Target" --direction up` to automatically scroll until the element appears.
+**Workaround:** Use `mbridge verify text` (OCR-based, does not rely on UIAutomator) for verification. Navigate away from the timer screen to do UI operations, then navigate back.
 
 ### Empty TextInputs invisible in UI dump
 
@@ -490,7 +471,7 @@ React Native TextInputs with no value do not always appear in UIAutomator dumps 
 
 ### OCR imperfect matching
 
-`mbridge verify text` uses easyocr which is imperfect. Special characters, small text, and unusual fonts may not OCR correctly. On failure, check the `ocr_text` field in the response for what was actually recognized.
+`mbridge verify text` uses pytesseract which is imperfect. Special characters, small text, and unusual fonts may not OCR correctly. On failure, check the `ocr_text` field in the response for what was actually recognized.
 
 **Workaround:** Use `mbridge ui find` for structural verification when elements have identifiers. Reserve `verify text` for cases where UI elements lack labels.
 
@@ -537,9 +518,8 @@ Add to your Claude settings.json so mbridge commands do not trigger permission p
 | Sourcing env files or setting up boilerplate | Each mbridge command is standalone. No env.sh, no sourcing |
 | Writing a `function tap_text()` wrapper | `mbridge action tap --text "Label"` already does this in one command |
 | Using `ui dump` output to manually calculate tap coordinates | Use `mbridge action tap --text` which does dump + find + tap atomically |
-| Using fixed `sleep` to wait for a screen transition | Use `mbridge ui wait-for --text "Expected" --timeout 10` instead |
-| Manual swipe + find loop to scroll to an element | Use `mbridge action swipe-to --text "Target" --direction up` instead |
-| Substring text match tapping wrong element (e.g., description instead of button) | Use `--exact` when text appears in both labels and descriptions |
+| Using fixed device IDs | Device IDs change between sessions. Run `device list` (or `device list --available` for Android) to discover current devices before any automation |
+| Manual swipe + find loops to scroll to an element | Use `mbridge action swipe-to --text "Label" --direction up` which handles the loop automatically |
 
 ## Red Flags - STOP
 
@@ -559,6 +539,3 @@ Add to your Claude settings.json so mbridge commands do not trigger permission p
 - About to launch parallel subagents on same device -> sequential only, one device at a time
 - App crashed on launch -> do not try to build it, ask the user to fix and confirm
 - About to create `.mbridge/` without asking the user -> check if it exists first, ask once if not
-- About to use `sleep` to wait for an element to appear -> use `mbridge ui wait-for --text "Expected"` instead
-- About to write a swipe + find loop -> use `mbridge action swipe-to --text "Target"` instead
-- About to use `--text` without `--exact` when text appears in multiple elements -> add `--exact` to avoid tapping the wrong one
