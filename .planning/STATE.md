@@ -2,12 +2,12 @@
 gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
-status: completed
-stopped_at: Completed 13-01-PLAN.md
-last_updated: "2026-03-17T16:43:13.678Z"
-last_activity: 2026-03-14 -- Completed 13-01-PLAN.md (create attachment-documenter agent)
+status: verifying
+stopped_at: Completed 17-01-PLAN.md
+last_updated: "2026-03-28T11:49:03.159Z"
+last_activity: 2026-03-28
 progress:
-  total_phases: 14
+  total_phases: 16
   completed_phases: 13
   total_plans: 25
   completed_plans: 25
@@ -27,14 +27,15 @@ See: .planning/PROJECT.md (updated 2026-03-11)
 
 Phase: 13 of 11 (Create attachment-documenter Agent)
 Plan: 1 of 1 complete in current phase
-Status: Phase Complete
-Last activity: 2026-03-14 -- Completed 13-01-PLAN.md (create attachment-documenter agent)
+Status: Phase complete — ready for verification
+Last activity: 2026-03-28
 
 Progress: [██████████] 100%
 
 ## Performance Metrics
 
 **Velocity:**
+
 - Total plans completed: 1
 - Average duration: 2min
 - Total execution time: 0.03 hours
@@ -46,6 +47,7 @@ Progress: [██████████] 100%
 | 01-plugin-scaffold | 1 | 2min | 2min |
 
 **Recent Trend:**
+
 - Last 5 plans: 01-01 (2min)
 - Trend: starting
 
@@ -75,6 +77,7 @@ Progress: [██████████] 100%
 | Phase 11 P01 | 2min | 3 tasks | 3 files |
 | Phase 12 P01 | 2min | 2 tasks | 6 files |
 | Phase 13 P01 | 3min | 2 tasks | 6 files |
+| Phase 17 P01 | 2min | 2 tasks | 3 files |
 
 ## Accumulated Context
 
@@ -152,6 +155,8 @@ Recent decisions affecting current work:
 - [Phase 13]: Agent definition as flat file at agents/attachment-documenter.md per official docs pattern
 
 - [Dev workflow]: Always run `claude --plugin-dir ./` from repo root for live skill/agent testing without formal install
+- [Phase 17]: GPU fallback uses host then software, version-gated at 36.4.9+
+- [Phase 17]: Boot command tries iOS first then Android, propagates errors from both
 
 ### Roadmap Evolution
 
@@ -168,5 +173,5 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-03-14T17:30:32.650Z
-Stopped at: Completed 13-01-PLAN.md
+Last session: 2026-03-28T11:49:03.157Z
+Stopped at: Completed 17-01-PLAN.md
