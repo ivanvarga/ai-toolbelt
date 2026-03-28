@@ -1,8 +1,161 @@
+import os
 import re
 import shutil
 import subprocess
+import time
 
 SHELL_META_CHARS = r'&()<>|;*\"\'~`'
+
+
+def _find_emulator():
+    path = shutil.which("emulator")
+    if path:
+        return path
+    android_home = os.environ.get("ANDROID_HOME") or os.environ.get("ANDROID_SDK_ROOT")
+    if android_home:
+        candidate = os.path.join(android_home, "emulator", "emulator")
+        if os.path.isfile(candidate):
+            return candidate
+    return None
+
+
+def require_emulator():
+    path = _find_emulator()
+    if not path:
+        raise RuntimeError(
+            "Android emulator not found. Install via Android Studio SDK Manager "
+            "or set ANDROID_HOME environment variable."
+        )
+    return path
+
+
+def _parse_emulator_version(emulator_path):
+    result = subprocess.run([emulator_path, "-version"], capture_output=True, text=True)
+    match = re.search(r"Android emulator version (\d+)\.(\d+)\.(\d+)", result.stdout)
+    if not match:
+        return None
+    return (int(match.group(1)), int(match.group(2)), int(match.group(3)))
+
+
+def list_avds():
+    emulator_path = require_emulator()
+    result = subprocess.run(
+        [emulator_path, "-list-avds"],
+        capture_output=True, text=True,
+    )
+    if result.returncode != 0:
+        return []
+    avds = []
+    for line in result.stdout.strip().splitlines():
+        name = line.strip()
+        if name:
+            avds.append({
+                "name": name,
+                "platform": "android",
+                "type": "emulator",
+                "state": "available",
+            })
+    return avds
+
+
+def _launch_emulator(emulator_path, avd_name, gpu_mode):
+    proc = subprocess.Popen(
+        [emulator_path, "-avd", avd_name, "-gpu", gpu_mode],
+        stdout=subprocess.DEVNULL,
+        stderr=subprocess.PIPE,
+    )
+    return proc
+
+
+def _wait_for_process_stable(proc, seconds=5):
+    deadline = time.monotonic() + seconds
+    while time.monotonic() < deadline:
+        if proc.poll() is not None:
+            return False
+        time.sleep(0.5)
+    return True
+
+
+def _get_emulator_serials():
+    try:
+        result = subprocess.run(
+            ["adb", "devices"], capture_output=True, text=True, timeout=5,
+        )
+        serials = set()
+        for line in result.stdout.splitlines()[1:]:
+            parts = line.strip().split()
+            if len(parts) >= 2 and parts[0].startswith("emulator-"):
+                serials.add(parts[0])
+        return serials
+    except (subprocess.TimeoutExpired, RuntimeError):
+        return set()
+
+
+def _wait_for_boot(device_serial, timeout):
+    deadline = time.monotonic() + timeout
+    while time.monotonic() < deadline:
+        try:
+            result = subprocess.run(
+                ["adb", "-s", device_serial, "shell", "getprop", "sys.boot_completed"],
+                capture_output=True, text=True, timeout=5,
+            )
+            if result.stdout.strip() == "1":
+                return True
+        except (subprocess.TimeoutExpired, RuntimeError):
+            pass
+        time.sleep(2)
+    return False
+
+
+def boot_emulator(avd_name, timeout=120):
+    emulator_path = require_emulator()
+    version = _parse_emulator_version(emulator_path)
+    if not version or version < (36, 4, 9):
+        raise RuntimeError(
+            f"Android emulator 36.4.9+ required "
+            f"(found {'.'.join(map(str, version)) if version else 'unknown'}). "
+            "Update via Android Studio SDK Manager."
+        )
+
+    before = _get_emulator_serials()
+    deadline = time.monotonic() + timeout
+
+    gpu_mode = "host"
+    proc = _launch_emulator(emulator_path, avd_name, gpu_mode)
+    if not _wait_for_process_stable(proc, seconds=5):
+        gpu_mode = "software"
+        proc = _launch_emulator(emulator_path, avd_name, gpu_mode)
+        if not _wait_for_process_stable(proc, seconds=5):
+            raise RuntimeError(
+                "Emulator failed to start with both host and software GPU modes"
+            )
+
+    device_serial = None
+    while time.monotonic() < deadline:
+        new_serials = _get_emulator_serials() - before
+        if new_serials:
+            device_serial = new_serials.pop()
+            break
+        time.sleep(2)
+
+    if not device_serial:
+        raise RuntimeError("Emulator started but no adb device detected")
+
+    remaining = max(1, deadline - time.monotonic())
+    booted = _wait_for_boot(device_serial, remaining)
+
+    result = {
+        "id": device_serial,
+        "status": "booted" if booted else "timeout",
+        "gpu_mode": gpu_mode,
+    }
+    if gpu_mode == "software":
+        result["note"] = "Hardware GPU unavailable, using software rendering (slower)"
+    if not booted:
+        raise RuntimeError(
+            f"Emulator boot timed out after {timeout}s (left running)"
+        )
+    return result
 
 
 def require_adb():

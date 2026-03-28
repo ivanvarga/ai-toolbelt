@@ -124,6 +124,10 @@ def boot_device(device_id):
     except RuntimeError as e:
         if "Booted" not in str(e) and "current state: Booted" not in str(e):
             raise
+    try:
+        subprocess.run(["open", "-a", "Simulator"], capture_output=True, timeout=10)
+    except (subprocess.TimeoutExpired, OSError):
+        pass
     return {"id": device_id, "status": "booted"}
 
 
