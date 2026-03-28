@@ -298,8 +298,8 @@ Plans:
 **Plans**: 2 plans
 
 Plans:
-- [ ] 17-01-PLAN.md — Android emulator boot functions, iOS boot fix, device boot rewrite with --timeout and --available
-- [ ] 17-02-PLAN.md — swipe-to usable zone fix, SKILL.md update, human verification of boot flow
+- [x] 17-01-PLAN.md — Android emulator boot functions, iOS boot fix, device boot rewrite with --timeout and --available
+- [x] 17-02-PLAN.md — swipe-to usable zone fix, SKILL.md update, human verification of boot flow
 
 ## Progress
 
@@ -324,4 +324,4 @@ Phases execute in numeric order: 1 -> 2 -> 3 -> 4 -> 5 -> 6 -> 7 -> 8 -> 9 -> 10
 | 14. Per-Organization Credential Scoping | 4/4 | Complete    | 2026-03-18 |
 | 15. Credential-Blocked Skill Testing | 2/2 | Complete    | 2026-03-19 |
 | 16. mbridge Testing and Hardening | 3/3 | Complete | 2026-03-23 |
-| 17. Android Emulator Boot Command | 0/2 | Not started | - |
+| 17. Android Emulator Boot Command | 2/2 | Complete    | 2026-03-28 |
