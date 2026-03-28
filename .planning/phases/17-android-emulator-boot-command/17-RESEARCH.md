@@ -52,6 +52,22 @@ None -- discussion stayed within phase scope
 
 </user_constraints>
 
+<phase_requirements>
+
+## Phase Requirements
+
+| ID | Description | Research Support |
+|----|-------------|-----------------|
+| BOOT-01 | Android AVD discovery via `emulator -list-avds` with `--available` flag on `device list` | Pattern 1 (emulator binary discovery), Code Example (list_avds), AVD metadata from `.ini` files verified locally |
+| BOOT-02 | Android emulator boot with GPU host-to-software fallback (requires emulator 36.4.9+) | Pattern 2 (version parsing), Pattern 3 (background process + crash detection), Full Boot Sequence skeleton, GPU mode state-of-the-art analysis |
+| BOOT-03 | Boot-wait polling via `adb shell getprop sys.boot_completed` with configurable timeout | Pattern 4 (two-stage polling), Pitfall 1 (adb connection race), Pitfall 5 (carriage return), 2s polling interval recommendation |
+| BOOT-04 | iOS simulator boot opens Simulator.app GUI window | iOS Boot code example, Pitfall 6 (Simulator.app path), D-15 implementation pattern |
+| BOOT-05 | `device boot` propagates RuntimeError instead of silently swallowing errors | Current `device.py:boot()` analysis (line 62 bare `except RuntimeError: pass`), D-17/D-18 error handling strategy |
+| BOOT-06 | `swipe-to` extra swipe when element center is outside usable zone (middle 80% of screen) | Pattern 5 (usable zone check), Pitfall 7 (extra swipe direction), D-19/D-20/D-21/D-22 constraints |
+| BOOT-07 | SKILL.md updated with Android emulator boot documentation | Existing SKILL.md analyzed (565 lines), new sections needed for `device boot` Android docs, `device list --available` docs |
+
+</phase_requirements>
+
 ## Standard Stack
 
 ### Core
@@ -118,7 +134,7 @@ def require_emulator():
         )
     return path
 ```
-**Source:** Verified on local machine -- `emulator` is at `$ANDROID_HOME/emulator/emulator` and also on PATH.
+**Source:** Verified on local machine -- `emulator` is at `$ANDROID_HOME/emulator/emulator` (`/Users/ivarga/Library/Android/sdk/emulator/emulator`) and also on PATH via `shutil.which()`.
 
 ### Pattern 2: Emulator Version Parsing
 **What:** Parse `emulator -version` output to extract semantic version for 36.4.9+ check
@@ -200,11 +216,23 @@ def _is_in_usable_zone(element, screen_width, screen_height):
             pad_y <= cy <= screen_height - pad_y)
 ```
 
+### Pattern 6: AVD Metadata from .ini Files (Discretion)
+**What:** Parse AVD configuration files to enrich `device list --available` output with display name and API level
+**When to use:** When building the available AVD list for D-01/D-03
+**Details verified locally:**
+- `~/.android/avd/<name>.ini` contains `target=android-36.1` (API level)
+- `~/.android/avd/<name>.avd/config.ini` contains `avd.ini.displayname=Medium Phone API 36.1`
+- The outer `.ini` file has `path=` pointing to the `.avd` directory
+- `emulator -list-avds` returns only the AVD name (e.g., `Medium_Phone_API_36.1`), no metadata
+
+**Recommendation:** Include `name` (from AVD name), `state: "available"`, `platform: "android"`, `type: "emulator"` as minimum. Optionally parse `avd.ini.displayname` from config.ini for a friendlier name. Keep it simple -- the planner can decide how much metadata to surface.
+
 ### Anti-Patterns to Avoid
 - **Using `run_cmd()` for emulator launch:** `run_cmd()` blocks until the process exits. The emulator runs indefinitely. Use `Popen` instead.
 - **Parsing adb output during early boot:** The adb daemon may not be ready yet. Catch all subprocess errors and retry.
 - **Relying on emulator exit code for GPU failure:** The emulator may exit with code 0 even on GPU failure. Use process-alive check (poll returns non-None = exited) as the signal.
 - **Using `swiftshader_indirect`:** Deprecated in 36.4.9. Decision D-14 explicitly forbids it.
+- **Catching `subprocess.SubprocessError` broadly:** The boot-wait loop should catch `subprocess.TimeoutExpired` specifically (for the per-command timeout) plus handle non-zero return codes. Don't suppress unexpected errors.
 
 ## Don't Hand-Roll
 
@@ -260,6 +288,12 @@ def _is_in_usable_zone(element, screen_width, screen_height):
 **Why it happens:** If element is at the bottom edge and swipe direction is "down", the extra swipe would push it further down.
 **How to avoid:** The extra swipe should use the same direction as the original swipe_to direction. If the user swiped "up" to find the element, one more "up" swipe brings it further into view. This is already correct by design.
 **Warning signs:** Element disappears after extra swipe.
+
+### Pitfall 8: Popen stderr=subprocess.PIPE Without Reading Can Deadlock
+**What goes wrong:** If the emulator writes a lot to stderr and we use `stderr=subprocess.PIPE` but never read it, the pipe buffer fills and the process blocks.
+**Why it happens:** OS pipe buffers are finite (typically 64KB on macOS).
+**How to avoid:** Either redirect stderr to DEVNULL (if we don't need it) or read stderr only when checking for crash (after `poll()` returns non-None). For the stable emulator process that runs indefinitely, use `stderr=subprocess.DEVNULL`. Only capture stderr briefly during the 5s stability check to include error context if the process crashes.
+**Warning signs:** Emulator appears to hang after a few minutes.
 
 ## Code Examples
 
@@ -348,6 +382,35 @@ def boot_device(device_id):
 ```
 **Note:** `open -a Simulator` failure should not prevent boot success from being reported. It's a UX convenience, not a requirement.
 
+### device.py boot() with Error Propagation
+```python
+@device.command()
+@click.argument("device_id")
+@click.option("--timeout", type=int, default=120, help="Boot timeout in seconds")
+def boot(device_id, timeout):
+    """Boot a device."""
+    ios_error = None
+    try:
+        result = ios.boot_device(device_id)
+        output(result)
+        return
+    except RuntimeError as e:
+        ios_error = e
+
+    try:
+        result = android.boot_emulator(device_id, timeout=timeout)
+        output(result)
+        return
+    except RuntimeError as e:
+        if ios_error:
+            error(f"Boot failed. iOS: {ios_error}. Android: {e}")
+        else:
+            error(str(e))
+
+    error(f"Device not found or boot not supported: {device_id}")
+```
+**Note:** This pattern propagates errors from both platforms (D-17/D-18) instead of silently swallowing them.
+
 ## State of the Art
 
 | Old Approach | Current Approach | When Changed | Impact |
@@ -367,18 +430,19 @@ def boot_device(device_id):
 - Emulator version: 36.3.10 (Dec 4, 2025) -- does NOT have `-gpu software`
 - Needs update to 36.4.9+ via Android Studio SDK Manager
 - AVDs present: `Medium_Phone_API_36.1`
+- `emulator -help-gpu` confirms only `auto`, `host`, `swiftshader_indirect`, `angle_indirect`, `guest` available on 36.3.10
 
 ## Open Questions
 
 1. **Detecting the new emulator's serial after launch**
    - What we know: Emulator assigns serials like `emulator-5554`, `emulator-5556`, etc. Can diff `adb devices` before/after.
    - What's unclear: Exact timing -- how long after Popen before the serial appears in `adb devices`? May take 5-15s.
-   - Recommendation: Include serial detection in the boot-wait loop. Poll `adb devices` and match new emulator-* serials. The boot-wait loop already has timeout handling.
+   - Recommendation: Snapshot `adb devices` before launch, then poll for new emulator-* serials in the boot-wait loop. The boot-wait timeout (120s) provides ample time.
 
 2. **AVD metadata for `device list --available`**
-   - What we know: `emulator -list-avds` returns only names, no metadata (no OS version, no device type).
-   - What's unclear: Whether to parse AVD .ini files for metadata or just show names.
-   - Recommendation: Show AVD name with `state: "available"` and `type: "emulator"`. Metadata would require parsing `~/.android/avd/<name>.avd/config.ini` -- could add basic info (display name, API level) if desired but not required by decisions.
+   - What we know: `emulator -list-avds` returns only names. AVD `.ini` files contain rich metadata.
+   - Verified locally: `~/.android/avd/Medium_Phone_API_36.1.ini` has `target=android-36.1`. `~/.android/avd/Medium_Phone.avd/config.ini` has `avd.ini.displayname=Medium Phone API 36.1`.
+   - Recommendation: Show AVD name with `state: "available"` and `type: "emulator"`. Optionally read `avd.ini.displayname` from config.ini for a friendlier `name` field. Keep it minimal per D-03.
 
 3. **Polling interval for boot-wait**
    - What we know: ReactiveCircus uses 2s, Briar CI uses 1s, typical range is 1-2s.
@@ -397,12 +461,13 @@ def boot_device(device_id):
 ### Phase Requirements to Test Map
 | Req ID | Behavior | Test Type | Automated Command | File Exists? |
 |--------|----------|-----------|-------------------|-------------|
-| D-01 | `device list --available` includes unbooted AVDs | integration | `uv run pytest tests/test_device.py::test_device_list_available -x` | No -- Wave 0 |
-| D-02/D-04 | `device boot <avd>` with timeout | integration (manual) | Manual: requires emulator launch, 120s wait | N/A |
-| D-08/D-09 | GPU host fallback to software | integration (manual) | Manual: requires emulator with known GPU issues | N/A |
-| D-15 | iOS boot opens Simulator.app | integration (manual) | Manual: verify Simulator.app window appears | N/A |
-| D-16/D-17 | Error propagation in device boot | integration | `uv run pytest tests/test_device.py::test_device_boot_error_propagation -x` | No -- Wave 0 |
-| D-19/D-20 | swipe-to usable zone extra swipe | integration (manual) | Manual: find element at screen edge, verify extra swipe | N/A |
+| BOOT-01 | `device list --available` includes unbooted AVDs | integration | `uv run pytest tests/test_device.py::test_device_list_available -x` | No -- Wave 0 |
+| BOOT-02 | `device boot <avd>` launches emulator with GPU fallback | integration (manual) | Manual: requires emulator launch, GPU failure scenario | N/A |
+| BOOT-03 | Boot-wait polls `sys.boot_completed` with configurable timeout | integration (manual) | Manual: requires real emulator boot, 120s wait | N/A |
+| BOOT-04 | iOS boot opens Simulator.app GUI window | integration (manual) | Manual: verify Simulator.app window appears | N/A |
+| BOOT-05 | Error propagation in `device boot` (no bare except) | integration | `uv run pytest tests/test_device.py::test_device_boot_error_propagation -x` | No -- Wave 0 |
+| BOOT-06 | swipe-to extra swipe when element at screen edge | integration (manual) | Manual: find element at screen edge, verify extra swipe | N/A |
+| BOOT-07 | SKILL.md updated with Android emulator boot docs | manual review | Manual: review SKILL.md for completeness | N/A |
 
 ### Sampling Rate
 - **Per task commit:** `cd tools/mbridge && uv run pytest tests/test_device.py -x`
@@ -410,9 +475,9 @@ def boot_device(device_id):
 - **Phase gate:** Full suite green + manual emulator boot verification
 
 ### Wave 0 Gaps
-- [ ] `tests/test_device.py::test_device_list_available` -- covers D-01 (--available flag)
-- [ ] `tests/test_device.py::test_device_boot_error_propagation` -- covers D-16/D-17
-- Note: Emulator boot (D-02/D-04/D-08/D-09), iOS Simulator.app (D-15), and swipe-to zone (D-19/D-20) are manual-only due to requiring physical device/emulator state
+- [ ] `tests/test_device.py::test_device_list_available` -- covers BOOT-01 (--available flag)
+- [ ] `tests/test_device.py::test_device_boot_error_propagation` -- covers BOOT-05
+- Note: Emulator boot (BOOT-02/BOOT-03), iOS Simulator.app (BOOT-04), swipe-to zone (BOOT-06), and SKILL.md (BOOT-07) are manual-only due to requiring physical device/emulator state or human review
 
 ## Sources
 
@@ -420,7 +485,7 @@ def boot_device(device_id):
 - Android Emulator CLI docs: https://developer.android.com/studio/run/emulator-commandline -- `-list-avds`, `-avd`, `-gpu` flags
 - Android Emulator acceleration docs: https://developer.android.com/studio/run/emulator-acceleration -- all GPU modes and deprecation versions
 - Android Emulator release notes: https://developer.android.com/studio/releases/emulator -- 36.4.9 introduces `-gpu software`, Lavapipe, deprecates `swiftshader_indirect`/`guest`/`swangle_indirect`
-- Local machine verification: `emulator -version` outputs `36.3.10.0`, `emulator -list-avds` returns `Medium_Phone_API_36.1`, `emulator -help-gpu` shows modes available on current version
+- Local machine verification: `emulator -version` outputs `36.3.10.0`, `emulator -list-avds` returns `Medium_Phone_API_36.1`, `emulator -help-gpu` confirms available modes, AVD `.ini` files verified for metadata structure
 - Python subprocess docs: https://docs.python.org/3/library/subprocess.html -- Popen.poll() behavior
 - AOSP GPU-EMULATION.TXT: https://android.googlesource.com/platform/external/qemu/+/emu-master-dev/android/docs/GPU-EMULATION.TXT -- GPU mode details
 
