@@ -110,9 +110,9 @@ def _wait_for_boot(device_serial, timeout):
 def boot_emulator(avd_name, timeout=120):
     emulator_path = require_emulator()
     version = _parse_emulator_version(emulator_path)
-    if not version or version < (36, 4, 9):
+    if not version or version < (36, 0, 0):
         raise RuntimeError(
-            f"Android emulator 36.4.9+ required "
+            f"Android emulator 36.0.0+ required "
             f"(found {'.'.join(map(str, version)) if version else 'unknown'}). "
             "Update via Android Studio SDK Manager."
         )
