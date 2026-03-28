@@ -1,3 +1,5 @@
+import time
+
 import click
 
 from mbridge.device import _detect_platform
@@ -66,6 +68,44 @@ def compute_swipe_coords(screen_width, screen_height, direction, distance_pct=0.
     ex = max(0, min(ex, screen_width))
     ey = max(0, min(ey, screen_height))
     return (sx, sy, ex, ey)
+
+
+def _is_on_screen(element, screen_width, screen_height):
+    center = element.get("center", {})
+    cx = center.get("x", 0)
+    cy = center.get("y", 0)
+    return 0 <= cx <= screen_width and 0 <= cy <= screen_height
+
+
+def _is_in_usable_zone(element, screen_width, screen_height):
+    center = element.get("center", {})
+    cx = center.get("x", 0)
+    cy = center.get("y", 0)
+    pad_x = screen_width * 0.10
+    pad_y = screen_height * 0.10
+    return (pad_x <= cx <= screen_width - pad_x and
+            pad_y <= cy <= screen_height - pad_y)
+
+
+def _find_visible(elements, screen, **query):
+    matched = find_elements(elements, **query)
+    return [el for el in matched if _is_on_screen(el, screen["width"], screen["height"])]
+
+
+def _perform_swipe(device_id, platform, screen, direction, distance_pct=0.3):
+    x1, y1, x2, y2 = compute_swipe_coords(
+        screen["width"], screen["height"], direction, distance_pct=distance_pct,
+    )
+    if platform == "ios":
+        ios.swipe(device_id, x1, y1, x2, y2)
+    else:
+        android.swipe(device_id, x1, y1, x2, y2)
+
+
+def _get_logical_screen(device_id, platform):
+    if platform == "ios":
+        return ios._get_screen_info(device_id)
+    return android._get_screen_info(device_id)
 
 
 @click.group()
@@ -205,5 +245,78 @@ def type_text_cmd(device_id, text, element_text, element_id, element_type, exact
                     android.keyevent(device_id, code)
 
         output({"status": "typed", "text": text})
+    except RuntimeError as e:
+        error(str(e))
+
+
+@action.command("swipe-to")
+@click.argument("device_id")
+@click.option("--direction", type=click.Choice(["up", "down", "left", "right"]), default="up",
+              help="Swipe direction to reveal element")
+@click.option("--distance", type=float, default=0.3, help="Swipe distance as screen fraction")
+@click.option("--max-swipes", type=int, default=10, help="Maximum number of swipes")
+@click.option("--pause", type=float, default=0.5, help="Pause between swipes in seconds")
+@click.option("--text", default=None, help="Find element by text")
+@click.option("--id", "element_id", default=None, help="Find element by accessibility ID")
+@click.option("--type", "element_type", default=None, help="Find element by type")
+@click.option("--exact", is_flag=True, default=False, help="Require exact text match")
+def swipe_to(device_id, direction, distance, max_swipes, pause, text, element_id,
+             element_type, exact):
+    """Swipe until an element is visible on screen."""
+    try:
+        if not text and not element_id and not element_type:
+            error("Provide at least one targeting flag (--text, --id, --type)")
+
+        platform = _detect_platform(device_id)
+        if not platform:
+            error(f"Device not found: {device_id}")
+
+        screen = _get_logical_screen(device_id, platform)
+        query = {}
+        if text:
+            query["text"] = text
+        if element_id:
+            query["id"] = element_id
+        if element_type:
+            query["element_type"] = element_type
+        if exact:
+            query["exact"] = True
+
+        elements = _capture_dump(device_id)
+        visible = _find_visible(elements, screen, **query)
+        if visible:
+            el = visible[0]
+            if not _is_in_usable_zone(el, screen["width"], screen["height"]):
+                _perform_swipe(device_id, platform, screen, direction, distance)
+                time.sleep(pause)
+                elements = _capture_dump(device_id)
+                refreshed = _find_visible(elements, screen, **query)
+                if refreshed:
+                    el = refreshed[0]
+                output({"status": "found", "swipes": 1, "element": el})
+            else:
+                output({"status": "found", "swipes": 0, "element": el})
+            return
+
+        for i in range(max_swipes):
+            _perform_swipe(device_id, platform, screen, direction, distance)
+            time.sleep(pause)
+            elements = _capture_dump(device_id)
+            visible = _find_visible(elements, screen, **query)
+            if visible:
+                el = visible[0]
+                if not _is_in_usable_zone(el, screen["width"], screen["height"]):
+                    _perform_swipe(device_id, platform, screen, direction, distance)
+                    time.sleep(pause)
+                    elements = _capture_dump(device_id)
+                    refreshed = _find_visible(elements, screen, **query)
+                    if refreshed:
+                        el = refreshed[0]
+                    output({"status": "found", "swipes": i + 2, "element": el})
+                else:
+                    output({"status": "found", "swipes": i + 1, "element": el})
+                return
+
+        error(f"Element not found after {max_swipes} swipes")
     except RuntimeError as e:
         error(str(e))
