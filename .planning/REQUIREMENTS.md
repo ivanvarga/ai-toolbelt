@@ -56,6 +56,16 @@ Requirements for initial release. Each maps to roadmap phases.
 - [x] **SCOPE-07**: Doctor credential checks report org-scoped vs global vs missing status
 - [x] **SCOPE-08**: One-time migration script copies global credentials to org-scoped keys
 
+### Android Emulator Boot + Device Hardening
+
+- **BOOT-01**: Android AVD discovery via `emulator -list-avds` with `--available` flag on `device list`
+- **BOOT-02**: Android emulator boot with GPU host-to-software fallback (requires emulator 36.4.9+)
+- **BOOT-03**: Boot-wait polling via `adb shell getprop sys.boot_completed` with configurable timeout
+- **BOOT-04**: iOS simulator boot opens Simulator.app GUI window
+- **BOOT-05**: `device boot` propagates RuntimeError instead of silently swallowing errors
+- **BOOT-06**: `swipe-to` extra swipe when element center is outside usable zone (middle 80% of screen)
+- **BOOT-07**: SKILL.md updated with Android emulator boot documentation
+
 ## v2 Requirements
 
 ### Setup & Polish
@@ -122,12 +132,19 @@ Which phases cover which requirements. Updated during roadmap creation.
 | SCOPE-06 | Phase 14 | Planned |
 | SCOPE-07 | Phase 14 | Planned |
 | SCOPE-08 | Phase 14 | Planned |
+| BOOT-01 | Phase 17 | Planned |
+| BOOT-02 | Phase 17 | Planned |
+| BOOT-03 | Phase 17 | Planned |
+| BOOT-04 | Phase 17 | Planned |
+| BOOT-05 | Phase 17 | Planned |
+| BOOT-06 | Phase 17 | Planned |
+| BOOT-07 | Phase 17 | Planned |
 
 **Coverage:**
-- v1 requirements: 31 total (23 original + 8 credential scoping)
-- Mapped to phases: 31
+- v1 requirements: 38 total (23 original + 8 credential scoping + 7 emulator boot)
+- Mapped to phases: 38
 - Unmapped: 0
 
 ---
 *Requirements defined: 2026-03-11*
-*Last updated: 2026-03-18 after Phase 14 planning*
+*Last updated: 2026-03-28 after Phase 17 planning*

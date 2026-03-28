@@ -282,10 +282,29 @@ Plans:
 - [ ] 16-02-PLAN.md — iOS testing (simulator + real device) with human checkpoints and bug fixing
 - [ ] 16-03-PLAN.md — Android testing (emulator + real device) with bug fixing and SKILL.md update
 
+### Phase 17: Android Emulator Boot Command
+
+**Goal:** `mbridge device boot` supports Android emulators with GPU host-to-software fallback, AVD discovery via `--available` flag, boot-wait via `sys.boot_completed` polling. iOS boot opens Simulator.app. Error handling hardened (no silent RuntimeError swallowing). `swipe-to` does extra swipe when element is at screen edge.
+**Depends on:** Phase 16
+**Requirements**: BOOT-01, BOOT-02, BOOT-03, BOOT-04, BOOT-05, BOOT-06, BOOT-07
+**Success Criteria** (what must be TRUE):
+  1. `mbridge device list --available` shows unbooted AVDs from `emulator -list-avds`
+  2. `mbridge device boot <avd-name>` launches Android emulator with GPU fallback and waits for boot
+  3. Emulator 36.4.9+ required; older versions get upgrade error
+  4. iOS `device boot` opens Simulator.app GUI window after simctl boot
+  5. `device boot` propagates actual errors (no bare `except RuntimeError: pass`)
+  6. `swipe-to` does one extra swipe when element center is outside usable zone (middle 80% of screen)
+  7. SKILL.md updated with Android emulator boot documentation
+**Plans**: 2 plans
+
+Plans:
+- [ ] 17-01-PLAN.md — Android emulator boot functions, iOS boot fix, device boot rewrite with --timeout and --available
+- [ ] 17-02-PLAN.md — swipe-to usable zone fix, SKILL.md update, human verification of boot flow
+
 ## Progress
 
 **Execution Order:**
-Phases execute in numeric order: 1 -> 2 -> 3 -> 4 -> 5 -> 6 -> 7 -> 8 -> 9 -> 10 -> 11 -> 12 -> 13 -> 14 -> 15 -> 16
+Phases execute in numeric order: 1 -> 2 -> 3 -> 4 -> 5 -> 6 -> 7 -> 8 -> 9 -> 10 -> 11 -> 12 -> 13 -> 14 -> 15 -> 16 -> 17
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
@@ -304,21 +323,5 @@ Phases execute in numeric order: 1 -> 2 -> 3 -> 4 -> 5 -> 6 -> 7 -> 8 -> 9 -> 10
 | 13. Create attachment-documenter Agent | 1/1 | Complete    | 2015-03-14 |
 | 14. Per-Organization Credential Scoping | 4/4 | Complete    | 2026-03-18 |
 | 15. Credential-Blocked Skill Testing | 2/2 | Complete    | 2026-03-19 |
-| 16. mbridge Testing and Hardening | 1/3 | In Progress|  |
-
-### Phase 17: Android emulator boot command
-
-**Goal:** `mbridge device boot` supports Android emulators: discover AVDs via `emulator -list-avds`, launch with correct flags for macOS Tahoe (SwiftShader GPU fallback), wait for adb connection + `sys.boot_completed`, and open Simulator.app for iOS. Also harden `device boot` error handling (stop swallowing RuntimeError silently).
-**Requirements**: TBD
-**Depends on:** Phase 16
-
-**Known issues to address:**
-- Android emulator 36.x on macOS Tahoe: GPU detection reports UNKNOWN, intermittent adb connection failures. SwiftShader mode works but is slow. Needs retry logic.
-- `device boot` for iOS simulators: silent `except RuntimeError: pass` hides real errors (e.g., idb timeout when real device connected). Should propagate errors.
-- iOS simulator boot doesn't open Simulator.app GUI window — needs `open -a Simulator` after `xcrun simctl boot`.
-- `swipe-to` stops when element is barely visible at screen edge (thin line). Should scroll one more time to bring element fully into view.
-
-**Plans:** 0 plans
-
-Plans:
-- [ ] TBD (run /gsd:plan-phase 17 to break down)
+| 16. mbridge Testing and Hardening | 3/3 | Complete | 2026-03-23 |
+| 17. Android Emulator Boot Command | 0/2 | Not started | - |
