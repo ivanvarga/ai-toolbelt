@@ -25,7 +25,24 @@ One repo, one install command — every custom skill, credential setup, and dev 
 
 ### Active
 
-(None — planning next milestone)
+- [ ] Bootstrap skill — full environment setup (GSD, Forgetful MCP, forgetful-plugin, dependencies)
+- [ ] Doctor checks — verify GSD installed, Forgetful MCP configured, forgetful-plugin present
+- [ ] Update integration — /tb:update also pulls latest GSD and updates forgetful-plugin
+- [ ] GSD context hook — UserPromptSubmit hook detects /gsd:* commands, queries Forgetful, injects relevant memories
+- [ ] Load context skill — manual Forgetful memory loading before any work
+- [ ] Save findings skill — extract GSD phase/milestone artifacts into Forgetful, mark obsolete memories
+
+## Current Milestone: v1.1 GSD & Forgetful Integration
+
+**Goal:** Make GSD and Forgetful first-class parts of the tb toolkit — one-command bootstrap, automatic context injection on GSD workflows, and bidirectional memory sync.
+
+**Target features:**
+- Bootstrap skill for full dev environment setup
+- Doctor checks for GSD and Forgetful health
+- Update integration for keeping dependencies current
+- UserPromptSubmit hook for automatic GSD context injection from Forgetful
+- Manual load-context skill for ad-hoc memory retrieval
+- Save-findings skill for extracting GSD artifacts into Forgetful
 
 ### Out of Scope
 
@@ -69,5 +86,22 @@ Credential system: org-scoped Keychain resolution with global fallback, batch se
 - **mbridge approach**: UI dumps + OCR, no screenshot-based vision
 - **Skill format**: All items use unified SKILL.md + frontmatter format
 
+## Evolution
+
+This document evolves at phase transitions and milestone boundaries.
+
+**After each phase transition** (via `/gsd:transition`):
+1. Requirements invalidated? → Move to Out of Scope with reason
+2. Requirements validated? → Move to Validated with phase reference
+3. New requirements emerged? → Add to Active
+4. Decisions to log? → Add to Key Decisions
+5. "What This Is" still accurate? → Update if drifted
+
+**After each milestone** (via `/gsd:complete-milestone`):
+1. Full review of all sections
+2. Core Value check — still the right priority?
+3. Audit Out of Scope — reasons still valid?
+4. Update Context with current state
+
 ---
-*Last updated: 2026-03-28 after v1.0 milestone*
+*Last updated: 2026-03-28 after v1.1 milestone start*
