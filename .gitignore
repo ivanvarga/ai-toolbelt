@@ -9,3 +9,4 @@ dist/
 *.egg-info/
 *-workspace/
 .claude/attachments/
+.claude/worktrees/

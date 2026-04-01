@@ -45,8 +45,7 @@ async function createSession(url) {
   });
 
   const sessionId = res.headers.get('mcp-session-id');
-  const body = await res.text();
-  const parsed = parseSSE(body);
+  await res.text();
 
   if (!sessionId) {
     throw new Error('No Mcp-Session-Id in initialize response');
