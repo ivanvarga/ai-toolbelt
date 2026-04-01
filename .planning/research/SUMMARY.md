@@ -1,92 +1,154 @@
-# Research Summary: ai-toolbelt
+# Project Research Summary
 
-**Domain:** Claude Code private plugin + mobile automation CLI toolkit
-**Researched:** 2026-03-11
-**Overall confidence:** HIGH
+**Project:** tb plugin v1.1 — GSD & Forgetful integration
+**Domain:** Claude Code plugin — automated context injection and memory management for GSD workflows
+**Researched:** 2026-04-01
+**Confidence:** HIGH
 
 ## Executive Summary
 
-ai-toolbelt is a private Claude Code plugin that consolidates 9 custom commands, 7+ custom skills, credential management scripts, a global CLAUDE.md, and a new Python-based mobile automation CLI (mbridge) into a single distributable repository. The architecture is clear: a standard Claude Code plugin at the repo root (`.claude-plugin/plugin.json` + marketplace for distribution), bash scripts for credential management via macOS Keychain, and a standalone Python package (`tools/mbridge/`) for mobile automation.
+This is a Claude Code plugin enhancement that integrates two external systems — the GSD (get-shit-done) workflow framework and the Forgetful persistent memory MCP server — into the existing `tb` plugin. The integration pattern is well-understood: a UserPromptSubmit hook intercepts GSD commands, queries Forgetful for relevant project memories, and injects context before Claude processes the prompt. Supporting this are bootstrap, doctor, update, load-context, and save-findings capabilities, all following established tb patterns (SKILL.md for skills, `scripts/checks/*.sh` for doctor checks, Node.js for shared modules).
 
-The Claude Code plugin system is mature and well-documented. It natively supports everything this project needs: skill/command auto-discovery, hook lifecycle events, private repo distribution via marketplace, auto-updates, and the `${CLAUDE_PLUGIN_ROOT}` path variable for self-contained packaging. The superpowers plugin (v4.2.0, by Jesse Vincent) serves as a proven reference implementation with skills, hooks, and session-start context injection -- the exact patterns ai-toolbelt needs.
+The recommended approach is to build incrementally in three phases: first the shared Forgetful HTTP client and doctor check scripts (no dependencies), then the hook and bootstrap (depend on Phase 1), then the skills and update extension (depend on Phase 2). The stack requires no new runtime dependencies — curl and jq already exist, Node.js is already in use for all scripts. The one critical architectural constraint is that the UserPromptSubmit hook must be registered in `~/.claude/settings.json` rather than in the plugin's `hooks/hooks.json` due to an open bug (#12151) that silently discards plugin hook output.
 
-The Python stack for mbridge is straightforward: uv (v0.10.x) for project management and tool installation, Click (8.1.x) for the CLI framework, pytesseract for OCR, lxml for Android XML parsing, and direct subprocess calls to `xcrun simctl` / `adb` for device interaction. No heavyweight frameworks like Appium needed. The key insight from researching the existing mobilecli skill is that mbridge does NOT need to replicate mobilecli 1:1 -- it starts with UI dump parsing and OCR verification (the differentiating capabilities), then adds device interaction commands incrementally.
-
-The biggest risks are not technical but operational: path rewriting during skill migration (`$HOME/.claude/skills/` to `${CLAUDE_PLUGIN_ROOT}/skills/`), credential setup script fragility on fresh machines, and Python environment isolation on macOS. All three have proven mitigation patterns. The plugin cache staleness issue (GitHub #15642) is a known Claude Code bug that requires workarounds during development.
+The key risks are: silent hook failure from the plugin hooks bug (well-documented, clear workaround), prompt blocking when Forgetful is unreachable (requires strict curl timeouts), and context window bloat from unbounded memory injection (cap at k:3, ~1500 tokens). All three risks have concrete, tested mitigations. Confidence across all research areas is HIGH — findings are based on live testing against Forgetful 3.1.1, official Claude Code docs, and verified GitHub issues.
 
 ## Key Findings
 
-**Stack:** Claude Code plugin system (native) + Bash/macOS Keychain (credentials) + Python/uv/Click (mbridge CLI) + pytesseract (OCR) + lxml (XML parsing) + subprocess (device control).
+### Recommended Stack
 
-**Architecture:** Single repo = plugin root. Self-hosted marketplace of one. Skills and commands auto-discovered. mbridge lives in `tools/mbridge/` as a standalone Python package, referenced by a skill SKILL.md. Credentials never in files -- always macOS Keychain via `security` CLI.
+The v1.1 feature set requires no new Node packages or Python dependencies. The MCP Streamable HTTP protocol (JSON-RPC over POST with SSE responses) is handled in a new `scripts/forgetful-client.js` Node.js module using built-in `http` — curl would work for simple cases but SSE parsing is fragile in shell. jq (already installed at 1.7.1) handles all hook stdin/stdout JSON needs. GSD is not a git repo — it installs via `npx get-shit-done-cc@latest`. Forgetful exposes only 3 MCP tools; all 38+ memory operations route through the `execute_forgetful_tool` dispatcher.
 
-**Critical pitfall:** Plugin files are COPIED to a cache directory on install. Any path referencing files outside the plugin root will break. Every `$HOME/.claude/` path in existing skills must be rewritten to `${CLAUDE_PLUGIN_ROOT}/`. This is the highest-risk migration task.
+**Core technologies:**
+- `Node.js` (built-in): `scripts/forgetful-client.js` for MCP Streamable HTTP client — matches existing scripts/ pattern, handles SSE parsing cleanly
+- `curl` + `jq`: doctor check health calls, hook stdin JSON parsing — already available on system
+- `npx get-shit-done-cc@latest`: GSD install and update — interactive installer, cannot be silently automated
+- `claude plugin` CLI: forgetful-plugin detection and install — stable API, prefer over direct file reads
+- `bash` (system 3.2+): hook scripts, doctor checks — ~1ms startup vs ~100ms for Node.js matters on UserPromptSubmit
+
+### Expected Features
+
+**Must have (v1.1 launch):**
+- Bootstrap skill (`/tb:bootstrap`) — single idempotent setup entrypoint: GSD install, marketplace add, forgetful-plugin install, MCP config, HTTP reachability check, hook registration in settings.json, doctor verification
+- Doctor checks: `gsd-installed.sh`, `forgetful-mcp.sh`, `forgetful-plugin.sh` — follows existing `scripts/checks/*.sh` PASS/FAIL/WARN pattern
+- Update integration — extend `/tb:update` SKILL.md with Steps 10-13: GSD update, forgetful-plugin update, hook path re-registration, doctor check
+- GSD context hook (`hooks/gsd-context.js`) — UserPromptSubmit, fast-exit non-GSD prompts (~1ms), query Forgetful, inject plain text context (k:3, ~1500 token cap)
+- Load-context skill (`/tb:load-context`) — manual Forgetful memory retrieval for ad-hoc use
+- Save-findings skill (`/tb:save-findings`) — incremental extraction of GSD `.planning/` artifacts into Forgetful memories with query-before-create dedup
+
+**Should have (v1.x after validation):**
+- Smart context scoping using `STATE.md` project/milestone/phase for `query_context` parameter
+- Automatic obsolescence marking on phase/milestone transition
+- Pre-compaction save (PreCompact hook)
+- SessionStart pre-warm for cold-start latency reduction
+
+**Defer (v2+):**
+- Token-budget tuning per GSD command type
+- Cross-project memory linking
+- Batch SUMMARY extraction across all phases
+
+### Architecture Approach
+
+The v1.1 additions are surgical: 3 new `scripts/checks/` bash scripts, 1 new Node.js module, 1 new hook script, 3 new SKILL.md files, and 1 modified SKILL.md. Existing v1.0 plugin structure is entirely unchanged. The critical separation is that SKILL.md-based skills run inside Claude's conversation (full MCP tool access), while the UserPromptSubmit hook runs as a subprocess command (no MCP access — must call Forgetful via direct HTTP). This drives the `forgetful-client.js` module as a shared layer between hook and potentially future scripts.
+
+**Major components:**
+1. `scripts/forgetful-client.js` — Node.js module implementing MCP Streamable HTTP: `resolveForgetfulUrl`, `createSession`, `callTool`, `queryMemories`. Shared by hook and extensible for future scripts.
+2. `hooks/gsd-context.js` — UserPromptSubmit hook. Reads stdin JSON, regex-checks `/gsd:` prefix, exits 0 immediately for non-GSD, queries Forgetful via forgetful-client, emits plain text (not hookSpecificOutput JSON) to avoid additional bugs.
+3. `scripts/checks/gsd-installed.sh`, `forgetful-mcp.sh`, `forgetful-plugin.sh` — Three independent doctor checks. `forgetful-mcp.sh` checks both config presence AND curl reachability (not just config).
+4. `skills/bootstrap/SKILL.md` — 7-step idempotent setup. Writes hook registration to `~/.claude/settings.json` via read-merge-write (never overwrite). Runs doctor at end.
+5. `skills/load-context/SKILL.md` + `skills/save-findings/SKILL.md` — SKILL.md files instructing Claude to use Forgetful MCP tools directly. Save-findings: incremental per-finding query-before-create, mark obsolete on supersession.
+6. `skills/update/SKILL.md` (modified) — Appends Steps 10-13 conditionally (skip if GSD/forgetful-plugin not installed). Re-resolves installPath and updates settings.json hook command after each plugin update.
+
+### Critical Pitfalls
+
+1. **Plugin hook output silently discarded (bug #12151, OPEN as of April 2026)** — Register UserPromptSubmit in `~/.claude/settings.json`, not `hooks/hooks.json`. Bootstrap writes absolute path. Update skill re-registers after version change. Doctor check verifies script path resolves.
+
+2. **Hook blocks all prompts when Forgetful is unreachable** — `"timeout": 5` on settings.json hook entry. `curl --connect-timeout 1 --max-time 3`. Exit 0 with empty output on any failure. Fast-exit before any HTTP call for non-GSD prompts.
+
+3. **Context window bloat from unbounded memory injection** — `k: 3` max memories. Titles + first-sentence summaries only, ~1500 tokens total. Claude fetches full content via MCP tools on demand.
+
+4. **Bootstrap partial failure leaves half-configured state** — Each step checks idempotently before acting. Read-merge-write for `~/.claude.json` and `settings.json`. Per-step status reporting. Doctor runs at end to confirm.
+
+5. **Forgetful HTTP transport missing despite STDIO working** — Claude's MCP shows "Connected" via STDIO; hook needs separate HTTP endpoint. Bootstrap checks `type: "http"` in `~/.claude.json`. `forgetful-mcp.sh` does curl health check, not just config grep.
 
 ## Implications for Roadmap
 
-Based on research, suggested phase structure:
+### Phase 1: Foundation — Shared Client + Doctor Checks
 
-1. **Plugin Scaffolding + Install** -- establish the foundation
-   - Addresses: plugin manifest, marketplace.json, directory structure, install script
-   - Avoids: building on a broken foundation (directory layout pitfall is #1 cause of plugin failures)
+**Rationale:** `forgetful-client.js` must exist before `gsd-context.js` can require it. Doctor checks must exist before bootstrap can reference them for final verification. These components have no dependencies on each other or on Phase 2 — build them first.
+**Delivers:** Reusable Forgetful HTTP client module + three doctor check scripts. `/tb:doctor` auto-discovers new checks immediately.
+**Addresses:** Forgetful MCP connectivity (table stakes), modular health checks (extends existing tb pattern)
+**Avoids:** Anti-Pattern 3 (bash for MCP protocol — Node.js SSE handling). Pitfall 5 (HTTP vs STDIO detection in `forgetful-mcp.sh`).
 
-2. **Command + Simple Skill Migration** -- quick wins, validate plugin works
-   - Addresses: 9 commands (pure .md copies) + simple skills without helper scripts (qa-description, ship-ticket, create-release-branch, daily-summary)
-   - Avoids: path rewriting complexity (simple skills have no external file references)
+### Phase 2: Core Integration — Hook + Bootstrap
 
-3. **Complex Skill Migration + Credential System** -- the hard migration work
-   - Addresses: gh-upload (setup.sh + upload.sh), mobilecli (test-helpers.sh), contentful-cli, investigate-sentry-issue, upload-sentry-sourcemaps
-   - Avoids: credential setup fragility by building unified setup-all.sh with manual fallbacks
+**Rationale:** `gsd-context.js` depends on `forgetful-client.js` (Phase 1). Bootstrap references the hook script path and all three doctor checks. This is the highest-value, highest-risk work. Building it in Phase 2 validates Phase 1 in practice.
+**Delivers:** Working UserPromptSubmit context injection + idempotent one-command environment setup.
+**Uses:** `forgetful-client.js` from Phase 1. Plain text stdout (sidesteps hookSpecificOutput bugs from closed issue #17550). Settings.json registration (bug #12151 workaround).
+**Avoids:** Pitfall 1 (settings.json, not hooks.json), Pitfall 2 (timeouts, fast-exit), Pitfall 3 (k:3, 1500 token cap), Pitfall 4 (idempotent bootstrap).
 
-4. **Global CLAUDE.md + Hooks** -- polish and context injection
-   - Addresses: CLAUDE.md distribution, SessionStart hook for toolkit awareness
-   - Avoids: premature optimization of hooks before core skills are stable
+### Phase 3: Skills + Update Extension
 
-5. **mbridge Core (Python CLI)** -- standalone tool, biggest scope item
-   - Addresses: CLI skeleton with Click, device discovery, UI dump parsing (JSON for iOS, XML for Android), basic interaction commands (tap, swipe, text)
-   - Avoids: OCR complexity in first pass, app code knowledge integration
+**Rationale:** Load-context and save-findings use Claude's MCP tool system — no direct HTTP, no hook dependency. They deliver value independently once Forgetful is configured. Update extension must follow bootstrap because it reuses the hook path re-registration logic proven in Phase 2.
+**Delivers:** `/tb:load-context`, `/tb:save-findings`, and extended `/tb:update`. Completes v1.1 MVP.
+**Addresses:** All P1 features from FEATURES.md.
+**Avoids:** Pitfall 8 (duplicate memories — incremental query-before-create in save-findings), Pitfall 9 (cache path staleness — update re-registers hook), Pitfall 10 (GSD structure brittleness — glob-based artifact discovery).
 
-6. **mbridge OCR + Advanced Features** -- differentiating capabilities
-   - Addresses: pytesseract OCR verification, element finding by text/label, dump-then-fallback-to-OCR pattern for dynamic screens
-   - Avoids: UIAutomator idle-state failures by designing OCR as a first-class fallback from day one
+### Phase Ordering Rationale
 
-**Phase ordering rationale:**
-- Phases 1-2 must be sequential: plugin structure before skills can live in it
-- Phase 3 depends on Phase 1 (needs `${CLAUDE_PLUGIN_ROOT}` to be working) and Phase 2 (validates the pattern)
-- Phase 4 is independent of Phase 3 but benefits from seeing the full skill set
-- Phases 5-6 are independent of Phases 2-4 (mbridge is a new tool, not a migration) but depend on Phase 1 for plugin structure
-- Phase 5 before Phase 6: OCR is a layer on top of the core CLI, not a parallel workstream
+- Hard dependency chain: `forgetful-client.js` -> `gsd-context.js` -> bootstrap validation flow
+- Doctor checks must exist before bootstrap's final verification step
+- Skills are independent of the hook (different execution context) but benefit from running in an already-bootstrapped environment
+- Update extension shares hook path logic with bootstrap — implement after bootstrap is proven
 
-**Research flags for phases:**
-- Phase 3: Likely needs deeper research -- each skill has unique credential requirements and external CLI dependencies (acli, sentry-cli, contentful CLI) that need individual validation
-- Phase 5: May need research -- mobilecli's exact command interface should be audited to determine which commands mbridge must replicate vs. which it can skip
-- Phase 6: Standard patterns, unlikely to need research -- pytesseract usage is well-documented
+### Research Flags
+
+Phases with well-documented patterns (skip additional research):
+- **Phase 1 (Foundation):** MCP HTTP protocol verified via live testing. Doctor check pattern established in existing codebase. Node.js module structure matches existing `scripts/*.js` files.
+- **Phase 3 (Skills):** SKILL.md format well-established. Save-findings tool set documented in forgetful-plugin's `TOOL_REFERENCE.md` (on-disk at `~/.claude/plugins/cache/`).
+
+Phases needing targeted investigation before starting:
+- **Phase 2 (Hook + Bootstrap):** Verify bug #12151 status before building. If fixed, hook can go in `hooks/hooks.json` and bootstrap simplifies significantly. Also: confirm exact `settings.json` hook timeout field name and schema, as this was inferred from docs rather than verified in a running example.
 
 ## Confidence Assessment
 
 | Area | Confidence | Notes |
 |------|------------|-------|
-| Stack | HIGH | Plugin system verified against official docs + real plugin structures on disk. Python tooling (uv, Click, pytesseract) verified via official docs and web search. |
-| Features | HIGH | Based on direct audit of existing 9 commands and 7+ skills on disk. Feature dependencies mapped from real code. |
-| Architecture | HIGH | Plugin directory structure verified against 3 installed plugins (skill-creator, superpowers, forgetful-plugin). Self-hosted marketplace pattern confirmed in official docs. |
-| Pitfalls | HIGH | Plugin pitfalls from official docs. Mobile automation pitfalls from existing mobilecli GAPS.md (real production issues). Python environment pitfalls from known macOS ecosystem fragmentation. |
+| Stack | HIGH | Verified via live Forgetful 3.1.1 testing, official MCP spec, Claude Code hook docs, CLI output. All tools already installed. |
+| Features | HIGH | P1 features from PROJECT.md, validated against 3 comparable plugins + official UserPromptSubmit behavior docs. Anti-features well-argued. |
+| Architecture | HIGH | Build order from concrete dependency analysis. Bug #12151 verified OPEN by multiple users (Feb-March 2026). 96ms round-trip measured live. |
+| Pitfalls | HIGH | Top 5 pitfalls confirmed via live testing or official GitHub issues with multiple confirmations. All have verified mitigations. |
 
-## Gaps to Address
+**Overall confidence:** HIGH
 
-- **Individual skill credential requirements**: Each skill that needs secrets (Jira, Sentry, Contentful, GitHub upload) has different credential types, expiry patterns, and setup prerequisites. Phase 3 research should audit each one.
-- **mobilecli command parity**: Which mobilecli commands does mbridge need to replicate vs. which can be dropped? Needs phase-specific audit of mobilecli SKILL.md and actual usage patterns.
-- **Plugin cache invalidation strategy**: The cache staleness bug (GitHub #15642) has no official fix. The workaround (`/reload-plugins` + manual cache clearing) should be tested during Phase 1 to confirm it actually works reliably.
-- **Tesseract accuracy on mobile app UIs**: pytesseract accuracy on screenshots from iOS/Android apps (with various fonts, colors, and density scales) is unverified. Phase 6 should include an accuracy benchmark before committing to the OCR approach.
-- **`${CLAUDE_SKILL_DIR}` vs `${CLAUDE_PLUGIN_ROOT}`**: Official docs mention both variables. Need to verify which is available in plugin context and when to use each. This affects every SKILL.md path reference.
+### Gaps to Address
+
+- **Bug #12151 resolution:** If fixed before Phase 2 implementation, hook moves to `hooks/hooks.json` and bootstrap settings.json step is removed. Check issue status at Phase 2 start.
+- **settings.json hook timeout field name:** Research indicates `"timeout": 5` on the hook entry. Confirm exact schema at implementation time by inspecting an existing settings.json with hooks registered.
+- **GSD interactive installer prompts:** `npx get-shit-done-cc@latest` is interactive. Bootstrap SKILL.md must guide the user through prompts. Confirm exact prompts against current GSD 1.30.0 installer before writing SKILL.md.
+- **Forgetful project creation parameters:** Save-findings may need to create a Forgetful project if none exists for the repo. Confirm `create_project` tool parameters from TOOL_REFERENCE.md at implementation time.
+- **Token budget in practice:** The 1500-token cap and k:3 limit are research-based estimates. Validate with real GSD sessions during Phase 2 and adjust before Phase 3.
 
 ## Sources
 
-- [Claude Code Plugin Docs](https://code.claude.com/docs/en/plugins)
-- [Claude Code Plugin Marketplace Docs](https://code.claude.com/docs/en/plugin-marketplaces)
-- [uv Documentation](https://docs.astral.sh/uv/)
-- [Click Documentation](https://click.palletsprojects.com/en/stable/)
-- [pytesseract on PyPI](https://pypi.org/project/pytesseract/)
-- [lxml Documentation](https://lxml.de/)
-- [Superpowers plugin](https://github.com/obra/superpowers) -- reference implementation
-- [macOS Keychain CLI](https://www.netmeister.org/blog/keychain-passwords.html)
-- Local inspection: `~/.claude/skills/`, `~/.claude/commands/`, `~/.claude/plugins/cache/`
+### Primary (HIGH confidence)
+- [MCP Transports Specification](https://modelcontextprotocol.io/specification/2025-03-26/basic/transports) — Streamable HTTP protocol, SSE response format, 3-step session handshake
+- [Claude Code Hooks Reference](https://code.claude.com/docs/en/hooks) — UserPromptSubmit stdin/stdout format, exit codes, timeout config
+- [Claude Code Plugins Reference](https://code.claude.com/docs/en/plugins-reference) — hooks.json format, path variables, plugin cache structure
+- [Bug #12151](https://github.com/anthropics/claude-code/issues/12151) — plugin hook output not captured, OPEN as of April 2026, confirmed by prodan-s, wayne5w, jpicklyk (Feb-March 2026)
+- Live Forgetful 3.1.1 testing at `http://192.168.2.104:8020/mcp` — full MCP session flow, tool names, SSE parsing, 96ms round-trip (March/April 2026)
+- `~/.claude/plugins/cache/forgetful-plugins/forgetful-plugin/1.1.0/skills/using-forgetful-memory/TOOL_REFERENCE.md` — `execute_forgetful_tool` dispatcher, all 38+ tool names
+- `claude plugin list --json`, `claude plugin marketplace list`, `claude mcp list` — output format verified live
+
+### Secondary (MEDIUM confidence)
+- [Forgetful Introduction (dev.to)](https://dev.to/scott_raisbeck_24ea5fbc1e/introducing-forgetful-shared-knowledge-and-memory-across-agents-40o6) — Zettelkasten principles, two-stage retrieval, cross-encoder reranking, 0.7 similarity auto-link threshold
+- [forgetful-plugin GitHub](https://github.com/ScottRBK/forgetful-plugin) — commands, setup flow, skills reference
+- [claude-mem GitHub](https://github.com/thedotmack/claude-mem) — progressive disclosure pattern, 5-hook lifecycle
+- [memory-store-plugin GitHub](https://github.com/julep-ai/memory-store-plugin) — queue-based capture, auto-checkpoint pattern
+- [claude-bootstrap GitHub](https://github.com/alinaqi/claude-bootstrap) — PreCompact hook pattern, environment setup conventions
+- [Bug #17550](https://github.com/anthropics/claude-code/issues/17550) — hookSpecificOutput first-message error, CLOSED Feb 2026
+- [UserPromptSubmit Issue #27365](https://github.com/anthropics/claude-code/issues/27365) — confirms no `updatedPrompt` support, additionalContext only
+
+---
+*Research completed: 2026-04-01*
+*Ready for roadmap: yes*

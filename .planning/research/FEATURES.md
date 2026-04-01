@@ -1,225 +1,159 @@
 # Feature Research
 
-**Domain:** Personal developer toolkit / Claude Code private plugin
-**Researched:** 2026-03-11
-**Confidence:** HIGH
+**Domain:** Claude Code plugin ecosystem -- bootstrap, context injection, memory sync, dependency management
+**Researched:** 2026-03-28
+**Confidence:** MEDIUM-HIGH (patterns verified against official docs and multiple plugin implementations)
 
 ## Feature Landscape
 
 ### Table Stakes (Users Expect These)
 
-Features the single user (Ivan) expects to work immediately on any machine after install. Missing any of these = the toolkit doesn't deliver on its core promise.
+Features required for v1.1 to deliver value. Missing any = integration is incomplete.
 
 | Feature | Why Expected | Complexity | Notes |
 |---------|--------------|------------|-------|
-| Plugin manifest + structure | Claude Code requires `.claude-plugin/plugin.json` + correct directory layout to load skills/commands | LOW | Straightforward: manifest file, `skills/`, `commands/` dirs at plugin root. All skills namespaced as `/ai-toolbelt:skillname`. |
-| Skill migration (commands + skills) | The 9 commands and 7+ skills are the entire value of the toolkit today. Without them, there's nothing. | MEDIUM | Must migrate `.claude/commands/*.md` to `commands/` and `.claude/skills/*/` to `skills/`. Need to audit all path references (`$HOME/.claude/skills/...` becomes `${CLAUDE_SKILL_DIR}/...` or `${CLAUDE_PLUGIN_ROOT}/...`). |
-| Script offloading (helper scripts) | gh-upload already proves the pattern. Skills with inline bash are fragile. Scripts are testable, debuggable, and cross-platform-ready. | MEDIUM | Convert inline bash/logic in skills to Node.js/bash scripts in `skills/<name>/scripts/`. Update SKILL.md to reference `${CLAUDE_SKILL_DIR}/scripts/...`. gh-upload pattern (setup.sh + upload.sh) is the model. |
-| Keychain credential setup | Skills like Jira (acli), Sentry, Contentful, gh-upload need secrets. Keychain is the proven secure approach. | MEDIUM | Unified setup flow per skill. Each skill needing credentials gets a `setup.sh` in its directory. Master `install.sh` calls all of them. Pattern: `security add-generic-password -s "<service>" -a "<account>" -w "<value>"`. |
-| Global CLAUDE.md inclusion | Personal coding guidelines, verification rules, commit style -- these define how Claude behaves. Must ship with the plugin. | LOW | Claude Code plugin system supports `CLAUDE.md` at plugin root. This gets loaded when the plugin is active. Direct copy of existing `~/.claude/CLAUDE.md` into the plugin. |
-| Install mechanism | "One repo, one install" is the core promise. Must work from a fresh machine. | LOW | Claude Code native: `/plugin marketplace add <owner>/<repo>` or `/plugin install` from a private marketplace. The plugin system handles cloning and caching. Install script handles credentials + dependencies. |
-| Update mechanism | Skills evolve. Updates must be frictionless. | LOW | Claude Code plugin system: `/plugin marketplace update` + `/plugin update`. For private repos, `GITHUB_TOKEN` or `gh auth login` enables auto-updates at startup. No custom mechanism needed. |
-| Repo structure | Organized for skills, commands, tools, configs. Clear separation of concerns. | LOW | Standard plugin layout: `.claude-plugin/`, `skills/`, `commands/`, `scripts/`, `hooks/`, `CLAUDE.md`. |
+| Bootstrap skill (`/tb:bootstrap`) | Every integration plugin (claude-mem, forgetful-plugin, claude-bootstrap) provides a single setup entrypoint. Users will not manually configure three separate systems. | MEDIUM | Must install: GSD (git clone to `~/.claude/get-shit-done/`), Forgetful MCP (register `uvx forgetful-ai` in `~/.claude.json`), forgetful-plugin (marketplace install). Must be idempotent -- re-running skips already-installed components. Existing pattern: `setup-all.js` runs per-service setups sequentially. |
+| Doctor checks for GSD/Forgetful health | tb already has modular `scripts/checks/*.sh` doctor pattern with 11 checks. Users expect new dependencies to have health checks. Incomplete doctor = silent failures. | LOW | Two new check scripts following established pattern: `dep-gsd.sh` (verify `~/.claude/get-shit-done/` exists + VERSION file readable), `dep-forgetful.sh` (verify MCP server configured in `~/.claude.json` + `uvx forgetful-ai --version` responds). Output format: `PASS|FAIL|WARN <check-name> <message>`, always exit 0. |
+| Update integration | `/tb:update` already handles git pull + version compare + changelog display. Users expect all managed dependencies to update together. | LOW | Extend existing update SKILL.md with: `git -C ~/.claude/get-shit-done pull --rebase origin main` for GSD, `claude plugin update forgetful-plugin@forgetful-plugin` for forgetful-plugin. Additive change to existing skill, not a new skill. |
+| GSD context hook (UserPromptSubmit) | claude-mem and memory-store-plugin both inject context automatically. When running `/gsd:execute-phase` or similar, relevant memories about that project/phase should auto-inject. This is the core integration value. | HIGH | **Critical design constraints from official docs:** UserPromptSubmit has NO matcher support -- fires on ALL prompts. Script must: read stdin JSON for `prompt` field, regex-match `/gsd:` prefix, early-exit for non-GSD prompts. Query Forgetful via MCP tools, output `additionalContext` in hookSpecificOutput JSON. Must fail gracefully (exit 0, no context) if Forgetful is unreachable. Performance target: <2s for GSD prompts, <50ms for non-GSD (early exit). |
+| Load-context skill (`/tb:load-context`) | forgetful-plugin has `/memory-search` but requires knowing the 38-tool API. tb should provide opinionated context loading: accept a topic/query, retrieve project-scoped memories, present as actionable context. | MEDIUM | Wraps Forgetful's `execute_tool` meta-tool with `search_memories`. Should: accept topic/query argument, auto-detect project from git remote/cwd, query with project scope, display results with importance scores. Mostly a SKILL.md that instructs Claude to use Forgetful MCP tools with specific patterns. |
+| Save-findings skill (`/tb:save-findings`) | forgetful-plugin has `/memory-save` for generic memories. tb needs a skill that understands GSD artifacts (SUMMARY.md, research files, key decisions) and creates properly structured Forgetful memories. | MEDIUM-HIGH | Must: parse GSD SUMMARY.md sections (Key Outcomes, Decisions Made, Lessons Learned), create atomic memories per Zettelkasten principles (300-400 words, one concept per memory), auto-tag with project/phase metadata, deduplicate via semantic search before saving, confirm with user before persisting. |
 
 ### Differentiators (Competitive Advantage)
 
-This is a private toolkit, so "competitive advantage" means: features that make this toolkit dramatically more useful than scattered dotfiles and manually-copied skills.
+Features that make tb's GSD+Forgetful integration better than manual forgetful-plugin usage.
 
 | Feature | Value Proposition | Complexity | Notes |
 |---------|-------------------|------------|-------|
-| mbridge mobile automation skill | UI dump + OCR approach is faster and more reliable than screenshot-based vision. Leverages mobilecli cache/context system. Makes mobile QA automation a first-class skill. | HIGH | Python-based. Needs: device interaction (adb/xcrun), UI tree parsing, OCR integration, navigation helpers. Should import mobilecli's existing cache system. Biggest scope item in the toolkit. |
-| Master credential installer | Single `./install.sh` that detects missing credentials and walks through setup for all skills. Not just per-skill setup, but unified first-run experience. | MEDIUM | Aggregate all skills' credential needs. Check Keychain for existing entries. Only prompt for missing ones. Show clear progress. Skills: gh-upload (GitHub session), acli/Jira (API token), Sentry (auth token), Contentful (management token), GitHub CLI (gh auth). |
-| Skill health checks / diagnostics | `./scripts/doctor.sh` that verifies all dependencies are installed, credentials are valid (not expired), and tools are reachable. | LOW | Check: `gh auth status`, `acli` exists, `sentry-cli` exists, Keychain entries present, `mobilecli` available, Python 3 available. Output pass/fail per skill. |
-| Hooks integration | Session hooks for context injection, status line, update checks -- like GSD's hook pattern. | MEDIUM | Plugin `hooks/hooks.json` can define SessionStart, PreToolUse, PostToolUse hooks. Could include: update check on session start, credential expiry warnings, context injection for work-specific defaults. |
-| Version-pinned dependency manifest | Declare which external CLI tools each skill needs (acli, sentry-cli, mobilecli, gh) with minimum versions. Install script validates. | LOW | Simple JSON or shell-based check. Fails fast with clear error messages instead of cryptic skill failures. |
-| Offline-first skill design | Skills work without network where possible. UI dumps cached locally, OCR runs locally, context files persisted. | MEDIUM | Applies mainly to mbridge. Use Apple's Vision framework for OCR (no API calls). Cache UI dumps in `.mobilecli/cache/`. Persist app navigation context across sessions. |
+| Automatic project scoping in Forgetful queries | forgetful-plugin queries are generic. tb knows the current GSD project, milestone, and phase from `.planning/STATE.md`. Queries auto-scope: "memories about ai-toolbelt v1.1 phase 3" instead of generic keyword search. | MEDIUM | Parse STATE.md frontmatter for project name, milestone, current phase. Use as Forgetful `query_context` parameter for better cross-encoder reranking. Forgetful's two-stage retrieval (dense + cross-encoder) benefits significantly from contextual scoping. |
+| Automatic obsolescence marking on phase/milestone completion | Forgetful has no built-in lifecycle management (acknowledged by creator as future work). When GSD completes a phase, outdated memories should be marked obsolete. | MEDIUM | Hook into GSD `/gsd:transition` and `/gsd:complete-milestone` patterns. Query Forgetful for phase-specific memories, present candidates for obsolescence, use `execute_tool` with update/archive operations. |
+| Memory visibility in injection | When context is injected via hook, include "(N memories loaded for project X)" so user knows what Claude received. | LOW | Formatting in hook output. claude-mem does this with its progressive disclosure pattern. Transparency prevents confusion about what Claude "remembers". |
+| Defensive GSD version tracking | Doctor check compares GSD VERSION against last-known-compatible version. Warns on major version changes that might break integration. | LOW | Read `~/.claude/get-shit-done/VERSION` (currently 1.30.0), compare against known-good range stored in tb config. |
+| SessionStart pre-warm | Async SessionStart hook sends a low-cost Forgetful query to warm the embedding model, reducing latency on first GSD command. | LOW | Forgetful uses FastEmbed BAAI/bge-small-en-v1.5 locally. First query after cold start incurs model load time (3-5s). Async warm prevents that from hitting the user's first real query. |
+| Pre-compaction memory save | PreCompact hook auto-saves current working context to Forgetful before compaction wipes it. | MEDIUM | PreCompact hook fires before context compaction. Script captures key working state, saves to Forgetful. Complements SessionStart compact matcher for re-injection. |
 
 ### Anti-Features (Commonly Requested, Often Problematic)
 
 | Feature | Why Requested | Why Problematic | Alternative |
 |---------|---------------|-----------------|-------------|
-| Generic/open-source skills | "Others could benefit from these skills" | Skills reference work-specific tools (Jira instance, Sentry org, Contentful spaces). Generalizing adds config complexity for zero personal benefit. Private repo by design. | Keep private. If a pattern is universally useful, extract it as a separate open-source plugin later. |
-| MCP server for mbridge | "MCP is the standard for tool integration" | Adds Node.js/Python server process management, IPC complexity, and startup overhead. Skill-based approach is simpler: SKILL.md + scripts, no background process needed. | Skill with helper scripts. Claude calls scripts directly via bash. Proven pattern with gh-upload. |
-| GUI installer / web dashboard | "Nice setup wizard" | Over-engineering for a single user. Terminal-based setup is faster and scriptable. GUI adds a maintenance surface for zero ROI. | Interactive terminal prompts in `install.sh`. Clear, step-by-step, fast. |
-| Auto-sync with ~/.claude | "Keep plugin and local ~/.claude in sync" | Creates confusion about source of truth. Two copies of the same skills will diverge. | Plugin IS the source of truth. Remove skills from `~/.claude/` after migration. Single source. |
-| n8n workflow integration (v1) | "Automate complex multi-step workflows" | Out of scope for v1 per PROJECT.md. Adds Node.js runtime dependency, n8n server management, and significant complexity. | Defer to v2+. Structure the repo to accommodate `workflows/` directory later but don't build the integration now. |
-| Cross-platform support (Linux/Windows) | "Works everywhere" | macOS Keychain is the credential store. mobilecli targets iOS/Android devices via macOS tooling (xcrun, adb). Most skills use macOS-specific features. Supporting other platforms doubles complexity. | macOS-only. Document as constraint. If needed later, abstract credential store behind an interface. |
-| Screenshot-based vision for mbridge | "Vision models can understand UI" | Slower (encode image, send to API, wait for response), more expensive (token cost), less reliable (hallucination risk), and redundant when accessibility/UI dumps provide structured data. | UI dumps + local OCR. 85% success rate with 10x fewer resources per accessibility research. |
-| Plugin marketplace submission | "Make it discoverable on the official marketplace" | This is a private toolkit with work-specific references. Public marketplace requires review and would expose internal tooling. | Private GitHub repo. Install via direct repo URL or private marketplace. |
+| Auto-save every GSD artifact to Forgetful | "Never lose anything" instinct | Creates memory pollution. Forgetful's cross-encoder reranking degrades with noise. GSD produces working files (draft plans, intermediate states) NOT worth persisting. claude-mem's approach of auto-capturing everything requires AI compression to manage volume -- unnecessary overhead for curated workflow artifacts. | Curated save-findings skill extracts only completed SUMMARY.md outcomes, validated decisions, and lessons learned. User confirms before saving. |
+| Hook on every prompt (not just `/gsd:*`) | "Always have context" | UserPromptSubmit fires on ALL prompts with no matcher support. Querying Forgetful on every prompt adds 1-3s latency, wastes Forgetful API calls, and injects potentially irrelevant memories. Most prompts ("fix this bug", "add a test") don't need historical project memory. memory-store-plugin's approach of tracking everything creates huge queue files. | Only trigger Forgetful query on `/gsd:*` commands. Provide `/tb:load-context` for manual retrieval. |
+| Bidirectional real-time sync between GSD files and Forgetful | "Single source of truth" | GSD files are ephemeral working documents (plans change, phases get re-ordered, files deleted at milestone boundaries). Forgetful is for durable knowledge. Syncing creates conflicts and stale data. | One-way flow: GSD artifacts -> curated extraction -> Forgetful memories. Forgetful memories -> context injection. Never write from Forgetful back to GSD files. |
+| Full repository encoding via tb wrapper | "Index everything" | forgetful-plugin already provides `/encode-repo`. Wrapping it adds no value and creates confusion about which tool to use. Code is navigable via Claude's built-in tools. | Let forgetful-plugin handle encode-repo directly. tb focuses on GSD workflow integration, not general codebase indexing. |
+| Forgetful MCP server lifecycle management | "Just make it work" | Starting/stopping Forgetful from tb adds process management complexity. User's Forgetful setup varies (local uvx, Docker, remote HTTP). Claude Code's MCP system manages server lifecycle automatically once configured in `~/.claude.json`. | Bootstrap registers Forgetful in MCP config. Doctor checks verify reachability. Claude Code handles the rest. |
+| Custom MCP client library for shell scripts | "Clean abstractions" | Building a reusable MCP client for shell is over-engineering. The protocol flow is straightforward via Forgetful's 3 meta-tools (`discover_tools`, `how_to_use`, `execute_tool`). | Inline MCP calls in each script. Extract shared functions to a sourced shell library only if duplication exceeds 3 call sites. |
 
 ## Feature Dependencies
 
 ```
-[Plugin Manifest + Structure]
-    |
-    +-- requires nothing (foundation)
-    |
-    v
-[Skill Migration]
-    |
-    +-- requires [Plugin Manifest + Structure]
+[Bootstrap skill]
+    |--installs--> [GSD at ~/.claude/get-shit-done/]
+    |--registers-> [Forgetful MCP in ~/.claude.json]
+    |--installs--> [forgetful-plugin via marketplace]
+    |--registers-> [UserPromptSubmit hook in settings.json]
     |
     v
-[Script Offloading]
-    |
-    +-- requires [Skill Migration] (must migrate skills first, then refactor)
-    |
-    v
-[Keychain Credential Setup]
-    |
-    +-- requires [Script Offloading] (setup.sh scripts live alongside skill scripts)
+[Doctor checks: dep-gsd, dep-forgetful]
+    |--validates-> [Bootstrap outputs]
     |
     v
-[Master Credential Installer]
-    |
-    +-- requires [Keychain Credential Setup] (aggregates individual setup scripts)
+[Update integration]              [GSD context hook]              [Load-context skill]         [Save-findings skill]
+    |                                  |                               |                            |
+    +--extends /tb:update              +--requires Forgetful MCP      +--requires Forgetful MCP    +--requires Forgetful MCP
+    +--requires GSD installed          +--requires GSD .planning/     +--independent of hook       +--requires GSD .planning/
+    +--requires forgetful-plugin       +--reads STATE.md for scope    |                            +--reads SUMMARY.md files
+                                       |                                                           |
+                                       v                                                           v
+                              [Smart context scoping]                                    [Obsolescence marking]
+                                       |                                                           |
+                                       +--enhances hook with                                       +--enhances save-findings
+                                         STATE.md parsing                                            on phase transition
 
-[Global CLAUDE.md]
-    |
-    +-- requires [Plugin Manifest + Structure]
-    +-- independent of skill migration
+[Save-findings] --feeds--> [Load-context & GSD context hook]
+    (saved memories become retrievable context in future sessions)
 
-[Install Mechanism]
-    |
-    +-- requires [Plugin Manifest + Structure]
-    +-- enhanced-by [Master Credential Installer]
-    +-- enhanced-by [Version-Pinned Dependency Manifest]
-
-[Skill Health Checks]
-    |
-    +-- requires [Keychain Credential Setup] (knows what to check)
-    +-- enhanced-by [Version-Pinned Dependency Manifest]
-
-[Hooks Integration]
-    |
-    +-- requires [Plugin Manifest + Structure]
-    +-- independent of skills (operates at plugin level)
-
-[mbridge Mobile Automation]
-    |
-    +-- requires [Plugin Manifest + Structure]
-    +-- requires [Script Offloading] (Python scripts as helpers)
-    +-- enhanced-by [mobilecli existing cache system]
-    +-- independent of other skill migration (can be built in parallel)
+[GSD context hook] --conflicts-with--> [Hook on every prompt]
+    (mutually exclusive designs; scoped wins)
 ```
 
 ### Dependency Notes
 
-- **Skill Migration requires Plugin Manifest:** Skills need the plugin directory structure to exist before they can be placed into it.
-- **Script Offloading requires Skill Migration:** Must have the skills in the repo before refactoring their internals to use helper scripts.
-- **Keychain Credential Setup requires Script Offloading:** Setup scripts are helper scripts that live alongside the skill. The pattern depends on the script offloading structure being established.
-- **Master Credential Installer requires all individual Keychain setups:** Cannot aggregate what doesn't exist yet.
-- **mbridge is independent of skill migration:** Can be built from scratch in parallel since it's a new skill, not a migration. Only needs the plugin structure.
-- **Install Mechanism leverages Claude Code native plugin system:** No custom install mechanism needed beyond `install.sh` for credentials and dependencies. The plugin system handles code distribution.
+- **Bootstrap MUST come first:** Every other feature depends on GSD and Forgetful being installed and configured. This is the hard prerequisite.
+- **Doctor validates bootstrap:** Should be extended immediately after bootstrap. Catches configuration drift over time.
+- **Update extends existing skill:** Additive change to existing `/tb:update` SKILL.md, not a new skill. Low risk.
+- **Context hook must fail gracefully:** If Forgetful MCP is down, hook exits 0 with no output. Never blocks prompts. Per official docs, non-zero exit (except 2) is logged but doesn't block.
+- **Save-findings feeds future queries:** The memory ecosystem only becomes valuable after artifacts are saved. Should be usable early even before hook is polished.
+- **Load-context and GSD hook are independent:** Manual vs automatic, both query Forgetful. Can be built in parallel.
 
 ## MVP Definition
 
-### Launch With (v1)
+### Launch With (v1.1)
 
-Minimum viable: "install on new machine, get all existing skills working."
-
-- [ ] Plugin manifest (`.claude-plugin/plugin.json`) -- foundation for everything
-- [ ] Repo structure (`skills/`, `commands/`, `scripts/`, `hooks/`) -- organized layout
-- [ ] Skill migration (all 9 commands + 7 skills) -- the actual value
-- [ ] Script offloading for skills with inline bash (at least gh-upload, mobilecli, daily-summary) -- reliability
-- [ ] Keychain credential setup per skill (setup.sh scripts) -- skills that need secrets must work
-- [ ] Global CLAUDE.md as plugin CLAUDE.md -- consistent Claude behavior
-- [ ] Install script (`install.sh`) with dependency checks and credential aggregation -- one-command setup
-- [ ] Basic health check (`scripts/doctor.sh`) -- verify everything works post-install
+- [ ] **Bootstrap skill** -- Install/configure GSD, Forgetful MCP, forgetful-plugin. Idempotent. Gates everything else.
+- [ ] **Doctor checks** -- `dep-gsd.sh` and `dep-forgetful.sh` following `scripts/checks/*.sh` pattern. Binary pass/fail.
+- [ ] **Update integration** -- Extend `/tb:update` to pull GSD and update forgetful-plugin. Minimal change.
+- [ ] **GSD context hook** -- UserPromptSubmit detecting `/gsd:*`, querying Forgetful with project scope, injecting via `additionalContext`. Core value proposition.
+- [ ] **Load-context skill** -- Manual `/tb:load-context <query>` for ad-hoc Forgetful memory retrieval.
+- [ ] **Save-findings skill** -- Extract atomic memories from GSD SUMMARY.md files with dedup, tagging, and user confirmation.
 
 ### Add After Validation (v1.x)
 
-Features to add once core plugin is working on at least 2 machines.
-
-- [ ] Hooks integration (session start context, update checks) -- once the plugin lifecycle is proven stable
-- [ ] Version-pinned dependency manifest -- once dependency version mismatches are actually encountered
-- [ ] Enhanced credential diagnostics (expiry detection, auto-refresh prompts) -- once credential rotation pain points are identified
-- [ ] Skill improvements based on usage (better error messages, edge case handling) -- iterative quality
+- [ ] **Smart context scoping** -- Use STATE.md to auto-scope Forgetful queries by project/milestone/phase. Add after confirming generic queries return too much noise.
+- [ ] **Automatic obsolescence marking** -- Mark memories obsolete on phase transition. Add after enough memories exist to have candidates.
+- [ ] **Pre-compaction save** -- PreCompact hook to preserve working context. Add after experiencing context loss in real GSD sessions.
+- [ ] **SessionStart pre-warm** -- Async Forgetful warm to reduce cold-start latency. Add after measuring actual impact.
 
 ### Future Consideration (v2+)
 
-- [ ] mbridge mobile automation -- HIGH complexity, independent workstream, defer until v1 core is solid
-- [ ] n8n workflow integration -- explicitly out of scope per PROJECT.md
-- [ ] Skill benchmarking integration (using /skill-creator evals) -- after skills are stable
-- [ ] Cross-skill context sharing (skills reading from each other's caches) -- premature optimization
+- [ ] **Token-budget tuning** -- Tune Forgetful token budgets per GSD command type. Defer until usage patterns emerge.
+- [ ] **Cross-project memory linking** -- Query memories from other projects when starting similar work. Defer until multiple projects have findings saved.
+- [ ] **Batch SUMMARY extraction** -- Process all phase SUMMARYs in one command. Defer until per-phase save-findings proves the pattern.
 
 ## Feature Prioritization Matrix
 
 | Feature | User Value | Implementation Cost | Priority |
 |---------|------------|---------------------|----------|
-| Plugin manifest + structure | HIGH | LOW | P1 |
-| Skill migration | HIGH | MEDIUM | P1 |
-| Script offloading | HIGH | MEDIUM | P1 |
-| Keychain credential setup | HIGH | MEDIUM | P1 |
-| Global CLAUDE.md | HIGH | LOW | P1 |
-| Install script (install.sh) | HIGH | LOW | P1 |
-| Health check (doctor.sh) | MEDIUM | LOW | P1 |
-| Master credential installer | MEDIUM | MEDIUM | P2 |
-| Hooks integration | MEDIUM | MEDIUM | P2 |
-| Version-pinned dependency manifest | LOW | LOW | P2 |
-| Skill health checks (enhanced) | LOW | LOW | P2 |
-| mbridge mobile automation | HIGH | HIGH | P3 |
-| n8n workflows | LOW | HIGH | P3 |
+| Bootstrap skill | HIGH | MEDIUM | P1 |
+| Doctor checks (dep-gsd, dep-forgetful) | MEDIUM | LOW | P1 |
+| Update integration | MEDIUM | LOW | P1 |
+| GSD context hook (UserPromptSubmit) | HIGH | HIGH | P1 |
+| Load-context skill | MEDIUM | MEDIUM | P1 |
+| Save-findings skill | HIGH | MEDIUM-HIGH | P1 |
+| Smart context scoping | MEDIUM | MEDIUM | P2 |
+| Automatic obsolescence marking | MEDIUM | MEDIUM | P2 |
+| Pre-compaction save | LOW | MEDIUM | P3 |
+| SessionStart pre-warm | LOW | LOW | P3 |
 
 **Priority key:**
-- P1: Must have for launch -- delivers on "one repo, one install" promise
-- P2: Should have, add when possible -- improves reliability and DX
-- P3: Nice to have, future consideration -- significant scope, independent workstreams
+- P1: Must have for v1.1 launch -- validates the integration concept
+- P2: Should have after core proves out -- improves memory quality
+- P3: Nice to have -- refinements based on real usage
 
-## Competitor Feature Analysis
+## Ecosystem Comparison
 
-No direct competitors (this is a personal private toolkit), but comparable projects inform feature expectations.
+How similar plugins handle these features, informing our design decisions.
 
-| Feature | superpowers plugin (obra) | awesome-claude-code-toolkit | GSD (get-shit-done) | Our Approach |
-|---------|--------------------------|----------------------------|---------------------|--------------|
-| Plugin structure | Standard `.claude-plugin/` with skills only | Collection of skills, not a plugin | npm package with custom install | Standard `.claude-plugin/` plugin |
-| Distribution | Public marketplace (MIT) | Copy-paste from curated list | `npx` install, updates via hooks | Private GitHub repo, `/plugin marketplace add` |
-| Credential management | None (skills don't need secrets) | None | None | macOS Keychain with per-skill setup.sh scripts |
-| Install experience | `/plugin install superpowers` | Manual copy | `npx get-shit-done@latest` | `/plugin marketplace add <repo>` + `install.sh` for credentials |
-| Update mechanism | Marketplace update (daily check proposed) | Manual re-copy | Background check on SessionStart hook | Native plugin update + optional hook for notifications |
-| Helper scripts | Minimal (mostly SKILL.md only) | None | Node.js CLI tool (gsd-tools.cjs) | Bash/Node.js scripts per skill |
-| Hooks | Post-tool-use hooks in some skills | None | SessionStart, StatusLine, Context Monitor | SessionStart for context, update checks |
-| Mobile automation | None | None | None | mbridge (v2): UI dump + OCR, Python-based |
-| Scope | Generic coding best practices | Curated collection of community skills | Project management framework | Personal work-specific toolkit |
-
-## Key Insights from Research
-
-### Plugin System Capabilities (HIGH confidence -- from official docs)
-
-1. **Plugin caching**: Plugins are copied to `~/.claude/plugins/cache/`. Files outside the plugin directory are NOT copied. All paths must be self-contained or use `${CLAUDE_PLUGIN_ROOT}`.
-2. **`${CLAUDE_SKILL_DIR}`**: Points to the skill's own directory. Use for referencing helper scripts within a skill.
-3. **`${CLAUDE_PLUGIN_ROOT}`**: Points to the plugin's root directory. Use for referencing shared resources across skills.
-4. **Private repo support**: Works if `git clone` works. `GITHUB_TOKEN` or `gh auth login` enables auto-updates.
-5. **No marketplace needed for single user**: Can install directly via `/plugin marketplace add owner/repo` pointing at the private GitHub repo.
-6. **Skills in plugins are namespaced**: `/ai-toolbelt:jira` instead of `/jira`. This is a minor DX change to get used to.
-7. **`allowed-tools` frontmatter**: Works in CLI only (not SDK). Useful for restricting what Claude can do during a skill execution.
-8. **`context: fork`**: Runs skill in isolated subagent. Useful for heavy skills like mbridge that shouldn't pollute conversation context.
-
-### Credential Pattern (HIGH confidence -- from existing code)
-
-The gh-upload pattern is the proven model:
-- `security add-generic-password -s "<service>" -a "<account>" -w "<value>"` to store
-- `security find-generic-password -s "<service>" -a "<account>" -w` to retrieve
-- Interactive `setup.sh` for first-time configuration
-- Fallback instructions for manual setup
-
-### Migration Risks (MEDIUM confidence)
-
-1. **Path references**: Every `$HOME/.claude/skills/...` or `$HOME/.claude/commands/...` path in existing skills must be updated to `${CLAUDE_SKILL_DIR}` or `${CLAUDE_PLUGIN_ROOT}`.
-2. **Skill naming**: Current skills like `/jira` will become `/ai-toolbelt:jira`. Muscle memory adjustment needed.
-3. **File not found after install**: Plugin caching copies files to a cache directory. Any skill referencing files outside the plugin will break. Self-containment is critical.
-4. **acli/sentry-cli binary availability**: These are external binaries, not part of the plugin. Install script must verify they exist.
+| Feature | forgetful-plugin | claude-mem | memory-store-plugin | tb v1.1 approach |
+|---------|-----------------|------------|---------------------|------------------|
+| **Setup** | `/forgetful-setup` writes MCP config to `~/.claude.json`. Zero-config SQLite default. | Auto-install via SessionStart pre-hook (bun, uv, chroma). Heavy deps. | OAuth 2.1 via marketplace install. Cloud-hosted. | `/tb:bootstrap` -- installs GSD + Forgetful + forgetful-plugin + registers hooks. Heaviest setup but one command. |
+| **Context injection** | Manual via `/memory-search` | Automatic via UserPromptSubmit + SessionStart (progressive disclosure -- compact summaries first, details on demand) | Automatic via SessionStart + PreToolUse (queue-based producer-consumer) | Automatic via UserPromptSubmit scoped to `/gsd:*` only + manual `/tb:load-context`. Best of both: automatic where it matters, manual elsewhere. |
+| **Memory save** | `/memory-save` with curation workflow + atomic memory principles | Automatic capture of ALL tool observations, compressed via Claude agent-sdk | Automatic via queue (`.memory-queue.jsonl`), every PostToolUse fires | Manual `/tb:save-findings` from curated GSD SUMMARY artifacts. Quality over quantity. |
+| **Memory lifecycle** | Manual via curating-memories skill. Creator acknowledges automated lifecycle as future work. | Compression + AI summarization. No explicit obsolescence. | Session-based checkpoints every 10 file changes. No obsolescence. | Phase-aware: save on completion, mark obsolete on transition. Only plugin with structured lifecycle management. |
+| **Dependency mgmt** | `uvx forgetful-ai` (zero-config) | Auto-installs bun, uv, chroma via pre-hooks (complex) | OAuth 2.1 managed by marketplace | Doctor checks (`scripts/checks/*.sh`) + bootstrap handles all deps. Proven pattern from v1.0. |
+| **Health checks** | None built-in | Pre-hook dependency checking (pass/fail) | None built-in | Modular `scripts/checks/*.sh` with PASS/FAIL/WARN + fix hints. Most mature pattern. |
 
 ## Sources
 
-- [Claude Code Plugin Documentation](https://code.claude.com/docs/en/plugins) -- official plugin structure, manifest schema, plugin lifecycle
-- [Claude Code Skills Documentation](https://code.claude.com/docs/en/skills) -- SKILL.md format, frontmatter fields, script offloading, `${CLAUDE_SKILL_DIR}` variable
-- [Claude Code Plugin Marketplaces](https://code.claude.com/docs/en/plugin-marketplaces) -- private repo distribution, marketplace.json schema, update mechanisms
-- [Superpowers plugin](https://github.com/obra/superpowers) -- reference implementation for plugin structure with skills
-- [Anthropic official plugins](https://github.com/anthropics/claude-plugins-official) -- official marketplace structure
-- [macOS Keychain CLI](https://ss64.com/mac/security.html) -- `security` command reference
-- [Stop Putting Secrets in .env Files](https://jonmagic.com/posts/stop-putting-secrets-in-dotenv-files/) -- keychain-based credential management rationale
+- [Claude Code Hooks Guide](https://code.claude.com/docs/en/hooks-guide) -- Official hooks documentation (HIGH confidence). UserPromptSubmit has no matcher support, fires on ALL prompts. additionalContext injection via hookSpecificOutput JSON. Exit 0 for proceed, exit 2 for block.
+- [Claude Code Plugins Reference](https://code.claude.com/docs/en/plugins-reference) -- Plugin manifest, hooks.json, `${CLAUDE_PLUGIN_ROOT}`, `${CLAUDE_PLUGIN_DATA}` for persistent deps. SessionStart hook pattern for dependency management (HIGH confidence).
+- [Forgetful MCP Introduction](https://dev.to/scott_raisbeck_24ea5fbc1e/introducing-forgetful-shared-knowledge-and-memory-across-agents-40o6) -- Architecture, Zettelkasten principles, 38 tools via 3 meta-tools, token budget management, cross-encoder reranking, auto-linking at 0.7 similarity threshold (MEDIUM confidence -- single source, verified against repo).
+- [forgetful-plugin on GitHub](https://github.com/ScottRBK/forgetful-plugin) -- Commands (`/forgetful-setup`, `/memory-search`, `/memory-save`, `/memory-list`, `/memory-explore`, `/encode-repo`), skills, setup flow (MEDIUM confidence).
+- [claude-mem on GitHub](https://github.com/thedotmack/claude-mem) -- 5 lifecycle hooks (SessionStart, UserPromptSubmit, PostToolUse, Stop, SessionEnd), progressive disclosure pattern, SQLite + Chroma + FTS5, compression via agent-sdk (MEDIUM confidence).
+- [memory-store-plugin on GitHub](https://github.com/julep-ai/memory-store-plugin) -- Queue-based producer-consumer capture, SessionStart/PreToolUse/SessionEnd hooks, auto-checkpoints, cloud-hosted MCP (MEDIUM confidence).
+- [claude-bootstrap on GitHub](https://github.com/alinaqi/claude-bootstrap) -- Environment setup pattern, tool detection, Stop hooks for TDD, 57 skills, PreCompact hook for context preservation (MEDIUM confidence).
+- [UserPromptSubmit Issue #27365](https://github.com/anthropics/claude-code/issues/27365) -- Confirms no `updatedPrompt` support; can only inject additionalContext (HIGH confidence -- official GitHub issue).
+- [UserPromptSubmit Issue #17804](https://github.com/anthropics/claude-code/issues/17804) -- False positive prompt injection detection risk when hooks inject large context blocks (MEDIUM confidence -- reported issue, may be resolved).
 
 ---
-*Feature research for: ai-toolbelt (personal developer toolkit / Claude Code private plugin)*
-*Researched: 2026-03-11*
+*Feature research for: tb plugin v1.1 -- GSD & Forgetful Integration*
+*Researched: 2026-03-28*

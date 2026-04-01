@@ -1,297 +1,180 @@
-# Pitfalls Research
+# Domain Pitfalls
 
-**Domain:** Claude Code plugin + developer toolkit + mobile automation (mbridge)
-**Researched:** 2026-03-11
-**Confidence:** HIGH (grounded in official Claude Code plugin docs, real mobilecli GAPS.md from production use, and established mobile automation patterns)
+**Domain:** Claude Code plugin -- GSD & Forgetful integration (v1.1)
+**Researched:** 2026-03-31
+**Confidence:** HIGH (verified against GitHub issue tracker, official docs, and live MCP testing)
 
 ## Critical Pitfalls
 
-### Pitfall 1: Plugin Directory Layout — Nesting Components Inside .claude-plugin/
+### Pitfall 1: Plugin Hook Output Silently Discarded (Bug #12151 -- OPEN)
 
-**What goes wrong:**
-Commands, skills, agents, and hooks directories get placed inside the `.claude-plugin/` folder instead of at the plugin root. Claude Code silently ignores them — no error, just missing functionality.
+**What goes wrong:** UserPromptSubmit hooks defined in plugin `hooks/hooks.json` execute correctly but their stdout/additionalContext is never injected into Claude's conversation. The hook runs, curl succeeds, Forgetful returns data, but Claude never sees it. Zero error messages -- completely silent failure.
 
-**Why it happens:**
-Intuitive mental model says "everything plugin-related goes in the plugin folder." The official docs explicitly warn against this but it remains the single most common structural mistake.
+**Why it happens:** Claude Code's hook output capture pipeline treats plugin-scoped hooks differently from user-level hooks (`~/.claude/settings.json`). Bug #12151 is OPEN as of March 31, 2026. Multiple users confirm the behavior on v2.1.42+. The same hook config works when placed in settings.json.
 
-**How to avoid:**
-Only `plugin.json` goes inside `.claude-plugin/`. All component directories (`commands/`, `skills/`, `agents/`, `hooks/`) must be direct children of the plugin root:
-```
-ai-toolbelt/           <-- plugin root
-  .claude-plugin/
-    plugin.json        <-- ONLY this goes here
-  commands/            <-- at root, NOT inside .claude-plugin/
-  skills/
-  hooks/
-```
+**Consequences:** The entire GSD context hook is useless if registered in the plugin's hooks.json. Every curl call to Forgetful is wasted. The user sees no error and assumes memories are being injected when they're not.
 
-**Warning signs:**
-Skills not appearing in `/help`, commands not resolving with `/ai-toolbelt:command-name`, hooks not firing. If installed via `--plugin-dir` and nothing works, check directory layout first.
+**Prevention:**
+1. Register UserPromptSubmit hooks in `~/.claude/settings.json`, not in plugin hooks.json.
+2. Keep the hook SCRIPT in the plugin repo (`hooks/gsd-context.sh`). Only the hook REGISTRATION goes to settings.json.
+3. Bootstrap skill must write the hook config to settings.json with the absolute path to the cached plugin's hook script.
+4. Doctor check must verify: (a) hook exists in settings.json, (b) hook script path resolves, (c) hook output actually reaches Claude (test by having Claude report what context it received).
+5. If/when #12151 is fixed, migrate back to plugin hooks.json and clean up settings.json.
 
-**Phase to address:**
-Phase 1 (Plugin Packaging) — establish correct directory structure from the very first commit. Validate with `claude --plugin-dir ./` before anything else.
+**Detection:** Ask Claude "what additional context did you receive from hooks?" after a GSD command. If Claude has no awareness of memory context, the output is being discarded.
 
----
+### Pitfall 2: UserPromptSubmit Hook Blocks All Prompts When Forgetful Is Unreachable
 
-### Pitfall 2: Plugin Cache Staleness After Updates
+**What goes wrong:** The hook queries Forgetful on GSD commands. If Forgetful is unreachable (server down, network change, port conflict), curl blocks until timeout. Default hook timeout is 600 seconds. Every GSD prompt stalls for 10 minutes.
 
-**What goes wrong:**
-After updating a plugin (new version, new commit), Claude Code sessions continue using old cached versions. `CLAUDE_PLUGIN_ROOT` environment variable resolves to stale cache directories. Different sessions may run different plugin versions simultaneously.
+**Why it happens:** Developers add the Forgetful query and test it when the server is running. They never test when the server is down. curl without explicit timeout inherits the system TCP timeout (~60s per attempt with retries).
 
-**Why it happens:**
-Plugins installed from marketplaces are pinned to a specific commit SHA. Claude Code caches plugin versions in `~/.claude/plugins/cache/` and does not reliably invalidate old versions. This is a known bug (GitHub issue #15642) that was closed without fix.
+**Consequences:** Every GSD command takes 60-600 seconds. The hook appears "stuck." Users disable the hook entirely to restore responsiveness.
 
-**How to avoid:**
-- During development: always use `--plugin-dir` (loads directly, bypasses cache entirely)
-- For production use: document that users should run `/reload-plugins` after `git pull`
-- If issues persist: delete old cache entries manually from `~/.claude/plugins/cache/`
-- Consider building a self-update command into the plugin that clears its own cache
+**Prevention:**
+1. Set `"timeout": 5` on the hook definition in settings.json.
+2. Use `curl --connect-timeout 1 --max-time 3` for all Forgetful HTTP calls.
+3. On any curl failure (timeout, connection refused, non-200), `exit 0` with empty stdout. Never `exit 2` (that blocks and erases the prompt).
+4. For non-GSD prompts (`prompt` doesn't start with `/gsd:`), `exit 0` immediately before making any HTTP calls. This path costs ~1ms.
 
-**Warning signs:**
-Changes to skills/commands not taking effect despite confirmed git pull. Version mismatch in logs. Scripts referencing old paths.
+**Detection:** Noticeable delay between pressing Enter and Claude starting to respond. Visible only on GSD commands if gating is implemented; on ALL prompts if gating is missing.
 
-**Phase to address:**
-Phase 1 (Plugin Packaging) — design the install/update mechanism knowing this cache bug exists. Build a `/ai-toolbelt:update` command that handles cache clearing.
+### Pitfall 3: Context Window Bloat From Unbounded Memory Injection
 
----
+**What goes wrong:** Forgetful returns up to 8K tokens per query (default MEMORY_TOKEN_BUDGET) with up to 20 memories. Injecting all of this into every GSD prompt consumes massive context. The 200K window compacts at ~167K. System prompt + tools + skills already use ~29K. Adding 8K per GSD prompt triggers compaction much sooner, losing earlier conversation history.
 
-### Pitfall 3: Skill $HOME Path Assumptions Breaking on Plugin Install
+**Why it happens:** "More context = better" mentality. Forgetful's default budget (8K) is designed for direct agent use where Claude selects relevance. Automatic injection dumps everything.
 
-**What goes wrong:**
-Existing skills reference `$HOME/.claude/skills/skill-name/` for helper scripts, config files, and credential lookups. When migrated into a plugin, the path becomes `$CLAUDE_PLUGIN_ROOT/skills/skill-name/` (or wherever the plugin is cached). Every hardcoded `$HOME/.claude/` reference breaks silently.
+**Consequences:** Frequent auto-compaction. Claude "forgets" earlier conversation turns. `/context` shows unexpectedly high hook context usage. Long GSD sessions lose their beginning.
 
-**Why it happens:**
-Skills were originally standalone files in `~/.claude/skills/`. They work fine there. During migration to plugin form, path references are easy to miss because they are scattered across SKILL.md instructions, shell scripts, and inline bash commands that Claude generates based on skill instructions.
+**Prevention:**
+1. Limit query to `k: 3` (3 memories max).
+2. Return only memory titles + first-sentence summaries in hook output (~1500 tokens max).
+3. Let Claude fetch full memory content via Forgetful MCP tools if it needs more detail.
+4. Track with `/context` command during development to measure actual impact.
 
-**How to avoid:**
-- Replace all `$HOME/.claude/skills/` with `$SKILL_DIR/` or `$CLAUDE_PLUGIN_ROOT/skills/` in helper scripts
-- In SKILL.md files, use relative references: `$(dirname "$0")` or the `$SKILL_DIR` variable that Claude Code exposes
-- Audit every skill for path references before migration: `grep -r '$HOME/.claude' skills/`
-- Test each migrated skill via `--plugin-dir` before considering it done
+**Detection:** `/context` showing large hook context blocks. Compaction happening earlier than expected.
 
-**Warning signs:**
-"File not found" errors when running skill helper scripts. Skills that worked standalone but fail as plugin components. Credential setup scripts writing to wrong keychain service paths.
+### Pitfall 4: Bootstrap Partial Failure Leaves Half-Configured State
 
-**Phase to address:**
-Phase 2 (Skill Migration) — systematic audit of every skill. Create a migration checklist that includes path verification.
+**What goes wrong:** Bootstrap installs 5+ independent components (GSD, marketplace, forgetful-plugin, MCP config, hook registration). If step 3 of 5 fails (e.g., network error during plugin install), the system is half-configured. Hooks reference a missing Forgetful, doctor checks report mixed results.
 
----
+**Why it happens:** Sequential setup scripts assume each step succeeds. No idempotency checks. No step-tracking for retry.
 
-### Pitfall 4: UIAutomator Idle-State Failure on Dynamic Screens
+**Consequences:** Cryptic errors from hooks trying to reach unconfigured Forgetful. Re-running bootstrap may duplicate MCP entries in `~/.claude.json` or overwrite settings.json hooks.
 
-**What goes wrong:**
-Android UIAutomator requires the UI to be in an "idle" state before it can dump the accessibility tree. Screens with running timers, animations, live counters, or auto-refreshing content never reach idle. `dump ui` returns 0 elements — not an error, just empty data. All downstream helpers (find_el, tap_text, assert_screen) silently fail or report "element not found" when the real problem is the dump itself.
+**Prevention:**
+1. Each step checks "is this already done?" before acting (idempotent).
+2. Report per-step status: "GSD: OK, Marketplace: OK, Plugin: FAILED (network), Hook: SKIPPED".
+3. Never write to `~/.claude.json` without reading first and merging (not overwriting).
+4. After all steps, run doctor checks and report consolidated status.
 
-**Why it happens:**
-UIAutomator was designed for static UI testing. It waits for all accessibility events to settle before capturing state. Continuously updating UI elements generate an infinite stream of events. This is a fundamental limitation of the Android accessibility framework, not a mobilecli bug.
+**Detection:** Doctor checks showing mixed PASS/FAIL after bootstrap. Re-running bootstrap creates duplicates.
 
-**How to avoid:**
-- mbridge must detect empty/failed dumps and fall back automatically (not after 3 retries — detect immediately based on element count)
-- Implement OCR-based verification as a fallback path (the whole point of mbridge's OCR approach)
-- Navigate away from animated screens to perform UI dumps, then navigate back
-- For screens that must be tested with animations, use coordinate-based interaction from previously known positions
+### Pitfall 5: Forgetful HTTP Transport Not Available Despite STDIO Working
 
-**Warning signs:**
-`dump_ui` returning 0 elements or empty JSON. Retries wasting time on screens that will never become idle. Test scripts timing out on specific screens that have animations.
+**What goes wrong:** Claude connects to Forgetful via STDIO transport (`uvx forgetful-ai`). The hook needs HTTP (`curl http://host:port/mcp`). These are completely separate. If user set up Forgetful as STDIO-only, there's no HTTP endpoint for the hook to query.
 
-**Phase to address:**
-Phase 5/6 (mbridge Rebuild) — design the dump-then-fallback-to-OCR pattern as a core architectural decision, not an afterthought.
+**Why it happens:** Forgetful's recommended default is STDIO (zero config). Developers assume HTTP is also available. The `/forgetful-setup` "Standard" option configures STDIO only.
 
----
+**Consequences:** Hook gets "connection refused" on every GSD command. Forgetful "works" for Claude's MCP tools but not for the hook. Two separate Forgetful instances (STDIO + HTTP) would create two databases.
 
-### Pitfall 5: React Native Modals Unreachable via Coordinate Taps
+**Prevention:**
+1. Bootstrap must verify Forgetful is configured with HTTP transport in `~/.claude.json` (check `type: "http"`).
+2. If configured as STDIO, bootstrap must guide user to reconfigure as HTTP (or configure both sharing the same DB).
+3. Doctor check must verify the HTTP endpoint is reachable with a curl health check.
+4. The current user already has HTTP configured (`http://192.168.2.104:8020/mcp`), but bootstrap must handle the general case.
 
-**What goes wrong:**
-React Native Modal and Alert dialogs render in a separate native window/layer. Coordinate-based taps (`adb shell input tap` or `mobilecli io tap`) pass through or miss entirely. The dialog is visible in screenshots but untouchable via automation. BACK button also fails to dismiss them. Automation gets permanently stuck.
+**Detection:** Hook returns empty output on GSD commands. Doctor check for Forgetful reachability fails while `claude mcp list` shows Forgetful "Connected."
 
-**Why it happens:**
-ADB's `input tap` dispatches touch events to the foreground activity's main window. React Native modals may render in an overlay window that doesn't receive these events. This is documented as an open issue in the existing mobilecli GAPS.md (gap #10).
+## Moderate Pitfalls
 
-**How to avoid:**
-- Investigate `adb shell input keyevent` (DPAD navigation + ENTER) as an alternative input method for dialogs
-- Investigate accessibility-based tap targeting instead of coordinate-based
-- Design mbridge with multiple input dispatch strategies, not just coordinate taps
-- For testing: avoid triggering modal dialogs when possible, or test modal flows manually
+### Pitfall 6: Hook Stdin JSON Parsing Edge Cases
 
-**Warning signs:**
-Taps on dialog buttons having no effect. Tests hanging after a modal appears. Screenshots showing a dialog but dump_ui not including its elements.
+**What goes wrong:** The hook reads stdin JSON containing `prompt`, `session_id`, `cwd`, etc. Prompts with quotes, backslashes, newlines, or JSON content break naive parsing. Multi-line prompts split across `read` calls.
 
-**Phase to address:**
-Phase 5/6 (mbridge Rebuild) — plan for multiple input dispatch strategies from the start.
+**Prevention:**
+1. Always use `INPUT=$(cat)` to read all stdin at once.
+2. Extract fields with `jq -r '.prompt // empty'`.
+3. Quote all variables in shell: `"$PROMPT"` not `$PROMPT`.
+4. Handle empty/missing prompt: `if [ -z "$PROMPT" ]; then exit 0; fi`.
+5. Use `set -euo pipefail` but trap jq failures explicitly (jq returns non-zero on parse error, triggering errexit).
 
----
+### Pitfall 7: Cross-Project Memory Contamination
 
-### Pitfall 6: Credential Setup Scripts Requiring Manual Intervention
+**What goes wrong:** Forgetful memories from project A appear in queries made from project B. GSD decisions from one repo pollute another repo's context.
 
-**What goes wrong:**
-Credential setup scripts that rely on browser automation (AppleScript to extract cookies from Chrome, etc.) fail when: Chrome isn't the default browser, browser security updates change cookie storage, macOS permissions haven't been granted (Accessibility, Automation), or the user hasn't logged into the service. The "automated" setup requires a chain of manual prerequisites that aren't documented.
+**Prevention:**
+1. Always include `project_ids` filter when querying in the hook.
+2. Derive project identity from `git remote get-url origin` (unique, stable).
+3. Always include `project_ids` when creating memories in save-findings.
+4. Use `mark_memory_obsolete` when milestones complete.
 
-**Why it happens:**
-The gh-upload skill's setup.sh extracts `user_session` cookies from Chrome via AppleScript. This works on the author's machine but breaks on fresh setups. Each skill's credential requirements are different and undocumented. Users don't know what prerequisites exist until something fails.
+### Pitfall 8: Duplicate Memories From Repeated Save-Findings
 
-**How to avoid:**
-- Document ALL prerequisites for each skill's credential setup
-- Implement graceful degradation: if automated extraction fails, prompt for manual entry with clear instructions
-- Create a unified credential health-check command that validates all keychain entries exist and reports which skills are ready vs. need setup
-- Never assume Chrome is installed or is the default browser
+**What goes wrong:** Running save-findings twice on the same phase creates duplicates. Phase 3 and phase 7 both mention the same tech stack -- two identical memories exist.
 
-**Warning signs:**
-Setup scripts failing silently or with cryptic AppleScript errors. New machine setup taking hours of debugging. Skills working on one machine but not another.
+**Prevention:**
+1. Before creating a memory, query for semantically similar existing memories on the same project. If very similar, update instead of create.
+2. When saving from a new phase, mark superseded memories from previous phases as obsolete.
+3. Extract decisions and learnings as atomic Zettelkasten notes, not raw file contents.
+4. Include phase/milestone identifiers in memory metadata.
 
-**Phase to address:**
-Phase 3 (Credential Management) — build the unified credential system with explicit prerequisite checking and manual fallbacks.
+### Pitfall 9: Plugin Cache Path Changes on Update
 
----
+**What goes wrong:** Bootstrap writes an absolute path to the hook script in settings.json (e.g., `~/.claude/plugins/cache/tb-marketplace/tb/0.1.0/hooks/gsd-context.sh`). When the plugin updates to 0.2.0, the path changes. The hook breaks silently.
 
-### Pitfall 7: Skill Namespace Collisions After Plugin Migration
+**Prevention:**
+1. Use a path that doesn't include the version: check if Claude Code's cache structure includes a stable "latest" symlink.
+2. If not, the update skill must also update the hook path in settings.json after each plugin update.
+3. Doctor check must verify the hook script path still resolves to an existing file.
 
-**What goes wrong:**
-If the user still has standalone skills in `~/.claude/skills/` AND the plugin provides the same skills, both versions load. Claude may use either version unpredictably. The standalone version uses `$HOME/.claude/skills/` paths; the plugin version uses `$CLAUDE_PLUGIN_ROOT/skills/` paths. Behavior becomes inconsistent.
+### Pitfall 10: GSD Structure Changes Break Artifact Extraction
 
-**Why it happens:**
-Migration is incremental — users install the plugin before removing standalone skills. Claude Code doesn't warn about duplicate skill names across standalone and plugin sources.
+**What goes wrong:** Save-findings hardcodes paths like `.planning/research/STACK.md`. GSD updates its template structure, and extraction breaks silently.
 
-**How to avoid:**
-- Plugin install script should detect and warn about conflicting standalone skills
-- Name plugin skills differently during transition period (unlikely to be worth it for a personal toolkit)
-- Better: create a migration command that moves standalone skills to a backup and installs the plugin atomically
-- Document that standalone skills in `~/.claude/` must be removed after plugin install
+**Prevention:**
+1. Use glob patterns (`find .planning -name "*.md"`) instead of hardcoded paths.
+2. Parse based on content patterns (headings, frontmatter) not exact file paths.
+3. Track GSD VERSION and warn on mismatch.
 
-**Warning signs:**
-Skills behaving differently across sessions. Path-related errors appearing intermittently. "It works sometimes" debugging pattern.
+## Minor Pitfalls
 
-**Phase to address:**
-Phase 7 (Install/Update Flow) — the install command must handle cleanup of standalone skills.
+### Pitfall 11: MCP Session ID Not Reused Across Calls
 
----
+**What goes wrong:** Each hook invocation creates a new MCP session (initialize + tool call). This is fine for the current use case (one query per hook) but wastes ~100ms on session setup.
 
-### Pitfall 8: mbridge Python Environment Fragility on macOS
+**Prevention:** Accept the cost. Hook invocations are independent -- no session state to preserve. Reusing sessions across invocations would require persistent state, adding complexity.
 
-**What goes wrong:**
-macOS ships a system Python (`/usr/bin/python3`) that is incomplete and should not be used for development. Users may have Homebrew Python, pyenv Python, conda Python, or Python.org Python — all in different paths with different site-packages. mbridge's Python dependencies (OCR libraries, device interaction libraries) install into whichever Python `pip` resolves to, which may not be the same Python that `python3` resolves to.
+### Pitfall 12: Forgetful's execute_forgetful_tool Dispatcher
 
-**Why it happens:**
-macOS Python ecosystem is fragmented. PATH ordering determines which Python runs. `pip install` and `python3` may resolve to different installations. Virtual environments solve this but add setup complexity.
-
-**How to avoid:**
-- Ship mbridge with its own virtual environment created during install (`python3 -m venv`)
-- Pin the venv creation to a minimum Python version (3.10+)
-- Use `#!/usr/bin/env python3` shebangs, never hardcoded paths
-- Install script should create and activate the venv, install dependencies into it, and create a wrapper script that activates the venv before running mbridge
-- Test install on a clean macOS (no Homebrew Python) to verify it works with system Python
-
-**Warning signs:**
-`ModuleNotFoundError` after pip install claims success. Different behavior between terminal sessions. "Works in my shell but not in Claude Code's bash" issues.
-
-**Phase to address:**
-Phase 5/6 (mbridge Rebuild) — virtual environment setup must be part of the install process, not optional.
-
----
-
-## Technical Debt Patterns
-
-| Shortcut | Immediate Benefit | Long-term Cost | When Acceptable |
-|----------|-------------------|----------------|-----------------|
-| Inline bash in SKILL.md instead of helper scripts | Faster to write, no extra files | Unmaintainable when logic grows, can't test independently, Claude regenerates slightly different versions each time | Never for anything beyond 3 lines |
-| Hardcoded device IDs in test scripts | Quick testing on known device | Scripts break on different machines/devices | Never — always use env vars or device selection |
-| Using `sleep` instead of polling | Simple to write | Flaky tests, wasted time on fast machines, timeouts on slow machines | Never — always poll with timeout |
-| Skipping venv for Python tools | Faster initial setup | Dependency conflicts with system packages, breaks on Python upgrades | Only in earliest prototyping, never in shipped install |
-| Copy-pasting skill instructions instead of referencing shared docs | Each skill is self-contained | Instruction drift between skills, inconsistent behavior, multiplied maintenance | Only for truly independent skills |
-| Storing secrets in env vars instead of Keychain | Works everywhere, simple | Secrets in shell history, .env files accidentally committed, visible in process list | Never for this project (Keychain is a hard requirement) |
-
-## Integration Gotchas
-
-| Integration | Common Mistake | Correct Approach |
-|-------------|----------------|------------------|
-| macOS Keychain (`security` CLI) | Using `security find-generic-password -w` without checking if the entry exists first — returns error text, not empty string | Always check return code: `security find-generic-password -s "service" -a "account" -w 2>/dev/null` with `$?` check |
-| GitHub API (gh-upload) | Assuming `user_session` cookie is permanent | Cookie expires ~2 weeks or on logout. Build re-auth into the workflow, not just setup |
-| Jira API (acli) | Hardcoding Jira instance URL | Use Keychain or config file. Instance URLs change during migrations |
-| ADB (Android Debug Bridge) | Assuming single device connected | Always pass `--device` flag. Multiple emulators/devices common in development |
-| xcrun simctl (iOS Simulator) | Using device UDID that changes across Xcode versions | Use device name + runtime to look up UDID dynamically |
-| mobilecli | Inventing commands not in the SKILL.md reference | Only use documented commands — Claude hallucinates mobilecli subcommands that don't exist |
-| Claude Code hooks | Putting hooks.json inside `.claude-plugin/` instead of `hooks/` directory | hooks.json goes in `plugin-root/hooks/hooks.json` |
-
-## Performance Traps
-
-| Trap | Symptoms | Prevention | When It Breaks |
-|------|----------|------------|----------------|
-| Spawning subagents for simple element lookups | 10-30 second latency per UI interaction | Use bash + jq one-liners, batch operations | Immediately — every subagent spawn adds ~10s |
-| Taking screenshots for screen verification | 2-5 second latency per check, context window bloat from images | Use `assert_screen` / `on_screen` with text matching | Immediately — text matching is sub-second |
-| Full UI dump on every operation | Redundant ADB/xcrun calls, each taking 1-3 seconds | Cache dumps, use `dump_if_stale`, batch operations | At 5+ operations per screen — latency adds up |
-| Loading all skill content at plugin scan time | Plugin activation adds seconds to Claude startup | Keep SKILL.md metadata (frontmatter) minimal, use progressive disclosure | When plugin has 15+ skills |
-| OCR on every screen verification | Tesseract/OCR processing adds 1-3 seconds per frame | Use OCR only as fallback when UI dump fails, cache OCR results for unchanged screens | Immediately on every call, acceptable as fallback only |
-
-## Security Mistakes
-
-| Mistake | Risk | Prevention |
-|---------|------|------------|
-| Storing API keys/tokens in SKILL.md or scripts | Credentials committed to git, even in private repos | All secrets via macOS Keychain. Scripts read from Keychain at runtime. Never inline |
-| Session cookies in environment variables | Visible in `ps` output, shell history, may leak to subprocesses | Read from Keychain per-invocation. Never export to env |
-| Plugin settings.json containing credentials | Credentials installed on every machine that installs the plugin | settings.json for configuration only. Credentials always in Keychain, populated by setup scripts |
-| Not scoping Keychain entries with unique service names | Different tools overwriting each other's credentials | Use unique service names: `ai-toolbelt-gh-upload`, `ai-toolbelt-jira`, etc. Prefix with plugin name |
-| setup.sh scripts that `echo` secrets to stdout | Secrets appear in Claude's conversation context, logs | Setup scripts should `security add-generic-password` silently. Only output success/failure messages |
-
-## UX Pitfalls
-
-| Pitfall | User Impact | Better Approach |
-|---------|-------------|-----------------|
-| Silent failures when credentials are missing | Skill runs, produces wrong results or cryptic errors, user doesn't know why | Check credentials at skill activation, fail fast with "Run `ai-toolbelt:setup` to configure X" |
-| No feedback during long operations (OCR, device interaction) | User thinks Claude is stuck | Print progress messages: "Dumping UI tree...", "Running OCR on screenshot..." |
-| Skills that work differently across platforms (iOS vs Android) | Confusion when switching devices | Document platform-specific behavior in SKILL.md. Detect platform and adjust automatically |
-| Update mechanism that requires manual git commands | User falls behind on updates, skills break | Build `/ai-toolbelt:update` command that handles git pull + cache invalidation + dependency updates |
-| Credential setup requiring 5 different manual steps | Users abandon setup midway | Single `ai-toolbelt:setup` command that walks through everything with progress tracking |
-
-## "Looks Done But Isn't" Checklist
-
-- [ ] **Skill migration:** Skill works via `--plugin-dir` -- verify it works when installed via marketplace/git too (cache paths differ)
-- [ ] **Credential setup:** setup.sh succeeds -- verify the credential actually works by making a test API call, not just storing a value
-- [ ] **mbridge install:** `pip install` succeeds -- verify the installed binary is in PATH and resolves to the correct venv Python
-- [ ] **Plugin update:** `/reload-plugins` picks up changes -- verify this works across new Claude Code sessions, not just within the current one
-- [ ] **Cross-platform mobile automation:** Works on iOS simulator -- verify it works on Android emulator AND real devices (all three are different code paths)
-- [ ] **Helper script permissions:** Script runs locally -- verify it runs within Claude Code's sandboxed Bash environment (permission model is different)
-- [ ] **Deeplink navigation:** Deeplink opens correct screen -- verify it works on cold start, not just when app is already running
-- [ ] **OCR verification:** OCR reads clean text -- verify it works with the actual app's font, colors, and density scale
-
-## Recovery Strategies
-
-| Pitfall | Recovery Cost | Recovery Steps |
-|---------|---------------|----------------|
-| Wrong plugin directory layout | LOW | Move directories to root, test with `--plugin-dir`, takes 5 minutes |
-| Stale plugin cache | LOW | Delete `~/.claude/plugins/cache/ai-toolbelt/`, reinstall |
-| Hardcoded paths in migrated skills | MEDIUM | grep for `$HOME/.claude`, replace with `$SKILL_DIR` or `$CLAUDE_PLUGIN_ROOT`, re-test each skill |
-| Python environment broken | MEDIUM | Delete venv, recreate with explicit Python path, reinstall dependencies |
-| Credential namespace collision | LOW | Rename Keychain service names with prefix, update all referencing scripts |
-| UIAutomator failures on dynamic screens | HIGH | Requires architectural change to add OCR fallback path — cannot be patched incrementally |
-| RN modal unreachable | HIGH | Requires alternative input dispatch strategy — no quick fix exists |
-
-## Pitfall-to-Phase Mapping
-
-| Pitfall | Prevention Phase | Verification |
-|---------|------------------|--------------|
-| Plugin directory layout | Phase 1 (Plugin Packaging) | `claude --plugin-dir ./` loads all skills, `/help` shows them |
-| Plugin cache staleness | Phase 1 (Plugin Packaging) | Install via marketplace, update, verify new version loads |
-| $HOME path assumptions | Phase 2 (Skill Migration) | `grep -r '\$HOME/.claude' skills/` returns 0 results |
-| UIAutomator idle-state failures | Phase 5/6 (mbridge) | Run mbridge against a screen with a running timer, verify fallback triggers |
-| RN modal interaction | Phase 5/6 (mbridge) | Trigger a React Native Alert, verify mbridge can dismiss it |
-| Credential setup fragility | Phase 3 (Credential Management) | Run setup on fresh macOS with no Chrome, verify graceful fallback |
-| Skill namespace collisions | Phase 7 (Install/Update) | Install plugin while standalone skills exist, verify only plugin versions are used |
-| Python environment fragility | Phase 5/6 (mbridge) | Run install on clean macOS (system Python only), verify mbridge works |
+**What goes wrong:** Developer calls `query_memory` as a top-level MCP tool name. Fails with "Unknown tool." Forgetful exposes only 3 MCP tools; all 38+ operations go through `execute_forgetful_tool(tool_name, arguments)`.
+
+**Prevention:** Always wrap in `execute_forgetful_tool`. Document this in the mcp-client.sh helper.
+
+## Phase-Specific Warnings
+
+| Phase Topic | Likely Pitfall | Mitigation |
+|-------------|---------------|------------|
+| Bootstrap | Partial failure, non-idempotent | Check-before-act for each step; per-step reporting |
+| Bootstrap | Plugin cache path in settings.json | Resolve path at bootstrap time; update on plugin update |
+| Doctor checks | Checking MCP config but not reachability | Health check via curl, not just config presence |
+| GSD context hook | Silent output discard (plugin hooks.json) | Register in settings.json, NOT plugin hooks.json |
+| GSD context hook | Blocking on Forgetful unreachable | curl timeouts, fast-path for non-GSD prompts |
+| GSD context hook | Token bloat from large results | Cap at k:3, summarize, ~1500 tokens max |
+| Save-findings | Duplicate memories | Query-before-create, obsolescence marking |
+| Save-findings | GSD structure changes | Glob-based discovery, defensive parsing |
+| Update integration | Plugin cache path changes | Update hook path in settings.json after plugin update |
 
 ## Sources
 
-- [Claude Code Plugins - Create plugins](https://code.claude.com/docs/en/plugins) -- official plugin structure, common mistakes warning
-- [Plugins Reference](https://code.claude.com/docs/en/plugins-reference) -- complete plugin spec
-- [Plugin cache stale version bug (GitHub #15642)](https://github.com/anthropics/claude-code/issues/15642) -- CLAUDE_PLUGIN_ROOT resolving to old versions
-- [Plugin update detection issue (GitHub #31462)](https://github.com/anthropics/claude-code/issues/31462) -- no built-in update mechanism
-- [Keeping Claude Code plugins up to date](https://workingbruno.com/notes/keeping-claude-code-plugins-date) -- manual update workarounds
-- [Appium Common Pitfalls 2025](https://medium.com/@abhishek.builds/mobile-automation-with-appium-common-pitfalls-and-how-to-fix-them-2025-guide-aa352228c49a) -- mobile automation flakiness patterns
-- [React Native Accessibility](https://reactnative.dev/docs/accessibility) -- RN accessibility tree for automation
-- [Tesseract OCR limitations](https://www.koncile.ai/en/ressources/is-tesseract-still-the-best-open-source-ocr) -- OCR accuracy and alternatives
-- [Python on macOS docs](https://docs.python.org/3/using/mac.html) -- system Python limitations, PATH issues
-- [Portable shell scripts guide](https://www.huuphan.com/2024/11/how-to-write-portable-shell-scripts.html) -- avoiding hardcoded paths
-- mobilecli GAPS.md (local: `~/.claude/skills/mobilecli/GAPS.md`) -- real production issues from actual usage
-- mobilecli SKILL.md (local: `~/.claude/skills/mobilecli/SKILL.md`) -- known limitations section, common mistakes
+- [Plugin hook output bug #12151](https://github.com/anthropics/claude-code/issues/12151) -- OPEN as of March 31, 2026
+- [hookSpecificOutput first-message bug #17550](https://github.com/anthropics/claude-code/issues/17550) -- CLOSED Feb 2026
+- [Claude Code Hooks Reference](https://code.claude.com/docs/en/hooks) -- timeout, output format, exit codes
+- [Forgetful TOOL_REFERENCE.md](~/.claude/plugins/cache/forgetful-plugins/forgetful-plugin/1.1.0/skills/using-forgetful-memory/TOOL_REFERENCE.md) -- tool dispatcher pattern
+- Live MCP testing against Forgetful 3.1.1 -- verified session flow, error responses
+- Comments on #12151 from prodan-s, wayne5w, jpicklyk (Feb-March 2026) -- confirmed hookEventName required, plugin output still broken
 
 ---
-*Pitfalls research for: Claude Code plugin + developer toolkit + mobile automation (mbridge)*
-*Researched: 2026-03-11*
+*Pitfalls research for: tb plugin v1.1 -- GSD & Forgetful integration*
+*Researched: 2026-03-31*
