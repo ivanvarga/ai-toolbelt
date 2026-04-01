@@ -26,7 +26,7 @@ One repo, one install command — every custom skill, credential setup, and dev 
 ### Active
 
 - [ ] Bootstrap skill — full environment setup (GSD, Forgetful MCP, forgetful-plugin, dependencies)
-- [ ] Doctor checks — verify GSD installed, Forgetful MCP configured, forgetful-plugin present
+- [x] Doctor checks — verify GSD installed, Forgetful MCP configured, forgetful-plugin present — Validated in Phase 18: Foundation
 - [ ] Update integration — /tb:update also pulls latest GSD and updates forgetful-plugin
 - [ ] GSD context hook — UserPromptSubmit hook detects /gsd:* commands, queries Forgetful, injects relevant memories
 - [ ] Load context skill — manual Forgetful memory loading before any work
@@ -104,4 +104,4 @@ This document evolves at phase transitions and milestone boundaries.
 4. Update Context with current state
 
 ---
-*Last updated: 2026-03-28 after v1.1 milestone start*
+*Last updated: 2026-04-01 after Phase 18 completion*
