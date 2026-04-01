@@ -112,7 +112,7 @@ Phases execute in numeric order: 18 -> 19 -> 20 -> 21
 |-------|-----------|----------------|--------|-----------|
 | 1-17 | v1.0 | 36/36 | Complete | 2026-03-28 |
 | 18. Foundation | v1.1 | 2/2 | Complete    | 2026-04-01 |
-| 19. GSD Workflow Patches | v1.1 | 2/2 | Complete   | 2026-04-01 |
+| 19. GSD Workflow Patches | v1.1 | 2/2 | Complete    | 2026-04-01 |
 | 20. Bootstrap & Update | v1.1 | 0/? | Not started | - |
 | 21. Memory Skills | v1.1 | 0/? | Not started | - |
 
