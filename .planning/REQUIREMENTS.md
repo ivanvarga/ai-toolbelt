@@ -23,12 +23,12 @@ Requirements for GSD & Forgetful Integration milestone. Each maps to roadmap pha
 
 ### GSD Patches
 
-- [ ] **GPATCH-01**: GSD new-project and new-milestone workflows query Forgetful for prior project patterns during context gathering
-- [ ] **GPATCH-02**: GSD discuss-phase workflow loads similar decisions from Forgetful before presenting gray areas
-- [ ] **GPATCH-03**: GSD plan-phase workflow injects relevant patterns/templates from Forgetful into planner context
-- [ ] **GPATCH-04**: GSD complete-milestone workflow auto-saves key decisions and findings to Forgetful
-- [ ] **GPATCH-05**: Patches survive GSD updates via /gsd:reapply-patches or tb's own re-apply mechanism
-- [ ] **GPATCH-06**: GSD research-phase and project-level researcher agents receive relevant Forgetful memories as prior research before starting investigation
+- [x] **GPATCH-01**: GSD new-project and new-milestone workflows query Forgetful for prior project patterns during context gathering
+- [x] **GPATCH-02**: GSD discuss-phase workflow loads similar decisions from Forgetful before presenting gray areas
+- [x] **GPATCH-03**: GSD plan-phase workflow injects relevant patterns/templates from Forgetful into planner context
+- [x] **GPATCH-04**: GSD complete-milestone workflow auto-saves key decisions and findings to Forgetful
+- [x] **GPATCH-05**: Patches survive GSD updates via /gsd:reapply-patches or tb's own re-apply mechanism
+- [x] **GPATCH-06**: GSD research-phase and project-level researcher agents receive relevant Forgetful memories as prior research before starting investigation
 
 ### Skills
 
@@ -81,12 +81,12 @@ Which phases cover which requirements. Updated during roadmap creation.
 | BOOT-02 | Phase 20 | Pending |
 | BOOT-03 | Phase 20 | Pending |
 | BOOT-04 | Phase 20 | Pending |
-| GPATCH-01 | Phase 19 | Pending |
-| GPATCH-02 | Phase 19 | Pending |
-| GPATCH-03 | Phase 19 | Pending |
-| GPATCH-04 | Phase 19 | Pending |
-| GPATCH-05 | Phase 19 | Pending |
-| GPATCH-06 | Phase 19 | Pending |
+| GPATCH-01 | Phase 19 | Complete |
+| GPATCH-02 | Phase 19 | Complete |
+| GPATCH-03 | Phase 19 | Complete |
+| GPATCH-04 | Phase 19 | Complete |
+| GPATCH-05 | Phase 19 | Complete |
+| GPATCH-06 | Phase 19 | Complete |
 | SKILL-01 | Phase 21 | Pending |
 | SKILL-02 | Phase 21 | Pending |
 | UPDT-01 | Phase 20 | Pending |
