@@ -3,6 +3,7 @@
 ## Milestones
 
 - ✅ **v1.0 MVP** — Phases 1-17 (shipped 2026-03-28)
+- 🚧 **v1.1 GSD & Forgetful Integration** — Phases 18-21 (in progress)
 
 ## Phases
 
@@ -31,11 +32,89 @@ Full details: `.planning/milestones/v1.0-ROADMAP.md`
 
 </details>
 
+### 🚧 v1.1 GSD & Forgetful Integration (In Progress)
+
+**Milestone Goal:** Make GSD and Forgetful first-class parts of the tb toolkit -- one-command bootstrap, automatic context injection on GSD workflows, and bidirectional memory sync.
+
+- [ ] **Phase 18: Foundation** - Forgetful HTTP client module and doctor health checks
+- [ ] **Phase 19: GSD Workflow Patches** - Patch files that inject Forgetful memory queries into GSD workflows
+- [ ] **Phase 20: Bootstrap & Update** - One-command environment setup and dependency update integration
+- [ ] **Phase 21: Memory Skills** - Manual load-context and save-findings skills for ad-hoc Forgetful interaction
+
+## Phase Details
+
+### Phase 18: Foundation
+**Goal**: Forgetful connectivity is verified and a reusable HTTP client exists for all downstream phases
+**Depends on**: Nothing (first phase of v1.1)
+**Requirements**: FNDTN-01, FNDTN-02, FNDTN-03, FNDTN-04
+**Success Criteria** (what must be TRUE):
+  1. User runs /tb:doctor and sees PASS/FAIL for GSD installation with version number
+  2. User runs /tb:doctor and sees PASS/FAIL for Forgetful HTTP endpoint reachability (not just config presence)
+  3. User runs /tb:doctor and sees PASS/FAIL for forgetful-plugin installation
+  4. A Node.js forgetful-client module in scripts/ can create MCP sessions and call Forgetful tools over HTTP
+**Plans**: TBD
+
+Plans:
+- [ ] 18-01: TBD
+- [ ] 18-02: TBD
+
+### Phase 19: GSD Workflow Patches
+**Goal**: GSD workflows automatically query Forgetful for relevant memories at key decision points
+**Depends on**: Phase 18 (forgetful-client.js used by patch scripts)
+**Requirements**: GPATCH-01, GPATCH-02, GPATCH-03, GPATCH-04, GPATCH-05, GPATCH-06
+**Success Criteria** (what must be TRUE):
+  1. When user starts a new project or milestone, GSD queries Forgetful for prior project patterns and includes them in context gathering
+  2. When user enters discuss-phase, GSD loads similar past decisions from Forgetful before presenting gray areas
+  3. When user runs plan-phase, GSD injects relevant patterns and templates from Forgetful into the planner
+  4. When user completes a milestone, GSD auto-saves key decisions and findings to Forgetful
+  5. After a GSD update, patches can be re-applied without manual intervention
+**Plans**: TBD
+
+Plans:
+- [ ] 19-01: TBD
+- [ ] 19-02: TBD
+
+### Phase 20: Bootstrap & Update
+**Goal**: Users can set up and maintain GSD + Forgetful integration with single commands
+**Depends on**: Phase 18 (doctor checks for verification), Phase 19 (patch files to apply)
+**Requirements**: BOOT-01, BOOT-02, BOOT-03, BOOT-04, UPDT-01, UPDT-02, UPDT-03
+**Success Criteria** (what must be TRUE):
+  1. User runs /tb:bootstrap once and GSD, forgetful-plugin, and GSD patches are all installed and verified
+  2. User runs /tb:bootstrap a second time with no errors and no side effects (idempotent)
+  3. User runs /tb:update and GSD is updated to latest version
+  4. User runs /tb:update and forgetful-plugin is updated
+  5. After /tb:update, GSD patches are automatically re-applied
+**Plans**: TBD
+
+Plans:
+- [ ] 20-01: TBD
+- [ ] 20-02: TBD
+
+### Phase 21: Memory Skills
+**Goal**: Users can manually load and save Forgetful memories for ad-hoc context and artifact preservation
+**Depends on**: Phase 18 (Forgetful connectivity verified)
+**Requirements**: SKILL-01, SKILL-02
+**Success Criteria** (what must be TRUE):
+  1. User invokes /tb:load-context with a query and receives relevant Forgetful memories in the conversation
+  2. User invokes /tb:save-findings and GSD phase/milestone artifacts are extracted into Forgetful with deduplication
+  3. Previously saved memories are marked obsolete when superseded by newer findings
+**Plans**: TBD
+
+Plans:
+- [ ] 21-01: TBD
+
 ## Progress
 
-| Phase | Milestone | Plans | Status | Completed |
-|-------|-----------|-------|--------|-----------|
+**Execution Order:**
+Phases execute in numeric order: 18 -> 19 -> 20 -> 21
+
+| Phase | Milestone | Plans Complete | Status | Completed |
+|-------|-----------|----------------|--------|-----------|
 | 1-17 | v1.0 | 36/36 | Complete | 2026-03-28 |
+| 18. Foundation | v1.1 | 0/? | Not started | - |
+| 19. GSD Workflow Patches | v1.1 | 0/? | Not started | - |
+| 20. Bootstrap & Update | v1.1 | 0/? | Not started | - |
+| 21. Memory Skills | v1.1 | 0/? | Not started | - |
 
 ---
-*Last updated: 2026-03-28 after v1.0 completion*
+*Last updated: 2026-03-28 after v1.1 roadmap creation*

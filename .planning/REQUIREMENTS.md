@@ -73,31 +73,31 @@ Which phases cover which requirements. Updated during roadmap creation.
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| FNDTN-01 | — | Pending |
-| FNDTN-02 | — | Pending |
-| FNDTN-03 | — | Pending |
-| FNDTN-04 | — | Pending |
-| BOOT-01 | — | Pending |
-| BOOT-02 | — | Pending |
-| BOOT-03 | — | Pending |
-| BOOT-04 | — | Pending |
-| GPATCH-01 | — | Pending |
-| GPATCH-02 | — | Pending |
-| GPATCH-03 | — | Pending |
-| GPATCH-04 | — | Pending |
-| GPATCH-05 | — | Pending |
-| GPATCH-06 | — | Pending |
-| SKILL-01 | — | Pending |
-| SKILL-02 | — | Pending |
-| UPDT-01 | — | Pending |
-| UPDT-02 | — | Pending |
-| UPDT-03 | — | Pending |
+| FNDTN-01 | Phase 18 | Pending |
+| FNDTN-02 | Phase 18 | Pending |
+| FNDTN-03 | Phase 18 | Pending |
+| FNDTN-04 | Phase 18 | Pending |
+| BOOT-01 | Phase 20 | Pending |
+| BOOT-02 | Phase 20 | Pending |
+| BOOT-03 | Phase 20 | Pending |
+| BOOT-04 | Phase 20 | Pending |
+| GPATCH-01 | Phase 19 | Pending |
+| GPATCH-02 | Phase 19 | Pending |
+| GPATCH-03 | Phase 19 | Pending |
+| GPATCH-04 | Phase 19 | Pending |
+| GPATCH-05 | Phase 19 | Pending |
+| GPATCH-06 | Phase 19 | Pending |
+| SKILL-01 | Phase 21 | Pending |
+| SKILL-02 | Phase 21 | Pending |
+| UPDT-01 | Phase 20 | Pending |
+| UPDT-02 | Phase 20 | Pending |
+| UPDT-03 | Phase 20 | Pending |
 
 **Coverage:**
 - v1.1 requirements: 19 total
-- Mapped to phases: 0
-- Unmapped: 19
+- Mapped to phases: 19
+- Unmapped: 0
 
 ---
 *Requirements defined: 2026-03-28*
-*Last updated: 2026-03-28 after initial definition*
+*Last updated: 2026-03-28 after roadmap creation (traceability added)*
