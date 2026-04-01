@@ -12,7 +12,7 @@ Requirements for GSD & Forgetful Integration milestone. Each maps to roadmap pha
 - [ ] **FNDTN-01**: User can run /tb:doctor and see whether GSD is installed and its version
 - [ ] **FNDTN-02**: User can run /tb:doctor and see whether Forgetful HTTP endpoint is reachable
 - [ ] **FNDTN-03**: User can run /tb:doctor and see whether forgetful-plugin is installed
-- [ ] **FNDTN-04**: Forgetful HTTP client module exists in scripts/ for health checks and bootstrap verification
+- [x] **FNDTN-04**: Forgetful HTTP client module exists in scripts/ for health checks and bootstrap verification
 
 ### Bootstrap
 
@@ -76,7 +76,7 @@ Which phases cover which requirements. Updated during roadmap creation.
 | FNDTN-01 | Phase 18 | Pending |
 | FNDTN-02 | Phase 18 | Pending |
 | FNDTN-03 | Phase 18 | Pending |
-| FNDTN-04 | Phase 18 | Pending |
+| FNDTN-04 | Phase 18 | Complete |
 | BOOT-01 | Phase 20 | Pending |
 | BOOT-02 | Phase 20 | Pending |
 | BOOT-03 | Phase 20 | Pending |

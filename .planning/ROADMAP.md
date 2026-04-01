@@ -55,7 +55,7 @@ Full details: `.planning/milestones/v1.0-ROADMAP.md`
 **Plans:** 2 plans
 
 Plans:
-- [ ] 18-01-PLAN.md — Forgetful MCP Streamable HTTP client module
+- [x] 18-01-PLAN.md — Forgetful MCP Streamable HTTP client module
 - [ ] 18-02-PLAN.md — Doctor health checks (GSD, Forgetful MCP, forgetful-plugin) + Integration category
 
 ### Phase 19: GSD Workflow Patches
@@ -111,10 +111,10 @@ Phases execute in numeric order: 18 -> 19 -> 20 -> 21
 | Phase | Milestone | Plans Complete | Status | Completed |
 |-------|-----------|----------------|--------|-----------|
 | 1-17 | v1.0 | 36/36 | Complete | 2026-03-28 |
-| 18. Foundation | v1.1 | 0/2 | Planning | - |
+| 18. Foundation | v1.1 | 1/2 | Executing | - |
 | 19. GSD Workflow Patches | v1.1 | 0/? | Not started | - |
 | 20. Bootstrap & Update | v1.1 | 0/? | Not started | - |
 | 21. Memory Skills | v1.1 | 0/? | Not started | - |
 
 ---
-*Last updated: 2026-04-01 after Phase 18 planning*
+*Last updated: 2026-04-01 after Phase 18 Plan 01 execution*
