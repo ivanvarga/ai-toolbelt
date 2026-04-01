@@ -36,7 +36,7 @@ Full details: `.planning/milestones/v1.0-ROADMAP.md`
 
 **Milestone Goal:** Make GSD and Forgetful first-class parts of the tb toolkit -- one-command bootstrap, automatic context injection on GSD workflows, and bidirectional memory sync.
 
-- [ ] **Phase 18: Foundation** - Forgetful HTTP client module and doctor health checks
+- [x] **Phase 18: Foundation** - Forgetful HTTP client module and doctor health checks (completed 2026-04-01)
 - [ ] **Phase 19: GSD Workflow Patches** - Patch files that inject Forgetful memory queries into GSD workflows
 - [ ] **Phase 20: Bootstrap & Update** - One-command environment setup and dependency update integration
 - [ ] **Phase 21: Memory Skills** - Manual load-context and save-findings skills for ad-hoc Forgetful interaction
@@ -52,7 +52,7 @@ Full details: `.planning/milestones/v1.0-ROADMAP.md`
   2. User runs /tb:doctor and sees PASS/FAIL for Forgetful HTTP endpoint reachability (not just config presence)
   3. User runs /tb:doctor and sees PASS/FAIL for forgetful-plugin installation
   4. A Node.js forgetful-client module in scripts/ can create MCP sessions and call Forgetful tools over HTTP
-**Plans:** 1/2 plans executed
+**Plans:** 2/2 plans complete
 
 Plans:
 - [x] 18-01-PLAN.md — Forgetful MCP Streamable HTTP client module
@@ -111,7 +111,7 @@ Phases execute in numeric order: 18 -> 19 -> 20 -> 21
 | Phase | Milestone | Plans Complete | Status | Completed |
 |-------|-----------|----------------|--------|-----------|
 | 1-17 | v1.0 | 36/36 | Complete | 2026-03-28 |
-| 18. Foundation | v1.1 | 2/2 | Executing | - |
+| 18. Foundation | v1.1 | 2/2 | Complete    | 2026-04-01 |
 | 19. GSD Workflow Patches | v1.1 | 0/? | Not started | - |
 | 20. Bootstrap & Update | v1.1 | 0/? | Not started | - |
 | 21. Memory Skills | v1.1 | 0/? | Not started | - |
