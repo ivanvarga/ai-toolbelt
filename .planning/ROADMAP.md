@@ -37,7 +37,7 @@ Full details: `.planning/milestones/v1.0-ROADMAP.md`
 **Milestone Goal:** Make GSD and Forgetful first-class parts of the tb toolkit -- one-command bootstrap, automatic context injection on GSD workflows, and bidirectional memory sync.
 
 - [x] **Phase 18: Foundation** - Forgetful HTTP client module and doctor health checks (completed 2026-04-01)
-- [ ] **Phase 19: GSD Workflow Patches** - Patch files that inject Forgetful memory queries into GSD workflows
+- [x] **Phase 19: GSD Workflow Patches** - Patch files that inject Forgetful memory queries into GSD workflows (completed 2026-04-01)
 - [ ] **Phase 20: Bootstrap & Update** - One-command environment setup and dependency update integration
 - [ ] **Phase 21: Memory Skills** - Manual load-context and save-findings skills for ad-hoc Forgetful interaction
 
@@ -68,11 +68,11 @@ Plans:
   3. When user runs plan-phase, GSD injects relevant patterns and templates from Forgetful into the planner
   4. When user completes a milestone, GSD auto-saves key decisions and findings to Forgetful
   5. After a GSD update, patches can be re-applied without manual intervention
-**Plans:** 1/2 plans executed
+**Plans:** 2/2 plans complete
 
 Plans:
 - [x] 19-01-PLAN.md — Helper scripts (4 Forgetful query/save scripts) + patch infrastructure (apply-all, verify-patches)
-- [ ] 19-02-PLAN.md — Sed patch scripts for all 6 GSD workflows (new-project, new-milestone, discuss-phase, plan-phase, research-phase, complete-milestone)
+- [x] 19-02-PLAN.md — Sed patch scripts for all 6 GSD workflows (new-project, new-milestone, discuss-phase, plan-phase, research-phase, complete-milestone)
 
 ### Phase 20: Bootstrap & Update
 **Goal**: Users can set up and maintain GSD + Forgetful integration with single commands
@@ -112,7 +112,7 @@ Phases execute in numeric order: 18 -> 19 -> 20 -> 21
 |-------|-----------|----------------|--------|-----------|
 | 1-17 | v1.0 | 36/36 | Complete | 2026-03-28 |
 | 18. Foundation | v1.1 | 2/2 | Complete    | 2026-04-01 |
-| 19. GSD Workflow Patches | v1.1 | 1/2 | In Progress|  |
+| 19. GSD Workflow Patches | v1.1 | 2/2 | Complete   | 2026-04-01 |
 | 20. Bootstrap & Update | v1.1 | 0/? | Not started | - |
 | 21. Memory Skills | v1.1 | 0/? | Not started | - |
 
