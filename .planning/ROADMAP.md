@@ -39,7 +39,7 @@ Full details: `.planning/milestones/v1.0-ROADMAP.md`
 - [x] **Phase 18: Foundation** - Forgetful HTTP client module and doctor health checks (completed 2026-04-01)
 - [x] **Phase 19: GSD Workflow Patches** - Patch files that inject Forgetful memory queries into GSD workflows (completed 2026-04-01)
 - [x] **Phase 20: Bootstrap & Update** - One-command environment setup and dependency update integration (completed 2026-04-02)
-- [ ] **Phase 21: Memory Skills** - Manual load-context and save-findings skills for ad-hoc Forgetful interaction
+- [x] **Phase 21: Memory Skills** - Manual load-context and save-findings skills for ad-hoc Forgetful interaction (completed 2026-04-02)
 
 ## Phase Details
 
@@ -97,10 +97,10 @@ Plans:
   1. User invokes /tb:load-context with a query and receives relevant Forgetful memories in the conversation
   2. User invokes /tb:save-findings and GSD phase/milestone artifacts are extracted into Forgetful with deduplication
   3. Previously saved memories are marked obsolete when superseded by newer findings
-**Plans:** 1 plan
+**Plans:** 1/1 plans complete
 
 Plans:
-- [ ] 21-01-PLAN.md — load-context and save-findings SKILL.md files for ad-hoc Forgetful interaction
+- [x] 21-01-PLAN.md — load-context and save-findings SKILL.md files for ad-hoc Forgetful interaction
 
 ## Progress
 
@@ -113,7 +113,7 @@ Phases execute in numeric order: 18 -> 19 -> 20 -> 21
 | 18. Foundation | v1.1 | 2/2 | Complete    | 2026-04-01 |
 | 19. GSD Workflow Patches | v1.1 | 2/2 | Complete    | 2026-04-01 |
 | 20. Bootstrap & Update | v1.1 | 1/1 | Complete    | 2026-04-02 |
-| 21. Memory Skills | v1.1 | 0/1 | Not started | - |
+| 21. Memory Skills | v1.1 | 1/1 | Complete   | 2026-04-02 |
 
 ---
 *Last updated: 2026-04-03 after Phase 21 planning*
