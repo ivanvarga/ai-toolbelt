@@ -81,3 +81,71 @@ git -C "${PLUGIN_ROOT}" diff --stat "${OLD_COMMIT}..HEAD"
 If no new commits, tell the user the plugin is already up to date.
 
 9. **Remind to reload** -- tell the user to run `/reload-plugins` to pick up changes in the current session.
+
+10. **Update GSD** -- update GSD to the latest version if installed.
+
+Check if GSD is installed:
+
+```bash
+GSD_CHECK=$(bash "$PLUGIN_ROOT/scripts/checks/gsd-installed.sh" "$PLUGIN_ROOT")
+echo "$GSD_CHECK"
+```
+
+- If output starts with `PASS` (GSD is installed): run the update:
+
+  ```bash
+  npx -y get-shit-done-cc@latest --claude --global
+  ```
+
+  After completion, re-run the check to show the new version:
+
+  ```bash
+  GSD_CHECK=$(bash "$PLUGIN_ROOT/scripts/checks/gsd-installed.sh" "$PLUGIN_ROOT")
+  echo "$GSD_CHECK"
+  ```
+
+- If output starts with `FAIL` (GSD not installed): skip this step, report "GSD not installed -- skipping update. Run /tb:bootstrap to install."
+
+11. **Update forgetful-plugin** -- update the forgetful-plugin to the latest version if installed.
+
+Check if forgetful-plugin is installed:
+
+```bash
+INSTALLED_FILE="$HOME/.claude/plugins/installed_plugins.json"
+if [ -f "$INSTALLED_FILE" ] && jq -e '.plugins["forgetful-plugin@forgetful-plugins"]' "$INSTALLED_FILE" >/dev/null 2>&1; then
+  echo "forgetful-plugin: installed, updating..."
+else
+  echo "forgetful-plugin: not installed"
+fi
+```
+
+- If installed (jq succeeds): update via the Claude plugin CLI:
+
+  ```bash
+  claude plugin update forgetful-plugin@forgetful-plugins --scope user
+  ```
+
+  Report result.
+
+- If not installed (jq fails or file missing): skip, report "forgetful-plugin not installed -- skipping update. Run /tb:bootstrap to install."
+
+12. **Re-apply GSD patches** -- re-apply GSD workflow patches after GSD update.
+
+Only run if GSD is installed (step 10 check was `PASS`). GSD update does a clean install that wipes workflow files, so patches must be re-applied.
+
+```bash
+bash "$PLUGIN_ROOT/patches/apply-all.sh"
+```
+
+If GSD is not installed, skip and note "GSD patches skipped (GSD not installed)."
+
+13. **Summary** -- report what was updated.
+
+Summarize the update results:
+
+- **tb plugin:** version change (from step 7) or "already up to date"
+- **GSD:** version after update or "skipped (not installed)"
+- **forgetful-plugin:** "updated" or "skipped (not installed)"
+- **GSD patches:** result from apply-all.sh or "skipped (GSD not installed)"
+
+Remind user to run `/reload-plugins` to pick up all changes in the current session.
