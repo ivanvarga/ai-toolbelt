@@ -32,8 +32,8 @@ Requirements for GSD & Forgetful Integration milestone. Each maps to roadmap pha
 
 ### Skills
 
-- [ ] **SKILL-01**: User can invoke /tb:load-context <query> to manually retrieve relevant Forgetful memories before any work
-- [ ] **SKILL-02**: User can invoke /tb:save-findings to extract GSD phase/milestone artifacts into Forgetful with dedup and obsolescence marking
+- [x] **SKILL-01**: User can invoke /tb:load-context <query> to manually retrieve relevant Forgetful memories before any work
+- [x] **SKILL-02**: User can invoke /tb:save-findings to extract GSD phase/milestone artifacts into Forgetful with dedup and obsolescence marking
 
 ### Update
 
@@ -87,8 +87,8 @@ Which phases cover which requirements. Updated during roadmap creation.
 | GPATCH-04 | Phase 19 | Complete |
 | GPATCH-05 | Phase 19 | Complete |
 | GPATCH-06 | Phase 19 | Complete |
-| SKILL-01 | Phase 21 | Pending |
-| SKILL-02 | Phase 21 | Pending |
+| SKILL-01 | Phase 21 | Complete |
+| SKILL-02 | Phase 21 | Complete |
 | UPDT-01 | Phase 20 | Complete |
 | UPDT-02 | Phase 20 | Complete |
 | UPDT-03 | Phase 20 | Complete |
