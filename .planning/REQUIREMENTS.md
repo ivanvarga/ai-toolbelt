@@ -16,10 +16,10 @@ Requirements for GSD & Forgetful Integration milestone. Each maps to roadmap pha
 
 ### Bootstrap
 
-- [ ] **BOOT-01**: User can run /tb:bootstrap to install GSD if missing
-- [ ] **BOOT-02**: User can run /tb:bootstrap to install forgetful-plugin if missing
-- [ ] **BOOT-03**: User can run /tb:bootstrap to apply GSD patches for Forgetful integration
-- [ ] **BOOT-04**: Bootstrap is idempotent -- safe to run multiple times without side effects
+- [x] **BOOT-01**: User can run /tb:bootstrap to install GSD if missing
+- [x] **BOOT-02**: User can run /tb:bootstrap to install forgetful-plugin if missing
+- [x] **BOOT-03**: User can run /tb:bootstrap to apply GSD patches for Forgetful integration
+- [x] **BOOT-04**: Bootstrap is idempotent -- safe to run multiple times without side effects
 
 ### GSD Patches
 
@@ -37,9 +37,9 @@ Requirements for GSD & Forgetful Integration milestone. Each maps to roadmap pha
 
 ### Update
 
-- [ ] **UPDT-01**: /tb:update also updates GSD to latest version
-- [ ] **UPDT-02**: /tb:update also updates forgetful-plugin
-- [ ] **UPDT-03**: /tb:update re-applies GSD patches after GSD update
+- [x] **UPDT-01**: /tb:update also updates GSD to latest version
+- [x] **UPDT-02**: /tb:update also updates forgetful-plugin
+- [x] **UPDT-03**: /tb:update re-applies GSD patches after GSD update
 
 ## Future Requirements
 
@@ -77,10 +77,10 @@ Which phases cover which requirements. Updated during roadmap creation.
 | FNDTN-02 | Phase 18 | Complete |
 | FNDTN-03 | Phase 18 | Complete |
 | FNDTN-04 | Phase 18 | Complete |
-| BOOT-01 | Phase 20 | Pending |
-| BOOT-02 | Phase 20 | Pending |
-| BOOT-03 | Phase 20 | Pending |
-| BOOT-04 | Phase 20 | Pending |
+| BOOT-01 | Phase 20 | Complete |
+| BOOT-02 | Phase 20 | Complete |
+| BOOT-03 | Phase 20 | Complete |
+| BOOT-04 | Phase 20 | Complete |
 | GPATCH-01 | Phase 19 | Complete |
 | GPATCH-02 | Phase 19 | Complete |
 | GPATCH-03 | Phase 19 | Complete |
@@ -89,9 +89,9 @@ Which phases cover which requirements. Updated during roadmap creation.
 | GPATCH-06 | Phase 19 | Complete |
 | SKILL-01 | Phase 21 | Pending |
 | SKILL-02 | Phase 21 | Pending |
-| UPDT-01 | Phase 20 | Pending |
-| UPDT-02 | Phase 20 | Pending |
-| UPDT-03 | Phase 20 | Pending |
+| UPDT-01 | Phase 20 | Complete |
+| UPDT-02 | Phase 20 | Complete |
+| UPDT-03 | Phase 20 | Complete |
 
 **Coverage:**
 - v1.1 requirements: 19 total

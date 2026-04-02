@@ -2,10 +2,10 @@
 gsd_state_version: 1.0
 milestone: v1.1
 milestone_name: GSD & Forgetful Integration
-status: completed
-stopped_at: Phase 20 context gathered
-last_updated: "2026-04-02T15:49:15.563Z"
-last_activity: 2026-04-01
+status: in-progress
+stopped_at: Completed 20-01-PLAN.md
+last_updated: "2026-04-02T19:48:30Z"
+last_activity: 2026-04-02 -- Completed 20-01-PLAN.md (bootstrap and update skills)
 progress:
   total_phases: 4
   completed_phases: 2
@@ -21,14 +21,14 @@ progress:
 See: .planning/PROJECT.md (updated 2026-03-28)
 
 **Core value:** One repo, one install command -- every custom skill, credential setup, and dev tool available on any machine, always up to date.
-**Current focus:** Phase 19 — gsd-workflow-patches
+**Current focus:** Phase 20 — bootstrap-update
 
 ## Current Position
 
 Phase: 20
-Plan: Not started
-Status: Phase 19 Complete
-Last activity: 2026-04-01
+Plan: 1 of 1 complete in current phase
+Status: In Progress
+Last activity: 2026-04-02 -- Completed 20-01-PLAN.md (bootstrap and update skills)
 
 Progress: [█████░░░░░] 50%
 
@@ -48,6 +48,7 @@ Progress: [█████░░░░░] 50%
 *Updated after each plan completion*
 | Phase 18 P01 | 2min | 1 tasks | 1 files |
 | Phase 19 P02 | 3min | 2 tasks | 6 files |
+| Phase 20 P01 | 2min | 2 tasks | 2 files |
 
 ## Accumulated Context
 
@@ -65,6 +66,8 @@ Recent decisions affecting current work:
 - [19-02]: Used awk instead of sed for complete-milestone patch (sed r only inserts after match, needed before)
 - [19-02]: PLUGIN_ROOT resolved at patch-apply time and embedded as literal absolute path
 - [19-02]: plan-phase uses single helper invocation reused across two injection points via two markers
+- [20-01]: Direct jq key lookup on installed_plugins.json v2 dict for forgetful-plugin detection (doctor check has jq bug)
+- [20-01]: GSD install guided (user runs manually per D-01), GSD update automated (npx in bash block per D-07)
 
 ### Pending Todos
 
@@ -78,5 +81,5 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-04-02T15:49:15.561Z
-Stopped at: Phase 20 context gathered
+Last session: 2026-04-02T19:48:30Z
+Stopped at: Completed 20-01-PLAN.md

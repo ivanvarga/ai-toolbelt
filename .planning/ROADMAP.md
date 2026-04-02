@@ -87,7 +87,7 @@ Plans:
 **Plans:** 1 plan
 
 Plans:
-- [ ] 20-01-PLAN.md — Bootstrap skill + update skill extension (GSD, forgetful-plugin, patches)
+- [x] 20-01-PLAN.md — Bootstrap skill + update skill extension (GSD, forgetful-plugin, patches)
 
 ### Phase 21: Memory Skills
 **Goal**: Users can manually load and save Forgetful memories for ad-hoc context and artifact preservation
@@ -112,8 +112,8 @@ Phases execute in numeric order: 18 -> 19 -> 20 -> 21
 | 1-17 | v1.0 | 36/36 | Complete | 2026-03-28 |
 | 18. Foundation | v1.1 | 2/2 | Complete    | 2026-04-01 |
 | 19. GSD Workflow Patches | v1.1 | 2/2 | Complete    | 2026-04-01 |
-| 20. Bootstrap & Update | v1.1 | 0/1 | Planned | - |
+| 20. Bootstrap & Update | v1.1 | 1/1 | Complete | 2026-04-02 |
 | 21. Memory Skills | v1.1 | 0/? | Not started | - |
 
 ---
-*Last updated: 2026-04-02 after Phase 20 planning*
+*Last updated: 2026-04-02 after Phase 20 Plan 01 completion*
