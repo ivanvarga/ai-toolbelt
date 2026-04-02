@@ -29,8 +29,8 @@ One repo, one install command — every custom skill, credential setup, and dev 
 - [x] Doctor checks — verify GSD installed, Forgetful MCP configured, forgetful-plugin present — Validated in Phase 18: Foundation
 - [x] Update integration — /tb:update also pulls latest GSD and updates forgetful-plugin — Validated in Phase 20: Bootstrap & Update
 - [ ] GSD context hook — UserPromptSubmit hook detects /gsd:* commands, queries Forgetful, injects relevant memories
-- [ ] Load context skill — manual Forgetful memory loading before any work
-- [ ] Save findings skill — extract GSD phase/milestone artifacts into Forgetful, mark obsolete memories
+- [x] Load context skill — manual Forgetful memory loading before any work — Validated in Phase 21: Memory Skills
+- [x] Save findings skill — extract GSD phase/milestone artifacts into Forgetful, mark obsolete memories — Validated in Phase 21: Memory Skills
 
 ## Current Milestone: v1.1 GSD & Forgetful Integration
 
@@ -104,4 +104,4 @@ This document evolves at phase transitions and milestone boundaries.
 4. Update Context with current state
 
 ---
-*Last updated: 2026-04-02 after Phase 20 completion*
+*Last updated: 2026-04-03 after Phase 21 completion*
