@@ -38,7 +38,7 @@ Full details: `.planning/milestones/v1.0-ROADMAP.md`
 
 - [x] **Phase 18: Foundation** - Forgetful HTTP client module and doctor health checks (completed 2026-04-01)
 - [x] **Phase 19: GSD Workflow Patches** - Patch files that inject Forgetful memory queries into GSD workflows (completed 2026-04-01)
-- [ ] **Phase 20: Bootstrap & Update** - One-command environment setup and dependency update integration
+- [x] **Phase 20: Bootstrap & Update** - One-command environment setup and dependency update integration (completed 2026-04-02)
 - [ ] **Phase 21: Memory Skills** - Manual load-context and save-findings skills for ad-hoc Forgetful interaction
 
 ## Phase Details
@@ -84,7 +84,7 @@ Plans:
   3. User runs /tb:update and GSD is updated to latest version
   4. User runs /tb:update and forgetful-plugin is updated
   5. After /tb:update, GSD patches are automatically re-applied
-**Plans:** 1 plan
+**Plans:** 1/1 plans complete
 
 Plans:
 - [x] 20-01-PLAN.md — Bootstrap skill + update skill extension (GSD, forgetful-plugin, patches)
@@ -112,7 +112,7 @@ Phases execute in numeric order: 18 -> 19 -> 20 -> 21
 | 1-17 | v1.0 | 36/36 | Complete | 2026-03-28 |
 | 18. Foundation | v1.1 | 2/2 | Complete    | 2026-04-01 |
 | 19. GSD Workflow Patches | v1.1 | 2/2 | Complete    | 2026-04-01 |
-| 20. Bootstrap & Update | v1.1 | 1/1 | Complete | 2026-04-02 |
+| 20. Bootstrap & Update | v1.1 | 1/1 | Complete    | 2026-04-02 |
 | 21. Memory Skills | v1.1 | 0/? | Not started | - |
 
 ---
