@@ -25,12 +25,12 @@ See: .planning/PROJECT.md (updated 2026-03-28)
 
 ## Current Position
 
-Phase: 21
-Plan: Not started
-Status: Executing Phase 21
-Last activity: 2026-04-02
+Phase: 21 (Complete)
+Plan: 1/1 complete
+Status: Phase 21 complete, v1.1 milestone fully executed
+Last activity: 2026-04-03
 
-Progress: [█████░░░░░] 50%
+Progress: [██████████] 100%
 
 ## Performance Metrics
 
@@ -49,6 +49,7 @@ Progress: [█████░░░░░] 50%
 | Phase 18 P01 | 2min | 1 tasks | 1 files |
 | Phase 19 P02 | 3min | 2 tasks | 6 files |
 | Phase 20 P01 | 2min | 2 tasks | 2 files |
+| Phase 21 P01 | 3min | 2 tasks | 2 files |
 
 ## Accumulated Context
 
@@ -68,6 +69,8 @@ Recent decisions affecting current work:
 - [19-02]: plan-phase uses single helper invocation reused across two injection points via two markers
 - [20-01]: Direct jq key lookup on installed_plugins.json v2 dict for forgetful-plugin detection (doctor check has jq bug)
 - [20-01]: GSD install guided (user runs manually per D-01), GSD update automated (npx in bash block per D-07)
+- [21-01]: No helper scripts for memory skills -- SKILL.md instructs Claude to call MCP tools directly (native MCP access in skill conversations)
+- [21-01]: Inline curation agent for save-findings (not subagent) -- keeps user in single conversation flow
 
 ### Pending Todos
 
@@ -81,5 +84,5 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-04-02T22:13:14.634Z
-Stopped at: Phase 21 context gathered
+Last session: 2026-04-03
+Stopped at: Phase 21 complete, v1.1 milestone fully executed
