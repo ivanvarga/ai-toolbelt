@@ -1,5 +1,5 @@
 ---
-name: save-findings
+name: tb:save-findings
 description: Extract and curate GSD phase artifacts into Forgetful memories
 ---
 

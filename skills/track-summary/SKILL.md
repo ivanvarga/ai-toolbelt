@@ -1,5 +1,5 @@
 ---
-name: track-summary
+name: tb:track-summary
 description: Use when the user wants a summary of work done, daily standup notes, end-of-day recap, or help logging timesheet hours. Triggers on mentions of daily summary, standup, hours, timesheet, what did I do, work recap.
 ---
 

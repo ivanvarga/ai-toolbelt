@@ -1,5 +1,5 @@
 ---
-name: doctor
+name: tb:doctor
 description: Check health of all tb plugin components
 disable-model-invocation: true
 ---

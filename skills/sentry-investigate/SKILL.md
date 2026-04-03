@@ -1,5 +1,5 @@
 ---
-name: sentry-investigate
+name: tb:sentry-investigate
 description: Use when investigating a Sentry error, analyzing crash reports, or debugging production issues from Sentry. Triggers on Sentry URLs, event IDs, or mentions of Sentry issues.
 ---
 

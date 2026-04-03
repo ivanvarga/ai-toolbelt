@@ -1,5 +1,5 @@
 ---
-name: mbridge
+name: tb:mbridge
 description: Use when interacting with mobile apps on iOS simulators, Android emulators, or real devices. Use when tapping UI elements, navigating screens, testing mobile flows, verifying screen content, opening deeplinks, or automating any mobile device interaction.
 allowed-tools: Bash(mbridge:*)
 ---

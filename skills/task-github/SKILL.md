@@ -1,5 +1,5 @@
 ---
-name: task-github
+name: tb:task-github
 description: Use when reading a GitHub issue, investigating an issue by number or URL, or starting work on a GitHub issue. Triggers on mentions of GitHub issues, issue numbers, or issue URLs.
 ---
 

@@ -1,5 +1,5 @@
 ---
-name: release-create
+name: tb:release-create
 description: Use when creating a new app release branch, preparing a release, or bumping app version. Handles version bumps across package.json, app.config.ts, CHANGELOG.md, git commit, push, and PR creation.
 disable-model-invocation: true
 ---

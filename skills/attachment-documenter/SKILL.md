@@ -1,5 +1,5 @@
 ---
-name: attachment-documenter
+name: tb:attachment-documenter
 description: Use when processing GitHub issues, GitHub PRs, Jira tickets, or Sentry issues that contain images or attachments - automatically documents and caches attachment analysis to avoid redundant downloads
 ---
 

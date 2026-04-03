@@ -1,5 +1,5 @@
 ---
-name: pr-read
+name: tb:pr-read
 description: Use when the user wants to read, view, summarize, or get details about an existing GitHub pull request. This skill fetches full PR metadata, diff, review comments, and approval status via gh CLI. Trigger this whenever the user mentions a PR number (e.g., "PR #247", "#312"), a GitHub PR URL (e.g., github.com/.../pull/123), asks "what does this PR do", "summarize this PR", "read this PR", "what's the status of PR", "review this pull request", or references a cross-repo PR like "org/repo#89". Do NOT trigger for writing new PR descriptions (use pr-describe), adding QA steps (use pr-qa), or shipping code (use pr-submit).
 ---
 

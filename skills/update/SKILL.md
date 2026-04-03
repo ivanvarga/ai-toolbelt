@@ -1,5 +1,5 @@
 ---
-name: update
+name: tb:update
 description: Pull latest tb plugin changes, show changelog, and remind to reload
 disable-model-invocation: true
 ---

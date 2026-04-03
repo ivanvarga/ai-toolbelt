@@ -1,5 +1,5 @@
 ---
-name: task-jira
+name: tb:task-jira
 description: Use when reading a Jira ticket, investigating a Jira issue by ID or URL, or starting work on a Jira task. Triggers on Jira ticket IDs like LFCR-360, Jira URLs, or mentions of Jira tickets.
 ---
 

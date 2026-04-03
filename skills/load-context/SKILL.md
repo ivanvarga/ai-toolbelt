@@ -1,5 +1,5 @@
 ---
-name: load-context
+name: tb:load-context
 description: Query and browse Forgetful memories for project context
 ---
 

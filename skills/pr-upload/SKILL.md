@@ -1,5 +1,5 @@
 ---
-name: pr-upload
+name: tb:pr-upload
 description: Use when the user wants to upload an image, screenshot, video, or GIF to GitHub's CDN to get an embeddable URL for PRs or issues. This skill handles the actual file upload to GitHub and returns a markdown-ready URL. Trigger this whenever the user says "upload to github", "upload screenshot", "upload image for the PR", "get a github CDN url", "embed this in the PR", or wants to upload any file (png, jpg, gif, mp4) to GitHub for embedding in markdown. Also trigger when the user wants to take a simulator screenshot AND upload it to GitHub. Do NOT trigger for writing PR descriptions that mention screenshots (use pr-describe), or for just taking a screenshot without uploading.
 ---
 

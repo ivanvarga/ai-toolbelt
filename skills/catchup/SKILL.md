@@ -1,5 +1,5 @@
 ---
-name: catchup
+name: tb:catchup
 description: Use when building context on current branch work, catching up on what was done, or understanding changes since branching from the base branch
 ---
 

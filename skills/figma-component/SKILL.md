@@ -1,5 +1,5 @@
 ---
-name: figma-component
+name: tb:figma-component
 description: Use when creating a React Native component from a Figma design, implementing a design from Figma URL, or converting Figma designs to code. Triggers on Figma URLs, component creation from design, or design implementation requests.
 ---
 

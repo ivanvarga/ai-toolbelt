@@ -1,5 +1,5 @@
 ---
-name: sentry-sourcemaps
+name: tb:sentry-sourcemaps
 description: Use when uploading missing source maps to Sentry for a release, fixing unsymbolicated stack traces, or when Sentry shows 'No Source File With Matching Debug ID'. Triggers on sourcemap upload, missing source maps, or debug ID issues.
 ---
 

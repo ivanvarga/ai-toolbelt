@@ -1,5 +1,5 @@
 ---
-name: pr-submit
+name: tb:pr-submit
 description: Use when the user wants to ship, submit, or package their current work into a pull request end-to-end — this skill handles the full git workflow of creating a feature branch, committing changes, pushing, and opening a PR with a generated description. Trigger this whenever the user says "ship it", "ship this", "create a PR for this ticket", "push this work and open a PR", "package this up", "I'm done, open a PR", or any request that implies committing + pushing + PR creation as one flow. Also trigger when the user mentions a Jira ticket ID and wants to create a PR for it. Do NOT trigger for just writing a PR description (use pr-describe), just committing without a PR, reading existing PRs (use pr-read), or adding QA steps (use pr-qa).
 disable-model-invocation: true
 ---

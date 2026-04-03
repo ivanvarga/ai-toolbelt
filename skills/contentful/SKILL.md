@@ -1,5 +1,5 @@
 ---
-name: contentful
+name: tb:contentful
 description: Use when working with Contentful CMS -- adding fields, modifying content types, running migrations, querying content models, or any Contentful operations. Triggers on Contentful, content model, migration, or CMS mentions.
 ---
 

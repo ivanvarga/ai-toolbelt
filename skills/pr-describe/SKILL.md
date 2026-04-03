@@ -1,5 +1,5 @@
 ---
-name: pr-describe
+name: tb:pr-describe
 description: Use when the user asks to generate, write, draft, or create a PR description, pull request body, or PR summary for their current branch. This skill fetches Jira ticket context, captures before/after screenshots from iOS/Android simulators, and produces a structured PR body with Scope, Implementation, Screenshots, and Video sections. Trigger this whenever the user mentions writing a PR description, PR body, pull request summary, or documenting changes for a pull request — even casual requests like "write something for the PR" or "put together the PR text". Do NOT trigger for reading/reviewing existing PRs (use pr-read), adding QA steps to PRs (use pr-qa), uploading images to GitHub (use pr-upload), or shipping/committing code end-to-end (use pr-submit).
 ---
 

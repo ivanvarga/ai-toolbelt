@@ -10,7 +10,7 @@ Skills use a **family-action** pattern with hyphens:
 - `task-jira`, `pr-submit`, `sentry-investigate`, `release-create`
 - Standalone skills without a family prefix: `catchup`, `mbridge`, `contentful`
 - Directory name must match the `name` field in SKILL.md frontmatter
-- No colons in skill names -- hyphens only
+- All skill names MUST start with `tb:` prefix (e.g. `tb:doctor`, `tb:pr-submit`)
 
 ## Directory Structure
 

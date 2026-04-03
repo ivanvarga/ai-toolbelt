@@ -1,5 +1,5 @@
 ---
-name: bootstrap
+name: tb:bootstrap
 description: Set up GSD, forgetful-plugin, and GSD patches in one command
 disable-model-invocation: true
 ---
