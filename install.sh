@@ -29,13 +29,63 @@ if [ ! -f "$SETTINGS_FILE" ]; then
     echo "Created $SETTINGS_FILE"
 fi
 
-if jq -e ".enabledPlugins[\"$PLUGIN_KEY\"]" "$SETTINGS_FILE" &>/dev/null; then
-    echo "Plugin already registered in settings.json"
-else
-    tmp=$(mktemp)
-    jq --arg key "$PLUGIN_KEY" '.enabledPlugins[$key] = true' "$SETTINGS_FILE" > "$tmp" && mv "$tmp" "$SETTINGS_FILE"
-    echo "Added $PLUGIN_KEY to $SETTINGS_FILE"
-fi
+ALLOW_RULES='[
+  "Bash(source *)",
+  "Bash(mobilecli *)",
+  "Bash(adb *)",
+  "Bash(cat *)",
+  "Bash(jq *)",
+  "Bash(cd *)",
+  "Bash(git status *)",
+  "Bash(git diff *)",
+  "Bash(git log *)",
+  "Bash(git add *)",
+  "Bash(git commit *)",
+  "Bash(git branch *)",
+  "Bash(git checkout *)",
+  "Bash(git remote *)",
+  "Bash(git stash *)",
+  "Bash(gh *)",
+  "Bash(node *)",
+  "Bash(bash *)",
+  "Bash(ls *)",
+  "Bash(diff *)",
+  "Bash(chmod *)",
+  "Bash(find *)",
+  "Bash(grep *)",
+  "Bash(sed *)",
+  "Bash(head *)",
+  "Bash(tail *)",
+  "Bash(mkdir *)",
+  "Bash(rm -rf node_modules*)",
+  "Bash(rm -rf .expo*)",
+  "Bash(rm -rf dist*)",
+  "Bash(rm -rf build*)",
+  "Edit",
+  "Write"
+]'
+
+DENY_RULES='[
+  "Bash(rm -rf /*)",
+  "Bash(rm -rf ~/*)"
+]'
+
+ASK_RULES='[
+  "Bash(git push *)",
+  "Bash(git push)"
+]'
+
+tmp=$(mktemp)
+jq --arg key "$PLUGIN_KEY" \
+   --argjson allow "$ALLOW_RULES" \
+   --argjson deny "$DENY_RULES" \
+   --argjson ask "$ASK_RULES" '
+  .enabledPlugins[$key] = true |
+  .permissions.allow = ((.permissions.allow // []) + $allow | unique) |
+  .permissions.deny = ((.permissions.deny // []) + $deny | unique) |
+  .permissions.ask = ((.permissions.ask // []) + $ask | unique)
+' "$SETTINGS_FILE" > "$tmp" && mv "$tmp" "$SETTINGS_FILE"
+echo "Updated $SETTINGS_FILE (plugin + permissions)"
 
 echo ""
 echo "Registering marketplace..."
