@@ -65,6 +65,7 @@ ALLOW_RULES='[
   "Bash(rm -rf .expo*)",
   "Bash(rm -rf dist*)",
   "Bash(rm -rf build*)",
+  "Read",
   "Edit",
   "Write",
   "Skill(gsd:*)",
@@ -73,7 +74,15 @@ ALLOW_RULES='[
 
 DENY_RULES='[
   "Bash(rm -rf /*)",
-  "Bash(rm -rf ~/*)"
+  "Bash(rm -rf ~/*)",
+  "Read(*/.env)",
+  "Read(*/.env.*)",
+  "Read(*/.secret*)",
+  "Read(*/.credentials*)",
+  "Read(*/.netrc)",
+  "Read(*/.npmrc)",
+  "Read(*/.aws/credentials)",
+  "Read(*/.ssh/id_*)"
 ]'
 
 ASK_RULES='[
