@@ -5,7 +5,13 @@ All custom skills, credential management, and dev tools in one Claude Code plugi
 ## Install
 
 ```bash
-claude plugin marketplace add ivarga/ai-toolbelt
+curl -fsSL https://raw.githubusercontent.com/ivanvarga/ai-toolbelt/main/install.sh | bash
+```
+
+Or manually:
+
+```bash
+claude plugin marketplace add ivanvarga/ai-toolbelt
 claude plugin install tb@tb-marketplace
 ```
 
