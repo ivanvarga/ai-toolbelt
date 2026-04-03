@@ -62,7 +62,9 @@ ALLOW_RULES='[
   "Bash(rm -rf dist*)",
   "Bash(rm -rf build*)",
   "Edit",
-  "Write"
+  "Write",
+  "Skill(gsd:*)",
+  "Skill(tb:*)"
 ]'
 
 DENY_RULES='[
