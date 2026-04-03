@@ -16,9 +16,13 @@ REPO_ID=$(git remote get-url origin 2>/dev/null | sed 's/.*[:/]\([^/]*\/[^/]*\)\
 echo "$REPO_ID"
 ```
 
-Call `execute_forgetful_tool("list_projects", {"repo_name": "<REPO_ID>"})` to get the project ID.
+Resolve the Forgetful project ID:
 
-If no project is found, ask the user for the project name and retry with `list_projects`. If still no match, stop -- memories cannot be saved without project context.
+```bash
+node ${CLAUDE_PLUGIN_ROOT}/scripts/forgetful-client.js call-tool list_projects '{"repo_name": "<REPO_ID>"}'
+```
+
+Extract the project ID from the JSON response. If no project is found, ask the user for the project name and retry with `list_projects`. If still no match, stop -- memories cannot be saved without project context.
 
 ### 2. Determine current phase scope
 
@@ -91,12 +95,13 @@ Act as a curation agent. For each included artifact, read its content and evalua
 
 For each candidate, query existing Forgetful memories to detect overlap:
 
-```
-execute_forgetful_tool("query_memory", {
+```bash
+node ${CLAUDE_PLUGIN_ROOT}/scripts/forgetful-client.js call-tool query_memory '{
   "query": "<candidate title>",
+  "query_context": "Dedup check for save-findings curation",
   "k": 5,
-  "project_ids": ["<project ID>"]
-})
+  "project_ids": [<project ID>]
+}'
 ```
 
 Compare returned memories against the candidate:
@@ -143,37 +148,37 @@ One review cycle only, not per-item.
 For each approved action in order:
 
 **CREATE:**
-```
-execute_forgetful_tool("create_memory", {
+```bash
+node ${CLAUDE_PLUGIN_ROOT}/scripts/forgetful-client.js call-tool create_memory '{
   "title": "<title>",
   "content": "<content>",
   "context": "Phase {N} save-findings extraction",
-  "keywords": ["<keyword1>", "<keyword2>", ...],
+  "keywords": ["<keyword1>", "<keyword2>"],
   "tags": ["<type-tag>", "phase-{N}", "<milestone-version>"],
   "importance": <score>,
-  "project_ids": ["<project ID>"]
-})
+  "project_ids": [<project ID>]
+}'
 ```
 Record the returned memory ID.
 
 **UPDATE:**
-```
-execute_forgetful_tool("update_memory", {
-  "memory_id": "<existing memory ID>",
+```bash
+node ${CLAUDE_PLUGIN_ROOT}/scripts/forgetful-client.js call-tool update_memory '{
+  "memory_id": <existing memory ID>,
   "title": "<updated title if changed>",
   "content": "<updated content if changed>",
   "importance": <updated score if changed>,
   "tags": ["<updated tags if changed>"]
-})
+}'
 ```
 
 **OBSOLETE:**
-```
-execute_forgetful_tool("mark_memory_obsolete", {
-  "memory_id": "<memory ID>",
+```bash
+node ${CLAUDE_PLUGIN_ROOT}/scripts/forgetful-client.js call-tool mark_memory_obsolete '{
+  "memory_id": <memory ID>,
   "reason": "<why this memory is outdated or superseded>",
-  "superseded_by": "<new memory ID if a CREATE in this batch replaces it>"
-})
+  "superseded_by": <new memory ID if a CREATE in this batch replaces it>
+}'
 ```
 
 Report each action result as it completes:

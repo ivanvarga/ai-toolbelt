@@ -90,8 +90,8 @@ async function healthCheck(url) {
 if (require.main === module) {
   const subcommand = process.argv[2];
 
-  if (!subcommand || (subcommand !== 'health' && subcommand !== 'resolve-url')) {
-    process.stderr.write('Usage: forgetful-client.js <health|resolve-url>\n');
+  if (!subcommand || !['health', 'resolve-url', 'call-tool'].includes(subcommand)) {
+    process.stderr.write('Usage: forgetful-client.js <health|resolve-url|call-tool>\n');
     process.exit(1);
   }
 
@@ -114,6 +114,44 @@ if (require.main === module) {
       process.stdout.write(JSON.stringify(result) + '\n');
       process.exit(result.ok ? 0 : 1);
     });
+  }
+
+  if (subcommand === 'call-tool') {
+    const toolName = process.argv[3];
+    const argsJson = process.argv[4] || '{}';
+    if (!toolName) {
+      process.stderr.write('Usage: forgetful-client.js call-tool <tool_name> [json_args]\n');
+      process.exit(1);
+    }
+    const url = resolveForgetfulUrl();
+    if (!url) {
+      process.stderr.write('Forgetful URL not configured in ~/.claude.json\n');
+      process.exit(1);
+    }
+    let args;
+    try {
+      args = JSON.parse(argsJson);
+    } catch (e) {
+      process.stderr.write('Invalid JSON arguments: ' + e.message + '\n');
+      process.exit(1);
+    }
+    const wrappedArgs = { tool_name: toolName, arguments: args };
+    createSession(url)
+      .then(sessionId => callTool(url, sessionId, 'execute_forgetful_tool', wrappedArgs))
+      .then(result => {
+        if (result && result.result && result.result.content) {
+          const textPart = result.result.content.find(c => c.type === 'text');
+          if (textPart) {
+            process.stdout.write(textPart.text + '\n');
+            process.exit(0);
+          }
+        }
+        process.stdout.write(JSON.stringify(result) + '\n');
+      })
+      .catch(err => {
+        process.stderr.write('Error: ' + err.message + '\n');
+        process.exit(1);
+      });
   }
 }
 
