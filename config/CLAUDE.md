@@ -28,6 +28,16 @@
 - **Work is verified ONLY when both linter and type checker pass with no new errors**
 - NEVER claim something is fixed without confirming it. Ask user to verify if you cannot.
 
+## Code Intelligence (MANDATORY)
+
+- Prefer LSP over Grep/Read for code navigation — it's faster, precise, and avoids reading entire files
+  - `workspaceSymbol` to find where something is defined
+  - `findReferences` to see all usages across the codebase
+  - `goToDefinition` / `goToImplementation` to jump to source
+  - `hover` for type info without reading the file
+- Use Grep only when LSP isn't available or for text/pattern searches (comments, strings, config)
+- After writing or editing code, check LSP diagnostics and fix errors before proceeding
+
 ## Code Style & Patterns (MANDATORY)
 
 **THIS IS NON-NEGOTIABLE - FOLLOW EXACTLY:**
