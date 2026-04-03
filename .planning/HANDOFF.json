@@ -1,0 +1,34 @@
+{
+  "version": "1.0",
+  "timestamp": "2026-04-03T08:50:59.049Z",
+  "phase": "21",
+  "phase_name": "Memory Skills",
+  "phase_dir": ".planning/phases/21-memory-skills",
+  "plan": 1,
+  "task": 2,
+  "total_tasks": 2,
+  "status": "paused",
+  "completed_tasks": [
+    {"id": 1, "name": "Create load-context SKILL.md", "status": "done", "commit": "74ec179"},
+    {"id": 2, "name": "Create save-findings SKILL.md", "status": "done", "commit": "887243c"}
+  ],
+  "remaining_tasks": [],
+  "blockers": [
+    {
+      "description": "New skills (load-context, save-findings) not discovered by Claude Code after /reload-plugins. Shows 9 skills instead of expected 21. May need full session restart or debug plugin loading.",
+      "type": "technical",
+      "workaround": "Restart Claude Code session entirely, or run: claude --debug --plugin-dir ./ to diagnose"
+    }
+  ],
+  "human_actions_pending": [
+    {"action": "Debug why /tb:load-context and /tb:save-findings are not loading as skills", "context": "Plugin reload shows 9 skills but 21 skill directories exist. Skill files are created with correct frontmatter.", "blocking": true},
+    {"action": "Manual UAT testing of both skills once loading is fixed", "context": "UAT items tracked in 21-HUMAN-UAT.md", "blocking": false}
+  ],
+  "decisions": [
+    {"decision": "Both skills are SKILL.md-only, no helper scripts", "rationale": "Skills run inside Claude conversation with native MCP access", "phase": "21"},
+    {"decision": "Skipped cross-AI review", "rationale": "Codex CLI produced empty output, user chose to skip", "phase": "21"}
+  ],
+  "uncommitted_files": [],
+  "next_action": "Debug plugin skill loading: run 'claude --debug --plugin-dir ./' and check why load-context/save-findings are not discovered. Check if SKILL.md frontmatter matches expected format. Then test both skills manually per 21-HUMAN-UAT.md.",
+  "context_notes": "Phase 21 code is complete and committed. All 4 v1.1 phases (18-21) are marked complete in ROADMAP.md. The blocker is runtime: Claude Code doesn't see the new skill directories after reload. v1.1 milestone is otherwise ready for /gsd:complete-milestone after UAT passes."
+}
