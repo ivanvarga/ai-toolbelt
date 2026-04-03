@@ -82,7 +82,8 @@ DENY_RULES='[
   "Read(*/.netrc)",
   "Read(*/.npmrc)",
   "Read(*/.aws/credentials)",
-  "Read(*/.ssh/id_*)"
+  "Read(*/.ssh/id_*)",
+  "Read(*/.yarnrc*)"
 ]'
 
 ASK_RULES='[
