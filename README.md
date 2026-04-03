@@ -5,7 +5,7 @@ All custom skills, credential management, and dev tools in one Claude Code plugi
 ## Install
 
 ```bash
-curl -fsSL https://raw.githubusercontent.com/ivanvarga/ai-toolbelt/main/install.sh | bash
+gh api repos/ivanvarga/ai-toolbelt/contents/install.sh --jq .content | base64 -d | bash
 ```
 
 Or manually:
@@ -14,6 +14,8 @@ Or manually:
 claude plugin marketplace add ivanvarga/ai-toolbelt
 claude plugin install tb@tb-marketplace
 ```
+
+After install, start a Claude Code session and run `/tb:bootstrap` to set up GSD, forgetful-plugin, and GSD patches.
 
 ## Usage
 
