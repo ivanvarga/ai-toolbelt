@@ -49,22 +49,22 @@ Which phases cover which requirements. Updated during roadmap creation.
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| CTXI-01 | — | Pending |
-| CTXI-02 | — | Pending |
-| CTXI-03 | — | Pending |
-| CTXI-04 | — | Pending |
-| CTXI-05 | — | Pending |
-| CTXI-06 | — | Pending |
-| CTXI-07 | — | Pending |
-| HOOK-01 | — | Pending |
-| HOOK-02 | — | Pending |
-| HOOK-03 | — | Pending |
+| CTXI-01 | Phase 22 | Pending |
+| CTXI-02 | Phase 22 | Pending |
+| CTXI-03 | Phase 22 | Pending |
+| CTXI-04 | Phase 22 | Pending |
+| CTXI-05 | Phase 22 | Pending |
+| CTXI-06 | Phase 22 | Pending |
+| CTXI-07 | Phase 22 | Pending |
+| HOOK-01 | Phase 22 | Pending |
+| HOOK-02 | Phase 22 | Pending |
+| HOOK-03 | Phase 22 | Pending |
 
 **Coverage:**
 - v1.2 requirements: 10 total
-- Mapped to phases: 0
-- Unmapped: 10
+- Mapped to phases: 10
+- Unmapped: 0
 
 ---
 *Requirements defined: 2026-04-05*
-*Last updated: 2026-04-05 after initial definition*
+*Last updated: 2026-04-05 after roadmap creation*

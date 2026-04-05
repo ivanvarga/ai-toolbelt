@@ -4,6 +4,7 @@
 
 - ✅ **v1.0 MVP** — Phases 1-17 (shipped 2026-03-28)
 - ✅ **v1.1 GSD & Forgetful Integration** — Phases 18-21.1 (shipped 2026-04-05)
+- 🚧 **v1.2 Auto-inject Forgetful Context** — Phase 22 (in progress)
 
 ## Phases
 
@@ -45,22 +46,34 @@ Full details: `.planning/milestones/v1.1-ROADMAP.md`
 
 </details>
 
-## Upcoming (Unassigned to Milestone)
+### 🚧 v1.2 Auto-inject Forgetful Context (In Progress)
 
-### Phase 22: Auto-inject Forgetful context on every prompt
+**Milestone Goal:** Automatically inject relevant Forgetful memories into every prompt via UserPromptSubmit hook, making project memory ambient rather than opt-in.
 
-**Goal:** UserPromptSubmit hook that always queries Forgetful with deterministic similarity search, includes top-N most important memories above relevance threshold, gracefully no-ops if Forgetful unreachable. No prompt filtering heuristics — keep it simple.
-**Depends on:** Phase 18 (Forgetful client)
-**Requirements:** TBD
-**Plans:** 0 plans
+- [ ] **Phase 22: Auto-inject Forgetful Context** - UserPromptSubmit hook that queries Forgetful on every prompt and injects relevant memories as additionalContext
+
+## Phase Details
+
+### Phase 22: Auto-inject Forgetful Context
+**Goal**: Every user prompt automatically receives relevant project memories from Forgetful without manual invocation
+**Depends on**: Phase 18 (Forgetful client module)
+**Requirements**: CTXI-01, CTXI-02, CTXI-03, CTXI-04, CTXI-05, CTXI-06, CTXI-07, HOOK-01, HOOK-02, HOOK-03
+**Success Criteria** (what must be TRUE):
+  1. User submits a normal prompt and Claude receives relevant Forgetful memories as context without the user doing anything
+  2. User submits a /gsd: or /tb:load-context command and no duplicate Forgetful context is injected
+  3. Forgetful is unreachable (server down, no project found, no results) and the user experiences zero disruption -- no errors, no delays beyond 3 seconds
+  4. Doctor check reports whether the UserPromptSubmit hook is properly registered and the script file exists
+  5. Hook works regardless of whether plugin hooks.json output capture is functional (bug #12151 fallback to settings.json if needed)
+**Plans**: TBD
 
 Plans:
-- [ ] TBD (run /gsd:plan-phase 22 to break down)
+- [ ] 22-01: TBD
+- [ ] 22-02: TBD
 
 ## Progress
 
 **Execution Order:**
-Phases execute in numeric order: 1 -> ... -> 17 -> 18 -> 19 -> 20 -> 21 -> 21.1
+Phases execute in numeric order: 1 -> ... -> 17 -> 18 -> 19 -> 20 -> 21 -> 21.1 -> 22
 
 | Phase | Milestone | Plans Complete | Status | Completed |
 |-------|-----------|----------------|--------|-----------|
@@ -70,6 +83,7 @@ Phases execute in numeric order: 1 -> ... -> 17 -> 18 -> 19 -> 20 -> 21 -> 21.1
 | 20. Bootstrap & Update | v1.1 | 1/1 | Complete | 2026-04-02 |
 | 21. Memory Skills | v1.1 | 1/1 | Complete | 2026-04-02 |
 | 21.1. Plugin Bin Directory | v1.1 | 3/3 | Complete | 2026-04-05 |
+| 22. Auto-inject Forgetful Context | v1.2 | 0/? | Not started | - |
 
 ---
-*Last updated: 2026-04-05 after v1.1 milestone completion*
+*Last updated: 2026-04-05 after v1.2 roadmap creation*
