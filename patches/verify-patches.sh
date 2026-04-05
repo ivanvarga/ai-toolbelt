@@ -24,6 +24,7 @@ check "discuss-phase.md" "TB_PATCH: forgetful-discuss-context" "discuss-phase"
 check "plan-phase.md" "TB_PATCH: forgetful-plan-context" "plan-phase"
 check "complete-milestone.md" "TB_PATCH: forgetful-milestone-save" "complete-milestone"
 check "research-phase.md" "TB_PATCH: forgetful-research-context" "research-phase"
+check "research-phase.md" "TB_PATCH: research-general-discoveries" "research-discoveries"
 
 echo ""
 echo "$PASS passed, $FAIL failed, $SKIP skipped"
