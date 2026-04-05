@@ -2,7 +2,6 @@
 const { execFileSync } = require('child_process');
 const fs = require('fs');
 const path = require('path');
-const { glob } = require('path');
 
 const DRY_RUN = process.argv.includes('--dry-run');
 const FORGETFUL_CLIENT = path.join(__dirname, 'forgetful-client');
