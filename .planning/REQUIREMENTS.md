@@ -46,11 +46,11 @@ Requirements for GSD & Forgetful Integration milestone. Each maps to roadmap pha
 - [ ] **BIN-01**: bin/ directory exists with executable wrapper scripts for all key scripts/ files
 - [ ] **BIN-02**: bin/ wrappers are invokable as bare commands when plugin is loaded (PATH-based)
 - [ ] **BIN-03**: SKILL.md files use bare forgetful-client command instead of verbose CLAUDE_PLUGIN_ROOT/scripts/ paths
-- [ ] **DISC-01**: Research-phase patch injects General Discoveries section instructions into GSD researcher prompt
+- [x] **DISC-01**: Research-phase patch injects General Discoveries section instructions into GSD researcher prompt
 - [ ] **DISC-02**: SubagentStop hook fires curate-discoveries script when gsd-phase-researcher completes
 - [ ] **DISC-03**: Curation script parses General Discoveries entries and saves qualifying ones to Forgetful with dedup
 - [ ] **DISC-04**: Curation runs autonomously (async, no user intervention) after every research run
-- [ ] **DISC-05**: verify-patches.sh validates the new research-general-discoveries patch
+- [x] **DISC-05**: verify-patches.sh validates the new research-general-discoveries patch
 
 ## Future Requirements
 

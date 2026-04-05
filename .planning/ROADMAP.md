@@ -130,9 +130,9 @@ Phases execute in numeric order: 18 -> 19 -> 20 -> 21
   4. Curation script parses discoveries, dedup-checks Forgetful, and saves qualifying entries
   5. SKILL.md files use bare bin/ commands instead of verbose CLAUDE_PLUGIN_ROOT/scripts/ paths
   6. verify-patches.sh validates the new research-discoveries patch
-**Plans:** 3 plans
+**Plans:** 1/3 plans executed
 
 Plans:
 - [ ] 21.1-01-PLAN.md — bin/ directory with 8 wrapper scripts for PATH executables
-- [ ] 21.1-02-PLAN.md — Research-phase patch for General Discoveries section + verify-patches extension
+- [x] 21.1-02-PLAN.md — Research-phase patch for General Discoveries section + verify-patches extension
 - [ ] 21.1-03-PLAN.md — Curation script, SubagentStop hook, and SKILL.md migration to bare commands
