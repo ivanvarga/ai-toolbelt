@@ -2,9 +2,9 @@
 gsd_state_version: 1.0
 milestone: v1.1
 milestone_name: GSD & Forgetful Integration
-status: executing
-stopped_at: Completed 21.1-03-PLAN.md (all Phase 21.1 plans complete)
-last_updated: "2026-04-05T18:20:39.156Z"
+status: complete
+stopped_at: v1.1 milestone shipped
+last_updated: "2026-04-05T20:00:00Z"
 last_activity: 2026-04-05
 progress:
   total_phases: 5
@@ -18,10 +18,10 @@ progress:
 
 ## Project Reference
 
-See: .planning/PROJECT.md (updated 2026-03-28)
+See: .planning/PROJECT.md (updated 2026-04-05)
 
 **Core value:** One repo, one install command -- every custom skill, credential setup, and dev tool available on any machine, always up to date.
-**Current focus:** Phase 21.1 — plugin-bin-directory-for-path-executables
+**Current focus:** Planning next milestone
 
 ## Current Position
 

@@ -1,5 +1,22 @@
 # Milestones
 
+## v1.1 GSD & Forgetful Integration (Shipped: 2026-04-05)
+
+**Phases completed:** 6 phases, 9 plans, 17 tasks
+
+**Key accomplishments:**
+
+- MCP Streamable HTTP client module with session lifecycle, tool dispatch, SSE parsing, and CLI health check
+- 4 Node.js Forgetful query scripts + 2 bash patch infrastructure scripts for GSD workflow integration
+- 6 sed/awk-based patch scripts injecting Forgetful memory context into all GSD workflow decision points
+- Bootstrap skill with GSD/forgetful-plugin/patches setup, update skill extended with 4 new dependency-refresh steps
+- Two Forgetful interaction skills: load-context for conversational memory retrieval with importance filtering and refinement, save-findings for agent-curated phase artifact extraction with dedup and batch review
+- 8 thin bin/ wrappers delegating to scripts/ via exec + dirname-relative paths for Claude Code PATH auto-discovery
+- Idempotent GSD research-phase patch injecting General Discoveries section instructions with structured entry format for Forgetful curation
+- Auto-curation pipeline: SubagentStop hook triggers curate-discoveries to parse, dedup, and save General Discoveries to Forgetful after every GSD research run
+
+---
+
 ## v1.0 MVP (Shipped: 2026-03-28)
 
 **Phases completed:** 17 phases, 36 plans, 66 tasks

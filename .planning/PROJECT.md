@@ -2,7 +2,7 @@
 
 ## What This Is
 
-A private Claude Code plugin that packages all of Ivan's custom skills, CLI tools, global config, and dev machine setup into a single distributable repo. 18 skills in unified SKILL.md format, org-scoped credential management via macOS Keychain, and mbridge — a Python CLI for automating iOS simulators and Android emulators via UI dumps, element targeting, and OCR.
+A private Claude Code plugin that packages all of Ivan's custom skills, CLI tools, global config, and dev machine setup into a single distributable repo. 18 skills in unified SKILL.md format, org-scoped credential management via macOS Keychain, mbridge for mobile automation, and deep GSD + Forgetful integration for automatic context injection and persistent memory across AI-assisted development sessions.
 
 ## Core Value
 
@@ -25,24 +25,22 @@ One repo, one install command — every custom skill, credential setup, and dev 
 
 ### Active
 
-- [x] Bootstrap skill — full environment setup (GSD, Forgetful MCP, forgetful-plugin, dependencies) — Validated in Phase 20: Bootstrap & Update
-- [x] Doctor checks — verify GSD installed, Forgetful MCP configured, forgetful-plugin present — Validated in Phase 18: Foundation
-- [x] Update integration — /tb:update also pulls latest GSD and updates forgetful-plugin — Validated in Phase 20: Bootstrap & Update
-- [ ] GSD context hook — UserPromptSubmit hook detects /gsd:* commands, queries Forgetful, injects relevant memories
-- [x] Load context skill — manual Forgetful memory loading before any work — Validated in Phase 21: Memory Skills
-- [x] Save findings skill — extract GSD phase/milestone artifacts into Forgetful, mark obsolete memories — Validated in Phase 21: Memory Skills
+- [ ] Auto-inject Forgetful context — UserPromptSubmit hook with deterministic similarity search on every prompt (Phase 22, next milestone)
 
-## Current Milestone: v1.1 GSD & Forgetful Integration
+### Validated
 
-**Goal:** Make GSD and Forgetful first-class parts of the tb toolkit — one-command bootstrap, automatic context injection on GSD workflows, and bidirectional memory sync.
+- ✓ Bootstrap skill — full environment setup (GSD, Forgetful MCP, forgetful-plugin, dependencies) — v1.1
+- ✓ Doctor checks — verify GSD installed, Forgetful MCP configured, forgetful-plugin present — v1.1
+- ✓ Update integration — /tb:update also pulls latest GSD and updates forgetful-plugin — v1.1
+- ✓ GSD workflow patches — automatic Forgetful context injection at all GSD decision points — v1.1
+- ✓ Load context skill — manual Forgetful memory loading before any work — v1.1
+- ✓ Save findings skill — extract GSD phase/milestone artifacts into Forgetful — v1.1
+- ✓ bin/ PATH executables — bare command invocation of scripts via Claude Code PATH auto-discovery — v1.1
+- ✓ Auto-curation pipeline — SubagentStop hook saves General Discoveries to Forgetful after research — v1.1
 
-**Target features:**
-- Bootstrap skill for full dev environment setup
-- Doctor checks for GSD and Forgetful health
-- Update integration for keeping dependencies current
-- UserPromptSubmit hook for automatic GSD context injection from Forgetful
-- Manual load-context skill for ad-hoc memory retrieval
-- Save-findings skill for extracting GSD artifacts into Forgetful
+## Shipped: v1.1 GSD & Forgetful Integration (2026-04-05)
+
+GSD and Forgetful are first-class parts of the toolkit. One-command bootstrap, automatic context injection on GSD workflows, bidirectional memory sync, and autonomous research discovery curation.
 
 ### Out of Scope
 
@@ -54,11 +52,13 @@ One repo, one install command — every custom skill, credential setup, and dev 
 
 ## Context
 
-Shipped v1.0 with 17 phases, 36 plans across 17 days.
-Tech stack: Python (mbridge, 1,800 LOC), Node.js (scripts, 769 LOC), Markdown (18 skills).
-18 skills covering PR workflow, Jira, Sentry, Contentful, Figma, release management, mobile automation.
+Shipped v1.0 (17 phases, 36 plans) + v1.1 (5 phases, 9 plans) across 22 days.
+Tech stack: Python (mbridge, 1,800 LOC), Node.js (scripts + bin wrappers, ~2,500 LOC), Bash (patches, ~400 LOC), Markdown (18 skills).
+18 skills covering PR workflow, Jira, Sentry, Contentful, Figma, release management, mobile automation, Forgetful memory, GSD bootstrap/update.
 mbridge supports iOS simulators + Android emulators with tap/swipe/type/OCR/boot.
 Credential system: org-scoped Keychain resolution with global fallback, batch setup, doctor integration.
+Forgetful integration: 6 GSD workflow patches, auto-curation via SubagentStop hook, load/save memory skills.
+bin/ directory: 9 PATH executables wrapping scripts/ for bare command invocation.
 
 ## Key Decisions
 
@@ -76,6 +76,11 @@ Credential system: org-scoped Keychain resolution with global fallback, batch se
 | Org-scoped credentials | Auto-detect org from git remote, store to tb.{service}.{org} | ✓ Good |
 | No unit tests for mbridge | Integration tests via subprocess.run against installed binary | ✓ Good |
 | GPU host-then-software fallback | Emulator boot tries host GPU first, falls back to software on crash | ✓ Good |
+| Native fetch + SSE for MCP client | No http module or EventSource dependency, lighter footprint | ✓ Good |
+| Sed/awk patches over GSD fork | Non-invasive, survives GSD updates, auto-reapplied by /tb:update | ✓ Good |
+| Deterministic curation over LLM | Researcher applies judgment; curation is mechanical dedup + save | ✓ Good |
+| SubagentStop hook for curation | Runs async without modifying GSD workflow orchestration logic | ✓ Good |
+| bin/ wrappers over symlinks | Plugin cache copies files; wrappers are explicit with dirname-relative paths | ✓ Good |
 
 ## Constraints
 
@@ -104,4 +109,4 @@ This document evolves at phase transitions and milestone boundaries.
 4. Update Context with current state
 
 ---
-*Last updated: 2026-04-05 after Phase 21.1 completion — bin/ PATH executables, research discovery pipeline*
+*Last updated: 2026-04-05 after v1.1 milestone*
