@@ -152,3 +152,14 @@ Plans:
 - [x] 21.1-01-PLAN.md — bin/ directory with 8 wrapper scripts for PATH executables
 - [x] 21.1-02-PLAN.md — Research-phase patch for General Discoveries section + verify-patches extension
 - [ ] 21.1-03-PLAN.md — Curation script, SubagentStop hook, and SKILL.md migration to bare commands
+
+## Backlog
+
+### Phase 999.1: Auto-inject Forgetful context on every prompt (BACKLOG)
+
+**Goal:** UserPromptSubmit hook that always queries Forgetful with deterministic similarity search, includes top-N most important memories above relevance threshold, gracefully no-ops if Forgetful unreachable. No prompt filtering heuristics — keep it simple.
+**Requirements:** TBD
+**Plans:** 0 plans
+
+Plans:
+- [ ] TBD (promote with /gsd:review-backlog when ready)
