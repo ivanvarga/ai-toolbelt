@@ -1,180 +1,244 @@
-# Domain Pitfalls
+# Pitfalls Research
 
-**Domain:** Claude Code plugin -- GSD & Forgetful integration (v1.1)
-**Researched:** 2026-03-31
-**Confidence:** HIGH (verified against GitHub issue tracker, official docs, and live MCP testing)
+**Domain:** Auto-inject Forgetful context via UserPromptSubmit hook (v1.2 milestone)
+**Researched:** 2026-04-05
+**Confidence:** HIGH (verified against Claude Code issue tracker, official hooks docs, existing codebase analysis, and v1.1 pitfall outcomes)
 
 ## Critical Pitfalls
 
-### Pitfall 1: Plugin Hook Output Silently Discarded (Bug #12151 -- OPEN)
+### Pitfall 1: Plugin Hook Output Silently Discarded (Bug #12151 -- STILL OPEN)
 
-**What goes wrong:** UserPromptSubmit hooks defined in plugin `hooks/hooks.json` execute correctly but their stdout/additionalContext is never injected into Claude's conversation. The hook runs, curl succeeds, Forgetful returns data, but Claude never sees it. Zero error messages -- completely silent failure.
+**What goes wrong:**
+UserPromptSubmit hooks defined in plugin `hooks/hooks.json` execute successfully but their stdout/additionalContext is never injected into Claude's conversation context. The hook runs, Forgetful returns data, but Claude never sees it. Zero error messages.
 
-**Why it happens:** Claude Code's hook output capture pipeline treats plugin-scoped hooks differently from user-level hooks (`~/.claude/settings.json`). Bug #12151 is OPEN as of March 31, 2026. Multiple users confirm the behavior on v2.1.42+. The same hook config works when placed in settings.json.
+**Why it happens:**
+Claude Code's hook output capture pipeline treats plugin-scoped hooks differently from user-level hooks. Bug #12151 remains OPEN as of April 5, 2026 (23 comments, filed Feb 2026). Multiple users on v2.1.42+ confirm the behavior. Native hooks in `~/.claude/settings.json` with identical output work correctly (confirmed by @prodan-s on v2.1.45).
 
-**Consequences:** The entire GSD context hook is useless if registered in the plugin's hooks.json. Every curl call to Forgetful is wasted. The user sees no error and assumes memories are being injected when they're not.
+**How to avoid:**
+1. Register the UserPromptSubmit hook in `~/.claude/settings.json`, NOT in plugin `hooks/hooks.json`.
+2. Keep the hook script in the plugin repo (e.g., `hooks/user-prompt-context.sh`). Only the registration goes to settings.json.
+3. Bootstrap skill writes the hook config to settings.json using the resolved absolute path to the cached plugin's hook script.
+4. Include `hookEventName: "UserPromptSubmit"` in all JSON output -- this is silently required (confirmed by @jpicklyk, Feb 2026).
+5. Track #12151 -- when fixed, migrate registration back to plugin hooks.json.
 
-**Prevention:**
-1. Register UserPromptSubmit hooks in `~/.claude/settings.json`, not in plugin hooks.json.
-2. Keep the hook SCRIPT in the plugin repo (`hooks/gsd-context.sh`). Only the hook REGISTRATION goes to settings.json.
-3. Bootstrap skill must write the hook config to settings.json with the absolute path to the cached plugin's hook script.
-4. Doctor check must verify: (a) hook exists in settings.json, (b) hook script path resolves, (c) hook output actually reaches Claude (test by having Claude report what context it received).
-5. If/when #12151 is fixed, migrate back to plugin hooks.json and clean up settings.json.
+**Warning signs:**
+Ask Claude "what additional context did you receive from hooks?" If Claude has no awareness of injected memory context, the output is being discarded. Run with `--debug` to see hook execution logs vs. context injection.
 
-**Detection:** Ask Claude "what additional context did you receive from hooks?" after a GSD command. If Claude has no awareness of memory context, the output is being discarded.
+**Phase to address:**
+Phase 1 (hook infrastructure). This is the make-or-break constraint -- if not addressed, the entire feature is silently broken.
 
-### Pitfall 2: UserPromptSubmit Hook Blocks All Prompts When Forgetful Is Unreachable
+---
 
-**What goes wrong:** The hook queries Forgetful on GSD commands. If Forgetful is unreachable (server down, network change, port conflict), curl blocks until timeout. Default hook timeout is 600 seconds. Every GSD prompt stalls for 10 minutes.
+### Pitfall 2: Every-Prompt Latency Tax From MCP Session Initialization
 
-**Why it happens:** Developers add the Forgetful query and test it when the server is running. They never test when the server is down. curl without explicit timeout inherits the system TCP timeout (~60s per attempt with retries).
+**What goes wrong:**
+Unlike v1.1's GSD-only hooks, the v1.2 hook runs on EVERY prompt. Each invocation creates a new MCP session (initialize + notifications/initialized + tool call = 3 HTTP round trips). The existing `forgetful-client.js` has `DEFAULT_TIMEOUT = 5000` and `TOOL_TIMEOUT = 10000`. Even when Forgetful is healthy, session creation + query takes 150-400ms. On every single prompt, this adds perceptible lag between pressing Enter and Claude starting to respond.
 
-**Consequences:** Every GSD command takes 60-600 seconds. The hook appears "stuck." Users disable the hook entirely to restore responsiveness.
+**Why it happens:**
+The existing forgetful-client was designed for GSD-only use (runs maybe 5-10 times per session). At every-prompt frequency, the cumulative overhead changes from "barely noticeable" to "constantly annoying." MCP Streamable HTTP transport has a fixed 10-50ms overhead floor per request, and three round trips compounds this.
 
-**Prevention:**
-1. Set `"timeout": 5` on the hook definition in settings.json.
-2. Use `curl --connect-timeout 1 --max-time 3` for all Forgetful HTTP calls.
-3. On any curl failure (timeout, connection refused, non-200), `exit 0` with empty stdout. Never `exit 2` (that blocks and erases the prompt).
-4. For non-GSD prompts (`prompt` doesn't start with `/gsd:`), `exit 0` immediately before making any HTTP calls. This path costs ~1ms.
+**How to avoid:**
+1. Set a strict `timeout: 3` on the hook definition (3 seconds total, not the default 600).
+2. Use `--connect-timeout 1 --max-time 2` equivalent in the Node.js fetch calls (`AbortSignal.timeout(2000)`).
+3. Run the hook with `"async": true` in the hook config. UserPromptSubmit supports async hooks -- the context arrives slightly after the prompt but before Claude's response completes. This eliminates blocking entirely.
+4. If async is not supported for UserPromptSubmit additionalContext (verify experimentally), then the fast-path optimization is critical: detect trivial/short prompts (like "yes", "ok", "continue") and exit immediately without querying.
 
-**Detection:** Noticeable delay between pressing Enter and Claude starting to respond. Visible only on GSD commands if gating is implemented; on ALL prompts if gating is missing.
+**Warning signs:**
+Noticeable pause after pressing Enter on every prompt. Time the hook with `time node hooks/user-prompt-context.js` in isolation -- anything over 500ms is a red flag.
 
-### Pitfall 3: Context Window Bloat From Unbounded Memory Injection
+**Phase to address:**
+Phase 1 (hook script implementation). Performance budget must be defined upfront: max 500ms synchronous, or use async mode.
 
-**What goes wrong:** Forgetful returns up to 8K tokens per query (default MEMORY_TOKEN_BUDGET) with up to 20 memories. Injecting all of this into every GSD prompt consumes massive context. The 200K window compacts at ~167K. System prompt + tools + skills already use ~29K. Adding 8K per GSD prompt triggers compaction much sooner, losing earlier conversation history.
+---
 
-**Why it happens:** "More context = better" mentality. Forgetful's default budget (8K) is designed for direct agent use where Claude selects relevance. Automatic injection dumps everything.
+### Pitfall 3: Context Noise Drowns Signal -- Irrelevant Memories on Every Prompt
 
-**Consequences:** Frequent auto-compaction. Claude "forgets" earlier conversation turns. `/context` shows unexpectedly high hook context usage. Long GSD sessions lose their beginning.
+**What goes wrong:**
+Not every prompt benefits from memory context. "Fix the typo on line 42" does not need 5 Forgetful memories about architecture decisions. Injecting irrelevant context on every prompt wastes tokens, confuses the model, and degrades response quality. The "lost in middle" effect means injected context gets ignored in long conversations, but still consumes token budget.
 
-**Prevention:**
-1. Limit query to `k: 3` (3 memories max).
-2. Return only memory titles + first-sentence summaries in hook output (~1500 tokens max).
-3. Let Claude fetch full memory content via Forgetful MCP tools if it needs more detail.
-4. Track with `/context` command during development to measure actual impact.
+**Why it happens:**
+Semantic search returns "most similar" results, not "most useful for this prompt" results. A prompt about a CSS fix will still match memories about the project because project terms appear in both. The hook has no way to judge relevance -- it returns whatever Forgetful considers closest. At every-prompt frequency, the noise compounds across turns.
 
-**Detection:** `/context` showing large hook context blocks. Compaction happening earlier than expected.
+**How to avoid:**
+1. Apply a minimum similarity threshold on query results. If the best match is below threshold, inject nothing. Silence is better than noise.
+2. Limit to `k: 3` memories maximum. Return only title + one-sentence summary (~200-300 tokens total). Let Claude fetch full content via MCP if needed.
+3. Consider prompt classification: only query Forgetful when the prompt looks like a decision, architecture question, or new feature start. Short/continuation prompts get no injection. Classification can be keyword-based (check for "how", "should", "design", "implement", "architecture", "pattern") rather than LLM-based.
+4. Format injected context with clear XML delimiters and a brief meta-note: `<forgetful_context note="3 potentially relevant memories. Use /tb:load-context for full details.">`. This lets Claude decide relevance rather than treating injected content as authoritative instructions.
 
-### Pitfall 4: Bootstrap Partial Failure Leaves Half-Configured State
+**Warning signs:**
+Claude starts referencing injected memories that have nothing to do with the current task. Responses become longer/less focused. Token usage per turn increases noticeably.
 
-**What goes wrong:** Bootstrap installs 5+ independent components (GSD, marketplace, forgetful-plugin, MCP config, hook registration). If step 3 of 5 fails (e.g., network error during plugin install), the system is half-configured. Hooks reference a missing Forgetful, doctor checks report mixed results.
+**Phase to address:**
+Phase 1 (query design) and Phase 2 (relevance tuning). Get the basic filter working first, then tune thresholds based on real usage.
 
-**Why it happens:** Sequential setup scripts assume each step succeeds. No idempotency checks. No step-tracking for retry.
+---
 
-**Consequences:** Cryptic errors from hooks trying to reach unconfigured Forgetful. Re-running bootstrap may duplicate MCP entries in `~/.claude.json` or overwrite settings.json hooks.
+### Pitfall 4: Token Budget Exhaustion From Cumulative Injection
 
-**Prevention:**
-1. Each step checks "is this already done?" before acting (idempotent).
-2. Report per-step status: "GSD: OK, Marketplace: OK, Plugin: FAILED (network), Hook: SKIPPED".
-3. Never write to `~/.claude.json` without reading first and merging (not overwriting).
-4. After all steps, run doctor checks and report consolidated status.
+**What goes wrong:**
+Hook output has a 10,000-character hard cap (after which Claude Code saves to file and provides a preview). But even within that cap, injecting ~1500-2000 tokens per prompt across a 50-turn conversation means 75K-100K tokens consumed by hook context alone. Claude Code's context window is 200K with compaction at ~167K. System prompt + tools + skills already consume ~29K. This leaves ~138K for conversation, and cumulative hook injection eats 50-70% of it.
 
-**Detection:** Doctor checks showing mixed PASS/FAIL after bootstrap. Re-running bootstrap creates duplicates.
+**Why it happens:**
+Each individual injection seems small ("only 1500 tokens"). But it adds up across every turn. Unlike conversation messages which get compacted, hook context is fresh each turn -- it does not benefit from conversation summarization during compaction. Developers test with 5-10 turns and miss the cumulative effect visible at 40-50 turns.
 
-### Pitfall 5: Forgetful HTTP Transport Not Available Despite STDIO Working
+**How to avoid:**
+1. Set a hard budget: max 500 tokens of injected context per prompt. This is ~3 memory titles with one-line summaries.
+2. Track cumulative injection size across the session if possible (or at minimum, know the theoretical worst case: 500 tokens x N turns).
+3. Use the `additionalContext` field (injected "more discretely" per docs) rather than plain stdout, which takes up more visible space in the transcript.
+4. Consider a session-level deduplication strategy: if the same memories were already injected in recent turns, skip re-injection.
 
-**What goes wrong:** Claude connects to Forgetful via STDIO transport (`uvx forgetful-ai`). The hook needs HTTP (`curl http://host:port/mcp`). These are completely separate. If user set up Forgetful as STDIO-only, there's no HTTP endpoint for the hook to query.
+**Warning signs:**
+`/context` showing unexpectedly high usage. Compaction happening earlier than expected. Claude "forgetting" instructions from earlier in the conversation.
 
-**Why it happens:** Forgetful's recommended default is STDIO (zero config). Developers assume HTTP is also available. The `/forgetful-setup` "Standard" option configures STDIO only.
+**Phase to address:**
+Phase 1 (output formatting). Define the token budget before writing any output logic.
 
-**Consequences:** Hook gets "connection refused" on every GSD command. Forgetful "works" for Claude's MCP tools but not for the hook. Two separate Forgetful instances (STDIO + HTTP) would create two databases.
+---
 
-**Prevention:**
-1. Bootstrap must verify Forgetful is configured with HTTP transport in `~/.claude.json` (check `type: "http"`).
-2. If configured as STDIO, bootstrap must guide user to reconfigure as HTTP (or configure both sharing the same DB).
-3. Doctor check must verify the HTTP endpoint is reachable with a curl health check.
-4. The current user already has HTTP configured (`http://192.168.2.104:8020/mcp`), but bootstrap must handle the general case.
+### Pitfall 5: False "Hook Error" Labels Cause Premature Turn Termination (Bug #34713 -- OPEN)
 
-**Detection:** Hook returns empty output on GSD commands. Doctor check for Forgetful reachability fails while `claude mcp list` shows Forgetful "Connected."
+**What goes wrong:**
+Claude Code displays "hook error" in the transcript for every hook execution, even when hooks exit 0 with valid JSON. On an every-prompt hook, this means EVERY user message shows a "UserPromptSubmit hook error" label. In plugin-heavy setups, these phantom errors compound across tool calls. The model interprets accumulated "error" labels as something being wrong and prematurely ends its turn.
 
-## Moderate Pitfalls
+**Why it happens:**
+Bug #34713 is OPEN as of April 5, 2026. The display issue affects all hook types. For hooks that fire occasionally (like SubagentStop), this is cosmetic. For an every-prompt hook, it is functionally destructive -- Claude sees "error" on every single turn.
 
-### Pitfall 6: Hook Stdin JSON Parsing Edge Cases
+**How to avoid:**
+1. Test the hook in isolation first to confirm whether the false "hook error" label appears with the current Claude Code version.
+2. If the bug is present, consider using `"suppressOutput": true` in the hook JSON output to hide stdout from verbose mode -- though this may not suppress the error label itself.
+3. As a last resort, if false error labels degrade Claude's behavior: switch from UserPromptSubmit hook to a different injection mechanism (e.g., SessionStart for initial context, then rely on Forgetful MCP for per-prompt queries triggered by Claude itself).
+4. Monitor Claude Code releases for a fix to #34713.
 
-**What goes wrong:** The hook reads stdin JSON containing `prompt`, `session_id`, `cwd`, etc. Prompts with quotes, backslashes, newlines, or JSON content break naive parsing. Multi-line prompts split across `read` calls.
+**Warning signs:**
+"hook error" appearing in the transcript after every prompt. Claude becoming cautious, cutting turns short, or adding unnecessary caveats to responses.
 
-**Prevention:**
-1. Always use `INPUT=$(cat)` to read all stdin at once.
-2. Extract fields with `jq -r '.prompt // empty'`.
-3. Quote all variables in shell: `"$PROMPT"` not `$PROMPT`.
-4. Handle empty/missing prompt: `if [ -z "$PROMPT" ]; then exit 0; fi`.
-5. Use `set -euo pipefail` but trap jq failures explicitly (jq returns non-zero on parse error, triggering errexit).
+**Phase to address:**
+Phase 1 (integration testing). Must verify behavior on current Claude Code version before committing to the UserPromptSubmit approach.
 
-### Pitfall 7: Cross-Project Memory Contamination
+---
 
-**What goes wrong:** Forgetful memories from project A appear in queries made from project B. GSD decisions from one repo pollute another repo's context.
+### Pitfall 6: Forgetful Server Unreachable Blocks Every Prompt
 
-**Prevention:**
-1. Always include `project_ids` filter when querying in the hook.
-2. Derive project identity from `git remote get-url origin` (unique, stable).
-3. Always include `project_ids` when creating memories in save-findings.
-4. Use `mark_memory_obsolete` when milestones complete.
+**What goes wrong:**
+In v1.1, Forgetful downtime only affected GSD commands. In v1.2, it affects EVERY prompt. If Forgetful is unreachable and the hook lacks fast-fail logic, every single interaction stalls. The user cannot even type "hello" without waiting for a timeout.
 
-### Pitfall 8: Duplicate Memories From Repeated Save-Findings
+**Why it happens:**
+Developers test with Forgetful running and forget the failure path. The existing `forgetful-client.js` has `DEFAULT_TIMEOUT = 5000` (5 seconds) per HTTP call. With 3 calls per invocation (initialize + initialized + tool call), worst case is 15 seconds per prompt. Even with 2-second timeouts, 6 seconds of lag on every prompt is unacceptable.
 
-**What goes wrong:** Running save-findings twice on the same phase creates duplicates. Phase 3 and phase 7 both mention the same tech stack -- two identical memories exist.
+**How to avoid:**
+1. Health-check cache: On first invocation, try connecting. If it fails, set a flag (environment variable or temp file) and skip all subsequent invocations for the session. Re-check periodically (every 50 prompts or every 5 minutes).
+2. Connection pooling: Resolve the Forgetful URL once at process start. If URL resolution fails (no config), exit immediately (0ms overhead).
+3. Total wall-clock budget for the hook: 2 seconds absolute max. If any step exceeds this, abort and output nothing.
+4. Run with `"async": true` so even worst-case timeout does not block the user.
 
-**Prevention:**
-1. Before creating a memory, query for semantically similar existing memories on the same project. If very similar, update instead of create.
-2. When saving from a new phase, mark superseded memories from previous phases as obsolete.
-3. Extract decisions and learnings as atomic Zettelkasten notes, not raw file contents.
-4. Include phase/milestone identifiers in memory metadata.
+**Warning signs:**
+Lag after every keystroke/Enter when Forgetful server is stopped. Users complaining about slowness in unrelated work (non-GSD prompts).
 
-### Pitfall 9: Plugin Cache Path Changes on Update
+**Phase to address:**
+Phase 1 (degradation logic). The failure path must be designed before the happy path.
 
-**What goes wrong:** Bootstrap writes an absolute path to the hook script in settings.json (e.g., `~/.claude/plugins/cache/tb-marketplace/tb/0.1.0/hooks/gsd-context.sh`). When the plugin updates to 0.2.0, the path changes. The hook breaks silently.
+---
 
-**Prevention:**
-1. Use a path that doesn't include the version: check if Claude Code's cache structure includes a stable "latest" symlink.
-2. If not, the update skill must also update the hook path in settings.json after each plugin update.
-3. Doctor check must verify the hook script path still resolves to an existing file.
+## Technical Debt Patterns
 
-### Pitfall 10: GSD Structure Changes Break Artifact Extraction
+| Shortcut | Immediate Benefit | Long-term Cost | When Acceptable |
+|----------|-------------------|----------------|-----------------|
+| New MCP session per hook invocation | Simple, stateless | 150-400ms overhead per prompt | Acceptable if hook is async; unacceptable if synchronous |
+| Hardcoded similarity threshold | Works for current project | Different projects need different thresholds | MVP only -- make configurable via env var or config file |
+| No prompt classification (query on every prompt) | Simpler implementation | Wastes tokens and latency on trivial prompts | Never -- even basic keyword detection is worth the complexity |
+| Registering hook in settings.json instead of plugin hooks.json | Works around #12151 | Breaks plugin portability, requires manual cleanup | Acceptable until #12151 is fixed |
+| Truncating memory content to first N chars | Caps token usage | Loses critical detail that may be in the middle/end of a memory | Acceptable with clear signal to Claude that truncation occurred |
 
-**What goes wrong:** Save-findings hardcodes paths like `.planning/research/STACK.md`. GSD updates its template structure, and extraction breaks silently.
+## Integration Gotchas
 
-**Prevention:**
-1. Use glob patterns (`find .planning -name "*.md"`) instead of hardcoded paths.
-2. Parse based on content patterns (headings, frontmatter) not exact file paths.
-3. Track GSD VERSION and warn on mismatch.
+| Integration | Common Mistake | Correct Approach |
+|-------------|----------------|------------------|
+| UserPromptSubmit JSON output | Omitting `hookEventName` in hookSpecificOutput | Always include `"hookEventName": "UserPromptSubmit"` -- silently required |
+| UserPromptSubmit JSON output | Mixing plain stdout with JSON | Choose one: either plain text OR JSON. If both present, only JSON is processed |
+| Hook registration in settings.json | Writing absolute path to plugin cache with version number | Use a stable path (bin/ wrapper or symlink) that survives plugin updates |
+| forgetful-client session flow | Calling `query_memory` as top-level MCP tool | Must wrap in `execute_forgetful_tool({ tool_name: "query_memory", arguments: {...} })` |
+| Async hook output | Assuming additionalContext arrives before Claude's first response token | Async output may arrive mid-response; verify timing experimentally |
+| Hook stdin parsing | Using `read` for stdin (misses multi-line JSON) | Use `cat` or read entire stdin buffer; parse with `jq` |
+| Exit codes | Using `exit 1` for "no results found" | Exit 1 = non-blocking error shown in verbose mode. Use `exit 0` with empty output for "nothing to inject" |
 
-## Minor Pitfalls
+## Performance Traps
 
-### Pitfall 11: MCP Session ID Not Reused Across Calls
+| Trap | Symptoms | Prevention | When It Breaks |
+|------|----------|------------|----------------|
+| 3 HTTP round trips per invocation (init + notify + call) | 150-400ms per prompt | Use async hook; explore session reuse across invocations | Immediately noticeable on synchronous hook |
+| Querying Forgetful on "yes"/"ok"/"continue" prompts | Wasted 200ms+ on prompts that need zero context | Keyword/length filter: skip prompts under 20 chars or matching trivial patterns | Every session, multiple times |
+| `resolveForgetfulUrl()` reads ~/.claude.json from disk on every invocation | Disk I/O on every prompt | Cache the URL in an env var at session start or after first resolution | Unnoticeable on SSD, but wasteful |
+| Full memory content in hook output when title+summary suffices | 2000+ tokens per injection instead of 300 | Return titles + first sentence only; Claude fetches full via MCP | Cumulative: noticeable at 30+ turns |
+| No dedup across turns | Same 3 memories injected 50 times in a session | Track recently-injected memory IDs; skip re-injection within N turns | Mid-session, when conversation circles back to same topics |
 
-**What goes wrong:** Each hook invocation creates a new MCP session (initialize + tool call). This is fine for the current use case (one query per hook) but wastes ~100ms on session setup.
+## Security Mistakes
 
-**Prevention:** Accept the cost. Hook invocations are independent -- no session state to preserve. Reusing sessions across invocations would require persistent state, adding complexity.
+| Mistake | Risk | Prevention |
+|---------|------|------------|
+| Logging full Forgetful URL (including host:port) to stdout | URL may contain internal network addresses | Log connection status ("connected"/"failed"), not the URL itself |
+| Memory content injected into context without sanitization | Forgetful memories could contain prompt injection payloads if compromised | Treat memory content as data, not instructions; wrap in XML data tags |
+| Hook reads ~/.claude.json for Forgetful URL | Could expose other config entries if parsing is careless | Extract only `mcpServers.forgetful.url`; never log the full config object |
 
-### Pitfall 12: Forgetful's execute_forgetful_tool Dispatcher
+## UX Pitfalls
 
-**What goes wrong:** Developer calls `query_memory` as a top-level MCP tool name. Fails with "Unknown tool." Forgetful exposes only 3 MCP tools; all 38+ operations go through `execute_forgetful_tool(tool_name, arguments)`.
+| Pitfall | User Impact | Better Approach |
+|---------|-------------|-----------------|
+| Injecting context on every prompt with no way to disable | User cannot opt out when memories are unhelpful | Provide `/tb:auto-context off` toggle that sets a session flag |
+| No indication that context was injected | User does not know if the feature is working | Include a brief one-line note visible in verbose mode: "Injected 3 memories from Forgetful" |
+| Noisy injection on simple prompts | "Fix the typo" gets 3 unrelated architecture memories prepended | Prompt classification: skip injection for short/simple/continuation prompts |
+| Memories referencing obsolete decisions | Claude follows outdated patterns because memory says so | Include memory age in output; add "recency" weighting to query |
 
-**Prevention:** Always wrap in `execute_forgetful_tool`. Document this in the mcp-client.sh helper.
+## "Looks Done But Isn't" Checklist
 
-## Phase-Specific Warnings
+- [ ] **Hook registration:** Registered in settings.json (not plugin hooks.json) -- verify output actually reaches Claude by asking it
+- [ ] **hookEventName included:** JSON output includes `"hookEventName": "UserPromptSubmit"` -- omitting this silently breaks injection
+- [ ] **Failure path tested:** Forgetful stopped, hook exits 0 within 500ms with no output -- verify no stall
+- [ ] **Every-prompt overhead measured:** Time the hook in isolation; confirm <500ms sync or async mode enabled
+- [ ] **Token budget verified:** Check `/context` after 20+ turns; confirm hook context is not dominating token usage
+- [ ] **Trivial prompt handling:** Type "ok" and verify no Forgetful query fires (check with --debug)
+- [ ] **Plugin update survives:** Run `/tb:update`, verify hook path in settings.json still resolves
+- [ ] **False error labels checked:** Verify whether bug #34713 manifests on current Claude Code version
+- [ ] **Cross-project isolation:** Open a different repo, verify memories from other projects do not appear
+- [ ] **Compaction behavior:** Run 40+ turns, verify compaction does not lose critical earlier conversation context
 
-| Phase Topic | Likely Pitfall | Mitigation |
-|-------------|---------------|------------|
-| Bootstrap | Partial failure, non-idempotent | Check-before-act for each step; per-step reporting |
-| Bootstrap | Plugin cache path in settings.json | Resolve path at bootstrap time; update on plugin update |
-| Doctor checks | Checking MCP config but not reachability | Health check via curl, not just config presence |
-| GSD context hook | Silent output discard (plugin hooks.json) | Register in settings.json, NOT plugin hooks.json |
-| GSD context hook | Blocking on Forgetful unreachable | curl timeouts, fast-path for non-GSD prompts |
-| GSD context hook | Token bloat from large results | Cap at k:3, summarize, ~1500 tokens max |
-| Save-findings | Duplicate memories | Query-before-create, obsolescence marking |
-| Save-findings | GSD structure changes | Glob-based discovery, defensive parsing |
-| Update integration | Plugin cache path changes | Update hook path in settings.json after plugin update |
+## Recovery Strategies
+
+| Pitfall | Recovery Cost | Recovery Steps |
+|---------|---------------|----------------|
+| Bug #12151 (output discarded from plugin hooks) | LOW | Move hook registration to settings.json; keep script in plugin repo |
+| Every-prompt latency | LOW | Add `"async": true` to hook config; no code changes needed |
+| Token budget exhaustion | MEDIUM | Reduce k from 5 to 2; truncate to titles only; requires hook script edit |
+| False hook error labels (#34713) | HIGH | No clean fix; may require switching injection mechanism entirely |
+| Forgetful unreachable blocking | LOW | Add health-check cache + 2s total timeout; hook script edit |
+| Noise from irrelevant memories | MEDIUM | Add prompt classification + similarity threshold; requires iterative tuning |
+| Plugin update breaks hook path | LOW | Update skill patches settings.json path; doctor check catches it |
+
+## Pitfall-to-Phase Mapping
+
+| Pitfall | Prevention Phase | Verification |
+|---------|------------------|--------------|
+| #12151 output discard | Phase 1 (hook infrastructure) | Ask Claude what context it received; must report injected memories |
+| Every-prompt latency | Phase 1 (hook implementation) | `time` the hook script; <500ms or async mode confirmed |
+| Context noise | Phase 1 (query design) + Phase 2 (tuning) | Test with 10 varied prompts; irrelevant prompts get zero injection |
+| Token budget | Phase 1 (output formatting) | `/context` after 30 turns shows <15% hook overhead |
+| False hook error #34713 | Phase 1 (integration test) | Visual check of transcript for phantom error labels |
+| Forgetful unreachable | Phase 1 (degradation logic) | Stop Forgetful, send 5 prompts, all respond within 1 second |
+| Hook path after update | Phase 2 or 3 (update integration) | Run update, verify hook still fires |
+| Cross-project contamination | Phase 1 (project scoping) | Open different repo, verify zero cross-project memories |
+| Prompt classification misfire | Phase 2 (tuning) | Verify "implement a new API endpoint" triggers injection but "ok" does not |
 
 ## Sources
 
-- [Plugin hook output bug #12151](https://github.com/anthropics/claude-code/issues/12151) -- OPEN as of March 31, 2026
-- [hookSpecificOutput first-message bug #17550](https://github.com/anthropics/claude-code/issues/17550) -- CLOSED Feb 2026
-- [Claude Code Hooks Reference](https://code.claude.com/docs/en/hooks) -- timeout, output format, exit codes
-- [Forgetful TOOL_REFERENCE.md](~/.claude/plugins/cache/forgetful-plugins/forgetful-plugin/1.1.0/skills/using-forgetful-memory/TOOL_REFERENCE.md) -- tool dispatcher pattern
-- Live MCP testing against Forgetful 3.1.1 -- verified session flow, error responses
-- Comments on #12151 from prodan-s, wayne5w, jpicklyk (Feb-March 2026) -- confirmed hookEventName required, plugin output still broken
+- [Plugin hook output bug #12151](https://github.com/anthropics/claude-code/issues/12151) -- OPEN, 23 comments, confirmed by @prodan-s on v2.1.45 (Feb 2026)
+- [UserPromptSubmit not triggering with initial prompt #17284](https://github.com/anthropics/claude-code/issues/17284) -- CLOSED, was regression in v2.0.77+
+- [Feature: updatedPrompt for UserPromptSubmit #27365](https://github.com/anthropics/claude-code/issues/27365) -- OPEN, no prompt modification support yet
+- [False "Hook Error" labels #34713](https://github.com/anthropics/claude-code/issues/34713) -- OPEN, causes premature turn termination in plugin-heavy setups
+- [Cowork plugin hooks never fire #27398](https://github.com/anthropics/claude-code/issues/27398) -- CLOSED, was scoping issue
+- [Claude Code Hooks Reference](https://code.claude.com/docs/en/hooks) -- 10,000-char output cap, UserPromptSubmit spec, timeout defaults
+- [MCP Transport Performance Benchmarks](https://www.tmdevlab.com/mcp-server-performance-benchmark-v2.html) -- 10-50ms HTTP latency floor, 10x session reuse benefit
+- Existing codebase: `forgetful-client.js` (5s/10s timeouts), `hooks/hooks.json` (SessionStart + SubagentStop patterns), `gsd-*-context.js` (query patterns)
+- v1.1 PITFALLS.md -- carried forward pitfalls #1, #2, #3, #5 with v1.2-specific updates
 
 ---
-*Pitfalls research for: tb plugin v1.1 -- GSD & Forgetful integration*
-*Researched: 2026-03-31*
+*Pitfalls research for: tb plugin v1.2 -- auto-inject Forgetful context on every prompt*
+*Researched: 2026-04-05*

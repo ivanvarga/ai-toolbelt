@@ -1,154 +1,173 @@
 # Project Research Summary
 
-**Project:** tb plugin v1.1 — GSD & Forgetful integration
-**Domain:** Claude Code plugin — automated context injection and memory management for GSD workflows
-**Researched:** 2026-04-01
+**Project:** tb plugin v1.2 — auto-inject Forgetful context via UserPromptSubmit hook
+**Domain:** Claude Code plugin hook — ambient memory injection on every prompt
+**Researched:** 2026-04-05
 **Confidence:** HIGH
 
 ## Executive Summary
 
-This is a Claude Code plugin enhancement that integrates two external systems — the GSD (get-shit-done) workflow framework and the Forgetful persistent memory MCP server — into the existing `tb` plugin. The integration pattern is well-understood: a UserPromptSubmit hook intercepts GSD commands, queries Forgetful for relevant project memories, and injects context before Claude processes the prompt. Supporting this are bootstrap, doctor, update, load-context, and save-findings capabilities, all following established tb patterns (SKILL.md for skills, `scripts/checks/*.sh` for doctor checks, Node.js for shared modules).
+This feature adds a UserPromptSubmit hook to the tb plugin that automatically queries Forgetful for relevant memories on every user prompt and injects them as `additionalContext` before Claude processes the request. Unlike v1.1's GSD-only context injection (which fires on specific `/gsd:*` commands), v1.2 runs on every prompt, making project memory ambient rather than opt-in. The implementation is minimal: one new file (`hooks/user-prompt-context.js`) and one modified file (`hooks/hooks.json`), fully reusing the existing `forgetful-client.js` module and patterns proven across four existing context scripts.
 
-The recommended approach is to build incrementally in three phases: first the shared Forgetful HTTP client and doctor check scripts (no dependencies), then the hook and bootstrap (depend on Phase 1), then the skills and update extension (depend on Phase 2). The stack requires no new runtime dependencies — curl and jq already exist, Node.js is already in use for all scripts. The one critical architectural constraint is that the UserPromptSubmit hook must be registered in `~/.claude/settings.json` rather than in the plugin's `hooks/hooks.json` due to an open bug (#12151) that silently discards plugin hook output.
+The recommended approach is Node.js over bash (22% faster end-to-end at 405ms vs 518ms, measured on the target machine), synchronous hook execution (async hooks cannot inject `additionalContext` for the current prompt), k=5 retrieval with client-side importance >= 7 filtering, and early exit for `/gsd:*` and `/tb:load-context` prompts to avoid duplication with the existing targeted GSD context scripts. The entire feature stays within the existing zero-dependency philosophy — no new npm packages, no new architectural patterns.
 
-The key risks are: silent hook failure from the plugin hooks bug (well-documented, clear workaround), prompt blocking when Forgetful is unreachable (requires strict curl timeouts), and context window bloat from unbounded memory injection (cap at k:3, ~1500 tokens). All three risks have concrete, tested mitigations. Confidence across all research areas is HIGH — findings are based on live testing against Forgetful 3.1.1, official Claude Code docs, and verified GitHub issues.
+The primary risk is Claude Code bug #12151: plugin-scoped hooks in `hooks/hooks.json` may have their stdout silently discarded. The mitigation is pragmatic — attempt registration in `hooks/hooks.json` first and verify output capture immediately; fall back to `~/.claude/settings.json` registration if broken. Two additional open bugs (#34713 false hook error labels, #17550 first-message hookSpecificOutput errors) require integration testing before declaring the feature complete. A second independent risk is every-prompt latency: at ~400ms synchronous per prompt, the feature needs a tight timeout (10s) and graceful no-op on all failure paths so Forgetful downtime never blocks the user.
 
 ## Key Findings
 
 ### Recommended Stack
 
-The v1.1 feature set requires no new Node packages or Python dependencies. The MCP Streamable HTTP protocol (JSON-RPC over POST with SSE responses) is handled in a new `scripts/forgetful-client.js` Node.js module using built-in `http` — curl would work for simple cases but SSE parsing is fragile in shell. jq (already installed at 1.7.1) handles all hook stdin/stdout JSON needs. GSD is not a git repo — it installs via `npx get-shit-done-cc@latest`. Forgetful exposes only 3 MCP tools; all 38+ memory operations route through the `execute_forgetful_tool` dispatcher.
+The entire implementation reuses existing infrastructure with no new dependencies. Node.js (24.12.0 installed, native fetch available since v18) handles the hook script. The `forgetful-client.js` module provides all MCP communication. Live benchmarks confirmed Node.js is faster end-to-end than bash+curl because native fetch handles HTTP connection setup more efficiently than spawning three curl processes.
 
 **Core technologies:**
-- `Node.js` (built-in): `scripts/forgetful-client.js` for MCP Streamable HTTP client — matches existing scripts/ pattern, handles SSE parsing cleanly
-- `curl` + `jq`: doctor check health calls, hook stdin JSON parsing — already available on system
-- `npx get-shit-done-cc@latest`: GSD install and update — interactive installer, cannot be silently automated
-- `claude plugin` CLI: forgetful-plugin detection and install — stable API, prefer over direct file reads
-- `bash` (system 3.2+): hook scripts, doctor checks — ~1ms startup vs ~100ms for Node.js matters on UserPromptSubmit
+- Node.js 24.12.0: hook script runtime — native fetch, 23ms startup, zero-dependency, already the runtime for all forgetful scripts
+- `scripts/forgetful-client.js` (existing): MCP session + tool dispatch — proven in 4 scripts, exports `resolveForgetfulUrl`, `createSession`, `callTool`
+- Claude Code `hooks/hooks.json` (existing): hook registration — add UserPromptSubmit entry alongside SessionStart and SubagentStop
+
+**Hook I/O contract (verified against official docs):**
+- Stdin field is `prompt` (not `user_prompt`)
+- Output via `hookSpecificOutput.additionalContext` for discrete injection (not shown in transcript)
+- Character limit: 10,000 chars; k=5 at 300 chars/snippet = ~2,000 chars, well within budget
+- Timeout: override default 600s to 10s for fast-fail when Forgetful is down
+- Async: must be synchronous — async hooks cannot inject context for the current prompt
 
 ### Expected Features
 
-**Must have (v1.1 launch):**
-- Bootstrap skill (`/tb:bootstrap`) — single idempotent setup entrypoint: GSD install, marketplace add, forgetful-plugin install, MCP config, HTTP reachability check, hook registration in settings.json, doctor verification
-- Doctor checks: `gsd-installed.sh`, `forgetful-mcp.sh`, `forgetful-plugin.sh` — follows existing `scripts/checks/*.sh` PASS/FAIL/WARN pattern
-- Update integration — extend `/tb:update` SKILL.md with Steps 10-13: GSD update, forgetful-plugin update, hook path re-registration, doctor check
-- GSD context hook (`hooks/gsd-context.js`) — UserPromptSubmit, fast-exit non-GSD prompts (~1ms), query Forgetful, inject plain text context (k:3, ~1500 token cap)
-- Load-context skill (`/tb:load-context`) — manual Forgetful memory retrieval for ad-hoc use
-- Save-findings skill (`/tb:save-findings`) — incremental extraction of GSD `.planning/` artifacts into Forgetful memories with query-before-create dedup
+**Must have (v1.2 launch):**
+- Auto-inject hook script — Node.js, reads stdin for prompt, queries Forgetful with project scope + importance threshold, outputs `additionalContext` JSON; exits 0 silently on any failure
+- hooks.json UserPromptSubmit entry — synchronous, 10s timeout, no matcher
+- GSD/load-context prompt skip — early exit when prompt matches `/gsd:` or `/tb:load-context` to avoid duplicating targeted GSD context scripts
+- Graceful failure on every path — Forgetful unreachable, no git remote, no project, zero results — all produce silent exit 0
+- Importance threshold filtering (>= 7) — matches existing load-context skill, filters noise
+- No-results silence — zero memories after filter = exit 0 with no output, no empty XML tags
+- Compact snippet format (300 chars, title + importance + snippet) — signals injection occurred without overwhelming
 
 **Should have (v1.x after validation):**
-- Smart context scoping using `STATE.md` project/milestone/phase for `query_context` parameter
-- Automatic obsolescence marking on phase/milestone transition
-- Pre-compaction save (PreCompact hook)
-- SessionStart pre-warm for cold-start latency reduction
+- Session-scoped project ID cache — saves ~100ms per prompt; build only if latency is a real problem
+- Prompt-aware `query_context` string — better reranking signal for Forgetful's cross-encoder
+- Session-level deduplication — same memories re-injected across turns; observable only at 40+ turns
 
-**Defer (v2+):**
-- Token-budget tuning per GSD command type
-- Cross-project memory linking
-- Batch SUMMARY extraction across all phases
+**Defer to v2+:**
+- Multi-query retrieval (parallel queries like gsd-plan-context.js)
+- Token budget awareness (check context usage before injecting)
+- Cross-project memory injection
 
 ### Architecture Approach
 
-The v1.1 additions are surgical: 3 new `scripts/checks/` bash scripts, 1 new Node.js module, 1 new hook script, 3 new SKILL.md files, and 1 modified SKILL.md. Existing v1.0 plugin structure is entirely unchanged. The critical separation is that SKILL.md-based skills run inside Claude's conversation (full MCP tool access), while the UserPromptSubmit hook runs as a subprocess command (no MCP access — must call Forgetful via direct HTTP). This drives the `forgetful-client.js` module as a shared layer between hook and potentially future scripts.
+The architecture is additive with minimal surface area. One new file lives in `hooks/` alongside `session-start.sh`. The hook imports `forgetful-client.js` via relative require, following the identical pattern used by `gsd-discuss-context.js`, `gsd-plan-context.js`, `gsd-project-context.js`, and `gsd-milestone-save.js`. No new directories, no bin/ wrapper (hook is invoked by Claude Code, not users), no changes to any existing script.
 
 **Major components:**
-1. `scripts/forgetful-client.js` — Node.js module implementing MCP Streamable HTTP: `resolveForgetfulUrl`, `createSession`, `callTool`, `queryMemories`. Shared by hook and extensible for future scripts.
-2. `hooks/gsd-context.js` — UserPromptSubmit hook. Reads stdin JSON, regex-checks `/gsd:` prefix, exits 0 immediately for non-GSD, queries Forgetful via forgetful-client, emits plain text (not hookSpecificOutput JSON) to avoid additional bugs.
-3. `scripts/checks/gsd-installed.sh`, `forgetful-mcp.sh`, `forgetful-plugin.sh` — Three independent doctor checks. `forgetful-mcp.sh` checks both config presence AND curl reachability (not just config).
-4. `skills/bootstrap/SKILL.md` — 7-step idempotent setup. Writes hook registration to `~/.claude/settings.json` via read-merge-write (never overwrite). Runs doctor at end.
-5. `skills/load-context/SKILL.md` + `skills/save-findings/SKILL.md` — SKILL.md files instructing Claude to use Forgetful MCP tools directly. Save-findings: incremental per-finding query-before-create, mark obsolete on supersession.
-6. `skills/update/SKILL.md` (modified) — Appends Steps 10-13 conditionally (skip if GSD/forgetful-plugin not installed). Re-resolves installPath and updates settings.json hook command after each plugin update.
+1. `hooks/user-prompt-context.js` (NEW) — reads stdin JSON, checks skip conditions, queries Forgetful, emits `additionalContext`
+2. `hooks/hooks.json` (MODIFY) — add UserPromptSubmit entry with `timeout: 10`, no `async: true`
+3. `scripts/forgetful-client.js` (REUSE, unchanged) — all MCP communication, session management, URL resolution
+
+**Data flow:** Claude Code fires hook on user prompt → script reads `prompt` from stdin → checks `/gsd:`/`/tb:load-context` prefix (exit 0 immediately if match) → resolves Forgetful URL → creates MCP session → resolves project ID from `git remote get-url origin` → calls `query_memory` with prompt as query, k=5, project-scoped → filters importance >= 7 → outputs JSON with `additionalContext` → Claude receives memories before processing prompt
+
+**Key pattern — selective skip for GSD commands:**
+```javascript
+if (/^\/?gsd:|^\/?tb:load-context/i.test(prompt)) {
+  process.exit(0);
+}
+```
+GSD workflow patches already inject purpose-built context at each GSD decision point via dedicated scripts. Auto-inject would add redundant, less-targeted memories for those prompts.
 
 ### Critical Pitfalls
 
-1. **Plugin hook output silently discarded (bug #12151, OPEN as of April 2026)** — Register UserPromptSubmit in `~/.claude/settings.json`, not `hooks/hooks.json`. Bootstrap writes absolute path. Update skill re-registers after version change. Doctor check verifies script path resolves.
-
-2. **Hook blocks all prompts when Forgetful is unreachable** — `"timeout": 5` on settings.json hook entry. `curl --connect-timeout 1 --max-time 3`. Exit 0 with empty output on any failure. Fast-exit before any HTTP call for non-GSD prompts.
-
-3. **Context window bloat from unbounded memory injection** — `k: 3` max memories. Titles + first-sentence summaries only, ~1500 tokens total. Claude fetches full content via MCP tools on demand.
-
-4. **Bootstrap partial failure leaves half-configured state** — Each step checks idempotently before acting. Read-merge-write for `~/.claude.json` and `settings.json`. Per-step status reporting. Doctor runs at end to confirm.
-
-5. **Forgetful HTTP transport missing despite STDIO working** — Claude's MCP shows "Connected" via STDIO; hook needs separate HTTP endpoint. Bootstrap checks `type: "http"` in `~/.claude.json`. `forgetful-mcp.sh` does curl health check, not just config grep.
+1. **Bug #12151 — plugin hook output silently discarded (OPEN)** — register in `~/.claude/settings.json` as fallback if `hooks/hooks.json` registration does not capture output; verify immediately after implementation by asking Claude what context it received; v2.1.82 may have fixed this but is unconfirmed for UserPromptSubmit specifically
+2. **Every-prompt latency becoming user-visible** — 400ms measured acceptable but must not creep; set `timeout: 10` on hook, use `AbortSignal.timeout(2000)` equivalent on individual fetch calls, add fast-path exit for trivial prompts under 20 chars
+3. **Forgetful downtime blocking every prompt** — wrap `main()` in `.catch(() => process.exit(0))`; the failure path must produce < 500ms no-op; every call has an individual timeout
+4. **Bug #34713 — false "hook error" labels on every prompt (OPEN)** — must test on current version before declaring done; if present, these labels cause Claude to behave cautiously and cut turns short; no clean fix exists if the bug is present
+5. **Context noise from irrelevant memories** — importance >= 7 threshold + low-K (5) + project scoping handles most noise; additionally skip trivial prompts under 20 chars that do not benefit from memory context
 
 ## Implications for Roadmap
 
-### Phase 1: Foundation — Shared Client + Doctor Checks
+This feature is scoped to a single phase (Phase 22). The architecture is too minimal for multiple phases. Within the phase, the recommended structure is two sequential plans with a conditional branch on bug #12151 status.
 
-**Rationale:** `forgetful-client.js` must exist before `gsd-context.js` can require it. Doctor checks must exist before bootstrap can reference them for final verification. These components have no dependencies on each other or on Phase 2 — build them first.
-**Delivers:** Reusable Forgetful HTTP client module + three doctor check scripts. `/tb:doctor` auto-discovers new checks immediately.
-**Addresses:** Forgetful MCP connectivity (table stakes), modular health checks (extends existing tb pattern)
-**Avoids:** Anti-Pattern 3 (bash for MCP protocol — Node.js SSE handling). Pitfall 5 (HTTP vs STDIO detection in `forgetful-mcp.sh`).
+### Phase 22, Plan 1: Hook Script + Registration
 
-### Phase 2: Core Integration — Hook + Bootstrap
+**Rationale:** This is the entire feature. One new file, one modified file. All dependencies already exist. Build the happy path, then verify output capture immediately.
+**Delivers:** Working auto-inject — every non-GSD prompt gets relevant Forgetful memories as `additionalContext` before Claude processes the request
+**Addresses features:** auto-inject hook script, hooks.json registration, GSD skip logic, graceful failure on all paths, importance filtering, compact output format
+**Avoids pitfalls:**
+- Bug #12151 via immediate verification step (ask Claude what context it received after reload)
+- Bug #34713 via visual transcript check during integration testing
+- Every-prompt latency via 10s hook timeout and per-call 2s abort signal
+- Forgetful downtime blocking via `.catch(() => process.exit(0))` project convention
 
-**Rationale:** `gsd-context.js` depends on `forgetful-client.js` (Phase 1). Bootstrap references the hook script path and all three doctor checks. This is the highest-value, highest-risk work. Building it in Phase 2 validates Phase 1 in practice.
-**Delivers:** Working UserPromptSubmit context injection + idempotent one-command environment setup.
-**Uses:** `forgetful-client.js` from Phase 1. Plain text stdout (sidesteps hookSpecificOutput bugs from closed issue #17550). Settings.json registration (bug #12151 workaround).
-**Avoids:** Pitfall 1 (settings.json, not hooks.json), Pitfall 2 (timeouts, fast-exit), Pitfall 3 (k:3, 1500 token cap), Pitfall 4 (idempotent bootstrap).
+**Build steps (from architecture research):**
+1. Read stdin JSON, extract `prompt`
+2. Regex check for `/gsd:` and `/tb:load-context` prefix — exit 0 immediately if match
+3. `resolveForgetfulUrl()` — exit 0 if null
+4. `git remote get-url origin` via `execSync` from `cwd` — exit 0 if fails
+5. `createSession(url)` — exit 0 if fails
+6. `callTool: list_projects` to resolve project ID — exit 0 if no project found
+7. `callTool: query_memory` with prompt as query, k=5, project-scoped, `include_links: false`
+8. Filter memories with importance >= 7
+9. Exit 0 silently if zero memories after filter
+10. Output `hookSpecificOutput.additionalContext` JSON with `<forgetful_context>` XML block
 
-### Phase 3: Skills + Update Extension
+### Phase 22, Plan 2 (Conditional): Settings.json Fallback
 
-**Rationale:** Load-context and save-findings use Claude's MCP tool system — no direct HTTP, no hook dependency. They deliver value independently once Forgetful is configured. Update extension must follow bootstrap because it reuses the hook path re-registration logic proven in Phase 2.
-**Delivers:** `/tb:load-context`, `/tb:save-findings`, and extended `/tb:update`. Completes v1.1 MVP.
-**Addresses:** All P1 features from FEATURES.md.
-**Avoids:** Pitfall 8 (duplicate memories — incremental query-before-create in save-findings), Pitfall 9 (cache path staleness — update re-registers hook), Pitfall 10 (GSD structure brittleness — glob-based artifact discovery).
+**Rationale:** Only build if Plan 1 verification confirms bug #12151 still affects UserPromptSubmit output capture on Claude Code v2.1.92. Do not build speculatively.
+**Delivers:** Hook registration via `~/.claude/settings.json` that reliably captures output, surviving plugin updates
+**Implements:** Extend `skills/bootstrap/SKILL.md` to write the UserPromptSubmit entry to settings.json with absolute path to cached hook script. Extend `skills/update/SKILL.md` to re-register after plugin updates (cache path changes with version). Doctor check verifies settings.json registration resolves to existing file.
+**Note:** v2.1.82 changelog confirms "plugin hooks being silently dropped" was fixed; this plan may be unnecessary.
 
 ### Phase Ordering Rationale
 
-- Hard dependency chain: `forgetful-client.js` -> `gsd-context.js` -> bootstrap validation flow
-- Doctor checks must exist before bootstrap's final verification step
-- Skills are independent of the hook (different execution context) but benefit from running in an already-bootstrapped environment
-- Update extension shares hook path logic with bootstrap — implement after bootstrap is proven
+- Plan 1 before Plan 2: try simpler registration first; fallback adds complexity that may be unnecessary given v2.1.82 fixes
+- Verification is built into Plan 1, not a separate phase: reload plugins, submit a prompt, ask Claude what context it received — this is the go/no-go gate for whether Plan 2 is needed
+- No post-launch tuning phase: importance >= 7 + k=5 is validated by existing load-context skill; only add a tuning phase if real usage shows consistent noise or consistent sparsity after launch
 
 ### Research Flags
 
-Phases with well-documented patterns (skip additional research):
-- **Phase 1 (Foundation):** MCP HTTP protocol verified via live testing. Doctor check pattern established in existing codebase. Node.js module structure matches existing `scripts/*.js` files.
-- **Phase 3 (Skills):** SKILL.md format well-established. Save-findings tool set documented in forgetful-plugin's `TOOL_REFERENCE.md` (on-disk at `~/.claude/plugins/cache/`).
+**Needs verification during implementation (not pre-research — requires running code):**
+- **Plan 1 — Bug #12151 status on v2.1.92:** Cannot confirm without running the hook and observing output capture. Verification protocol is defined: reload plugins, submit prompt, ask Claude what context it received.
+- **Plan 1 — Bug #34713 false error labels:** Cannot confirm without running on current version. Visual check of transcript during integration testing.
+- **Plan 1 — Async mode for `additionalContext`:** STACK.md and PITFALLS.md give conflicting guidance on whether async UserPromptSubmit can inject context for the current prompt. STACK.md says it cannot; PITFALLS.md suggests trying it as a latency optimization. Verify experimentally only if synchronous 400ms latency becomes a real problem.
 
-Phases needing targeted investigation before starting:
-- **Phase 2 (Hook + Bootstrap):** Verify bug #12151 status before building. If fixed, hook can go in `hooks/hooks.json` and bootstrap simplifies significantly. Also: confirm exact `settings.json` hook timeout field name and schema, as this was inferred from docs rather than verified in a running example.
+**Standard patterns (no additional research needed):**
+- **Hook script implementation:** Pattern is identical to `gsd-project-context.js`. Copy structure, adapt for UserPromptSubmit stdin/stdout contract.
+- **forgetful-client.js reuse:** Same `require('../scripts/forgetful-client')` pattern used in 4 existing scripts. No new API surface.
+- **Graceful degradation:** `.catch(() => process.exit(0))` is an established project convention. Direct copy.
+- **Output format:** `<forgetful_context>` XML tag follows established convention from GSD scripts. Claude already interprets these blocks.
 
 ## Confidence Assessment
 
 | Area | Confidence | Notes |
 |------|------------|-------|
-| Stack | HIGH | Verified via live Forgetful 3.1.1 testing, official MCP spec, Claude Code hook docs, CLI output. All tools already installed. |
-| Features | HIGH | P1 features from PROJECT.md, validated against 3 comparable plugins + official UserPromptSubmit behavior docs. Anti-features well-argued. |
-| Architecture | HIGH | Build order from concrete dependency analysis. Bug #12151 verified OPEN by multiple users (Feb-March 2026). 96ms round-trip measured live. |
-| Pitfalls | HIGH | Top 5 pitfalls confirmed via live testing or official GitHub issues with multiple confirmations. All have verified mitigations. |
+| Stack | HIGH | All technologies existing and proven. Node.js vs bash benchmark measured on target machine 2026-04-05. Hook I/O contract verified against official docs. Zero new dependencies. |
+| Features | HIGH | Must-have features are direct extensions of proven patterns from 4 existing scripts. Deferred features clearly identified with rationale. Anti-features well-argued against comparable systems. |
+| Architecture | HIGH | Single new file following established pattern. Component boundaries are crisp. Three open bugs identified with specific issue numbers, clear mitigations, and conditional fallback plans. |
+| Pitfalls | HIGH | Verified against open GitHub issues with specific bug numbers and confirming commenters. Recovery strategies defined for every pitfall. Performance budget measured, not estimated. |
 
 **Overall confidence:** HIGH
 
 ### Gaps to Address
 
-- **Bug #12151 resolution:** If fixed before Phase 2 implementation, hook moves to `hooks/hooks.json` and bootstrap settings.json step is removed. Check issue status at Phase 2 start.
-- **settings.json hook timeout field name:** Research indicates `"timeout": 5` on the hook entry. Confirm exact schema at implementation time by inspecting an existing settings.json with hooks registered.
-- **GSD interactive installer prompts:** `npx get-shit-done-cc@latest` is interactive. Bootstrap SKILL.md must guide the user through prompts. Confirm exact prompts against current GSD 1.30.0 installer before writing SKILL.md.
-- **Forgetful project creation parameters:** Save-findings may need to create a Forgetful project if none exists for the repo. Confirm `create_project` tool parameters from TOOL_REFERENCE.md at implementation time.
-- **Token budget in practice:** The 1500-token cap and k:3 limit are research-based estimates. Validate with real GSD sessions during Phase 2 and adjust before Phase 3.
+- **Bug #12151 actual status on v2.1.92:** Research found the bug open but v2.1.82 changelog entries may have resolved it. Cannot confirm without running the code. Plan 2 is fully pre-designed as the fallback so the implementation path is clear regardless of outcome.
+- **Async `additionalContext` timing:** STACK.md says async hooks cannot inject context for the current prompt. PITFALLS.md says to try it as a latency optimization. Official docs are ambiguous. Verify experimentally only if synchronous 400ms latency becomes an observed problem.
+- **Importance threshold tuning:** 7 is borrowed from the load-context skill. Appropriate for interactive browsing; may be too high or too low for auto-inject. Treat as a post-launch observable metric, not a pre-launch blocker.
 
 ## Sources
 
 ### Primary (HIGH confidence)
-- [MCP Transports Specification](https://modelcontextprotocol.io/specification/2025-03-26/basic/transports) — Streamable HTTP protocol, SSE response format, 3-step session handshake
-- [Claude Code Hooks Reference](https://code.claude.com/docs/en/hooks) — UserPromptSubmit stdin/stdout format, exit codes, timeout config
-- [Claude Code Plugins Reference](https://code.claude.com/docs/en/plugins-reference) — hooks.json format, path variables, plugin cache structure
-- [Bug #12151](https://github.com/anthropics/claude-code/issues/12151) — plugin hook output not captured, OPEN as of April 2026, confirmed by prodan-s, wayne5w, jpicklyk (Feb-March 2026)
-- Live Forgetful 3.1.1 testing at `http://192.168.2.104:8020/mcp` — full MCP session flow, tool names, SSE parsing, 96ms round-trip (March/April 2026)
-- `~/.claude/plugins/cache/forgetful-plugins/forgetful-plugin/1.1.0/skills/using-forgetful-memory/TOOL_REFERENCE.md` — `execute_forgetful_tool` dispatcher, all 38+ tool names
-- `claude plugin list --json`, `claude plugin marketplace list`, `claude mcp list` — output format verified live
+
+- [Claude Code Hooks Reference](https://code.claude.com/docs/en/hooks) — UserPromptSubmit stdin format (`prompt` field), output format (`hookSpecificOutput.additionalContext`), exit codes, timeout defaults, 10,000-char limit. Verified 2026-04-05.
+- Existing codebase: `scripts/forgetful-client.js`, `scripts/gsd-project-context.js`, `scripts/gsd-plan-context.js`, `scripts/gsd-discuss-context.js` — proven patterns for session creation, project resolution, memory querying, output formatting
+- Existing codebase: `hooks/hooks.json`, `hooks/session-start.sh`, `bin/curate-discoveries` — working hook infrastructure in production
+- Live benchmarks on target machine 2026-04-05: Node.js 23ms startup, 405ms full round-trip vs bash+curl 518ms
+- [Claude Code Changelog v2.1.82](https://github.com/anthropics/claude-code/blob/main/CHANGELOG.md) — fixed "plugin hooks being silently dropped," "plugin Stop/SessionEnd hooks not firing after /plugin operation"
 
 ### Secondary (MEDIUM confidence)
-- [Forgetful Introduction (dev.to)](https://dev.to/scott_raisbeck_24ea5fbc1e/introducing-forgetful-shared-knowledge-and-memory-across-agents-40o6) — Zettelkasten principles, two-stage retrieval, cross-encoder reranking, 0.7 similarity auto-link threshold
-- [forgetful-plugin GitHub](https://github.com/ScottRBK/forgetful-plugin) — commands, setup flow, skills reference
-- [claude-mem GitHub](https://github.com/thedotmack/claude-mem) — progressive disclosure pattern, 5-hook lifecycle
-- [memory-store-plugin GitHub](https://github.com/julep-ai/memory-store-plugin) — queue-based capture, auto-checkpoint pattern
-- [claude-bootstrap GitHub](https://github.com/alinaqi/claude-bootstrap) — PreCompact hook pattern, environment setup conventions
-- [Bug #17550](https://github.com/anthropics/claude-code/issues/17550) — hookSpecificOutput first-message error, CLOSED Feb 2026
-- [UserPromptSubmit Issue #27365](https://github.com/anthropics/claude-code/issues/27365) — confirms no `updatedPrompt` support, additionalContext only
+
+- [Bug #12151](https://github.com/anthropics/claude-code/issues/12151) — OPEN, plugin hook output silently discarded, 23 comments, confirmed on v2.1.45
+- [Bug #34713](https://github.com/anthropics/claude-code/issues/34713) — OPEN, false hook error labels causing premature turn termination in plugin-heavy setups
+- [Bug #17550](https://github.com/anthropics/claude-code/issues/17550) — CLOSED Feb 2026, hookSpecificOutput first-message errors; workaround was plain text
+- [memsearch ccplugin](https://github.com/zilliztech/memsearch/tree/main/ccplugin), [claude-mem](https://github.com/thedotmack/claude-mem) — reference implementations for UserPromptSubmit auto-inject pattern; latency targets and failure mode conventions
+- [RAG relevance threshold best practices](https://meisinlee.medium.com/better-rag-retrieval-similarity-with-threshold-a6dbb535ef9e) — importance threshold rationale, no universal optimal value
+- [MCP Transport Performance Benchmarks](https://www.tmdevlab.com/mcp-server-performance-benchmark-v2.html) — 10-50ms HTTP latency floor, session reuse benefit
 
 ---
-*Research completed: 2026-04-01*
+*Research completed: 2026-04-05*
 *Ready for roadmap: yes*
