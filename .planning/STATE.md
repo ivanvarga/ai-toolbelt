@@ -1,17 +1,17 @@
 ---
 gsd_state_version: 1.0
-milestone: v1.1
-milestone_name: GSD & Forgetful Integration
-status: complete
-stopped_at: v1.1 milestone shipped
-last_updated: "2026-04-05T20:00:00Z"
+milestone: v1.2
+milestone_name: Auto-inject Forgetful Context
+status: active
+stopped_at: null
+last_updated: "2026-04-05T21:00:00Z"
 last_activity: 2026-04-05
 progress:
-  total_phases: 5
-  completed_phases: 5
-  total_plans: 9
-  completed_plans: 9
-  percent: 100
+  total_phases: 0
+  completed_phases: 0
+  total_plans: 0
+  completed_plans: 0
+  percent: 0
 ---
 
 # Project State
@@ -21,16 +21,14 @@ progress:
 See: .planning/PROJECT.md (updated 2026-04-05)
 
 **Core value:** One repo, one install command -- every custom skill, credential setup, and dev tool available on any machine, always up to date.
-**Current focus:** Planning next milestone
+**Current focus:** v1.2 Auto-inject Forgetful Context
 
 ## Current Position
 
-Phase: 21.1
-Plan: Not started
-Status: Ready to execute
-Last activity: 2026-04-05
-
-Progress: [██████████] 100%
+Phase: Not started (defining requirements)
+Plan: —
+Status: Defining requirements
+Last activity: 2026-04-05 — Milestone v1.2 started
 
 ## Performance Metrics
 

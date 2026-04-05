@@ -25,7 +25,16 @@ One repo, one install command — every custom skill, credential setup, and dev 
 
 ### Active
 
-- [ ] Auto-inject Forgetful context — UserPromptSubmit hook with deterministic similarity search on every prompt (Phase 22, next milestone)
+- [ ] Auto-inject Forgetful context — UserPromptSubmit hook with deterministic similarity search on every prompt, using existing HTTP client
+
+## Current Milestone: v1.2 Auto-inject Forgetful Context
+
+**Goal:** Automatically inject relevant Forgetful memories into every prompt via UserPromptSubmit hook using the existing HTTP client for Forgetful queries.
+
+**Target features:**
+- UserPromptSubmit hook that runs deterministic similarity search on every prompt
+- Uses existing Forgetful HTTP client (not MCP) for direct API queries
+- Relevant context injected automatically (no manual /tb:load-context needed)
 
 ### Validated
 
@@ -109,4 +118,4 @@ This document evolves at phase transitions and milestone boundaries.
 4. Update Context with current state
 
 ---
-*Last updated: 2026-04-05 after v1.1 milestone*
+*Last updated: 2026-04-05 after v1.2 milestone start*
