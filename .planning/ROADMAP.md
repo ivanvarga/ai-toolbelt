@@ -116,4 +116,23 @@ Phases execute in numeric order: 18 -> 19 -> 20 -> 21
 | 21. Memory Skills | v1.1 | 1/1 | Complete    | 2026-04-02 |
 
 ---
-*Last updated: 2026-04-03 after Phase 21 planning*
+*Last updated: 2026-04-05 after Phase 21.1 planning*
+
+### Phase 21.1: Plugin bin directory & auto-save research discoveries (INSERTED)
+
+**Goal:** (1) Create bin/ wrappers for PATH-based invocation of scripts via Claude Code v2.1.91+, (2) Patch research-phase to capture General Discoveries and auto-save to Forgetful via SubagentStop hook
+**Depends on:** Phase 21
+**Requirements**: BIN-01, BIN-02, BIN-03, DISC-01, DISC-02, DISC-03, DISC-04, DISC-05
+**Success Criteria** (what must be TRUE):
+  1. bin/ directory contains executable wrappers for all key scripts, invokable as bare commands
+  2. Research-phase workflow includes General Discoveries section instructions for the researcher
+  3. SubagentStop hook triggers curation script when gsd-phase-researcher completes
+  4. Curation script parses discoveries, dedup-checks Forgetful, and saves qualifying entries
+  5. SKILL.md files use bare bin/ commands instead of verbose CLAUDE_PLUGIN_ROOT/scripts/ paths
+  6. verify-patches.sh validates the new research-discoveries patch
+**Plans:** 3 plans
+
+Plans:
+- [ ] 21.1-01-PLAN.md — bin/ directory with 8 wrapper scripts for PATH executables
+- [ ] 21.1-02-PLAN.md — Research-phase patch for General Discoveries section + verify-patches extension
+- [ ] 21.1-03-PLAN.md — Curation script, SubagentStop hook, and SKILL.md migration to bare commands

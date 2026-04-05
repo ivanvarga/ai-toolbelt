@@ -41,6 +41,17 @@ Requirements for GSD & Forgetful Integration milestone. Each maps to roadmap pha
 - [x] **UPDT-02**: /tb:update also updates forgetful-plugin
 - [x] **UPDT-03**: /tb:update re-applies GSD patches after GSD update
 
+### Plugin bin/ & Auto-Curation (Phase 21.1)
+
+- [ ] **BIN-01**: bin/ directory exists with executable wrapper scripts for all key scripts/ files
+- [ ] **BIN-02**: bin/ wrappers are invokable as bare commands when plugin is loaded (PATH-based)
+- [ ] **BIN-03**: SKILL.md files use bare forgetful-client command instead of verbose CLAUDE_PLUGIN_ROOT/scripts/ paths
+- [ ] **DISC-01**: Research-phase patch injects General Discoveries section instructions into GSD researcher prompt
+- [ ] **DISC-02**: SubagentStop hook fires curate-discoveries script when gsd-phase-researcher completes
+- [ ] **DISC-03**: Curation script parses General Discoveries entries and saves qualifying ones to Forgetful with dedup
+- [ ] **DISC-04**: Curation runs autonomously (async, no user intervention) after every research run
+- [ ] **DISC-05**: verify-patches.sh validates the new research-general-discoveries patch
+
 ## Future Requirements
 
 Deferred to v1.x after validation.
@@ -92,12 +103,20 @@ Which phases cover which requirements. Updated during roadmap creation.
 | UPDT-01 | Phase 20 | Complete |
 | UPDT-02 | Phase 20 | Complete |
 | UPDT-03 | Phase 20 | Complete |
+| BIN-01 | Phase 21.1 | Planned |
+| BIN-02 | Phase 21.1 | Planned |
+| BIN-03 | Phase 21.1 | Planned |
+| DISC-01 | Phase 21.1 | Planned |
+| DISC-02 | Phase 21.1 | Planned |
+| DISC-03 | Phase 21.1 | Planned |
+| DISC-04 | Phase 21.1 | Planned |
+| DISC-05 | Phase 21.1 | Planned |
 
 **Coverage:**
-- v1.1 requirements: 19 total
-- Mapped to phases: 19
+- v1.1 requirements: 27 total (19 complete + 8 planned)
+- Mapped to phases: 27
 - Unmapped: 0
 
 ---
 *Requirements defined: 2026-03-28*
-*Last updated: 2026-03-28 after roadmap creation (traceability added)*
+*Last updated: 2026-04-05 after Phase 21.1 planning*
