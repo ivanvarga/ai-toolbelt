@@ -129,7 +129,7 @@ Phases execute in numeric order: 18 -> 19 -> 20 -> 21
 | 19. GSD Workflow Patches | v1.1 | 2/2 | Complete    | 2026-04-01 |
 | 20. Bootstrap & Update | v1.1 | 1/1 | Complete    | 2026-04-02 |
 | 21. Memory Skills | v1.1 | 1/1 | Complete    | 2026-04-02 |
-| 21.1. Plugin Bin Directory | v1.1 | 3/3 | Complete   | 2026-04-05 |
+| 21.1. Plugin Bin Directory | v1.1 | 3/3 | Complete    | 2026-04-05 |
 
 ---
 *Last updated: 2026-04-05 after Phase 21.1 Wave 1 execution*
