@@ -110,12 +110,12 @@ Plans:
   1. bin/ directory exists with wrapper scripts for all key scripts/ executables
   2. Wrappers delegate to scripts/ via relative path resolution (no hardcoded paths)
   3. All wrappers have execute permissions and correct shebangs
-**Plans:** 1/3 plans complete
+**Plans:** 3/3 plans complete
 
 Plans:
 - [x] 21.1-01-PLAN.md — bin/ wrapper scripts for 8 scripts/ executables
-- [ ] 21.1-02-PLAN.md
-- [ ] 21.1-03-PLAN.md
+- [x] 21.1-02-PLAN.md
+- [x] 21.1-03-PLAN.md
 
 ## Progress
 
@@ -129,7 +129,7 @@ Phases execute in numeric order: 18 -> 19 -> 20 -> 21
 | 19. GSD Workflow Patches | v1.1 | 2/2 | Complete    | 2026-04-01 |
 | 20. Bootstrap & Update | v1.1 | 1/1 | Complete    | 2026-04-02 |
 | 21. Memory Skills | v1.1 | 1/1 | Complete    | 2026-04-02 |
-| 21.1. Plugin Bin Directory | v1.1 | 1/3 | In Progress | - |
+| 21.1. Plugin Bin Directory | v1.1 | 3/3 | Complete   | 2026-04-05 |
 
 ---
 *Last updated: 2026-04-05 after Phase 21.1 Wave 1 execution*

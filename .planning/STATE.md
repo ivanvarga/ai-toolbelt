@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.1
 milestone_name: GSD & Forgetful Integration
 status: executing
-stopped_at: "Phase 21.1 Wave 1 complete (Plans 01+02)"
-last_updated: "2026-04-05T18:10:00Z"
+stopped_at: Completed 21.1-03-PLAN.md (all Phase 21.1 plans complete)
+last_updated: "2026-04-05T18:15:10.960Z"
 last_activity: 2026-04-05
 progress:
   total_phases: 5
-  completed_phases: 4
+  completed_phases: 5
   total_plans: 9
-  completed_plans: 8
+  completed_plans: 9
   percent: 100
 ---
 
@@ -26,8 +26,8 @@ See: .planning/PROJECT.md (updated 2026-03-28)
 ## Current Position
 
 Phase: 21.1 (plugin-bin-directory-for-path-executables) — EXECUTING
-Plan: 2 of 3
-Status: Wave 1 complete, Wave 2 next
+Plan: 3 of 3
+Status: Ready to execute
 Last activity: 2026-04-05
 
 Progress: [██████████] 100%
@@ -52,6 +52,7 @@ Progress: [██████████] 100%
 | Phase 21 P01 | 3min | 2 tasks | 2 files |
 | Phase 21.1 P01 | 2min | 2 tasks | 8 files |
 | Phase 21.1 P02 | 3min | 2 tasks | 2 files |
+| Phase 21.1 P03 | 2min | 2 tasks | 4 files |
 
 ## Accumulated Context
 
@@ -75,6 +76,7 @@ Recent decisions affecting current work:
 - [21-01]: Inline curation agent for save-findings (not subagent) -- keeps user in single conversation flow
 - [Phase 21.1]: Used awk instead of sed for before-anchor insertion in workflow patches (sed r only inserts after)
 - [21.1-01]: Wrapper pattern uses exec with dirname-relative paths for portable resolution
+- [Phase 21.1]: Resolve forgetful-client via __dirname sibling path for portability
 
 ### Roadmap Evolution
 
@@ -92,5 +94,5 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-04-05T18:10:00Z
-Stopped at: Phase 21.1 Wave 1 complete (Plans 01+02)
+Last session: 2026-04-05T18:15:10.957Z
+Stopped at: Completed 21.1-03-PLAN.md (all Phase 21.1 plans complete)
