@@ -3,15 +3,15 @@ gsd_state_version: 1.0
 milestone: v1.1
 milestone_name: GSD & Forgetful Integration
 status: executing
-stopped_at: Phase 21 context gathered
-last_updated: "2026-04-02T23:53:35.872Z"
-last_activity: 2026-04-02
+stopped_at: "Phase 21.1 Plan 01 complete"
+last_updated: "2026-04-05T18:07:29Z"
+last_activity: 2026-04-05 -- Phase 21.1 Plan 01 executed
 progress:
   total_phases: 4
   completed_phases: 4
   total_plans: 6
   completed_plans: 6
-  percent: 50
+  percent: 100
 ---
 
 # Project State
@@ -21,14 +21,14 @@ progress:
 See: .planning/PROJECT.md (updated 2026-03-28)
 
 **Core value:** One repo, one install command -- every custom skill, credential setup, and dev tool available on any machine, always up to date.
-**Current focus:** Phase 21 — memory-skills
+**Current focus:** Phase 21.1 -- plugin-bin-directory-for-path-executables
 
 ## Current Position
 
-Phase: 21 (Complete)
-Plan: 1/1 complete
-Status: Phase 21 complete, v1.1 milestone fully executed
-Last activity: 2026-04-03
+Phase: 21.1 (plugin-bin-directory-for-path-executables) -- EXECUTING
+Plan: 2 of 3
+Status: Executing Phase 21.1
+Last activity: 2026-04-05 -- Phase 21.1 Plan 01 executed
 
 Progress: [██████████] 100%
 
@@ -50,6 +50,7 @@ Progress: [██████████] 100%
 | Phase 19 P02 | 3min | 2 tasks | 6 files |
 | Phase 20 P01 | 2min | 2 tasks | 2 files |
 | Phase 21 P01 | 3min | 2 tasks | 2 files |
+| Phase 21.1 P01 | 2min | 2 tasks | 8 files |
 
 ## Accumulated Context
 
@@ -71,6 +72,7 @@ Recent decisions affecting current work:
 - [20-01]: GSD install guided (user runs manually per D-01), GSD update automated (npx in bash block per D-07)
 - [21-01]: No helper scripts for memory skills -- SKILL.md instructs Claude to call MCP tools directly (native MCP access in skill conversations)
 - [21-01]: Inline curation agent for save-findings (not subagent) -- keeps user in single conversation flow
+- [21.1-01]: Wrapper pattern uses exec with dirname-relative paths for portable resolution
 
 ### Pending Todos
 
@@ -84,5 +86,5 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-04-03
-Stopped at: Phase 21 complete, v1.1 milestone fully executed
+Last session: 2026-04-05
+Stopped at: Phase 21.1 Plan 01 complete
