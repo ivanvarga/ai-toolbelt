@@ -1,0 +1,194 @@
+#!/usr/bin/env node
+const { execFileSync } = require('child_process');
+const fs = require('fs');
+const path = require('path');
+const { glob } = require('path');
+
+const DRY_RUN = process.argv.includes('--dry-run');
+const FORGETFUL_CLIENT = path.join(__dirname, 'forgetful-client');
+
+function readStdin() {
+  try {
+    return fs.readFileSync('/dev/stdin', 'utf8');
+  } catch {
+    return '';
+  }
+}
+
+function parseGeneralDiscoveries(text) {
+  const match = text.match(/## General Discoveries\n([\s\S]*?)(?=\n## [^#]|\n---|$)/);
+  return match ? match[1] : null;
+}
+
+function parseEntries(section) {
+  const entries = [];
+  const blocks = section.split(/\n###\s+/).filter(Boolean);
+
+  for (const block of blocks) {
+    const titleMatch = block.match(/\*\*Title:\*\*\s*(.+)/);
+    const contentMatch = block.match(/\*\*Content:\*\*\s*([\s\S]*?)(?=\*\*Scope)/);
+    const scopeMatch = block.match(/\*\*Scope:\*\*\s*(.+)/);
+    const domainMatch = block.match(/\*\*Domain:\*\*\s*(.+)/);
+    const confidenceMatch = block.match(/\*\*Confidence:\*\*\s*(.+)/);
+    const tagsMatch = block.match(/\*\*Tags:\*\*\s*(.+)/);
+
+    if (!titleMatch || !contentMatch) continue;
+
+    entries.push({
+      title: titleMatch[1].trim(),
+      content: contentMatch[1].trim(),
+      scope: scopeMatch ? scopeMatch[1].trim() : 'general',
+      domain: domainMatch ? domainMatch[1].trim() : 'unknown',
+      confidence: confidenceMatch ? confidenceMatch[1].trim() : 'unverified',
+      tags: tagsMatch ? tagsMatch[1].split(',').map(t => t.trim()) : [],
+    });
+  }
+
+  return entries;
+}
+
+function runForgetfulClient(args) {
+  return execFileSync(FORGETFUL_CLIENT, args, {
+    encoding: 'utf8',
+    timeout: 30000,
+  });
+}
+
+function isDuplicate(title, queryResults) {
+  const titleWords = title.toLowerCase().split(/\s+/).filter(w => w.length > 2);
+  if (titleWords.length === 0) return false;
+
+  for (const result of queryResults) {
+    const existingTitle = (result.title || '').toLowerCase();
+    const matchCount = titleWords.filter(w => existingTitle.includes(w)).length;
+    if (matchCount / titleWords.length > 0.8) return true;
+  }
+
+  return false;
+}
+
+function findLatestResearch(cwd) {
+  try {
+    const phasesDir = path.join(cwd, '.planning', 'phases');
+    if (!fs.existsSync(phasesDir)) return null;
+
+    const files = [];
+    for (const dir of fs.readdirSync(phasesDir)) {
+      const fullDir = path.join(phasesDir, dir);
+      if (!fs.statSync(fullDir).isDirectory()) continue;
+      for (const file of fs.readdirSync(fullDir)) {
+        if (file.endsWith('-RESEARCH.md')) {
+          const filePath = path.join(fullDir, file);
+          files.push({ path: filePath, mtime: fs.statSync(filePath).mtimeMs });
+        }
+      }
+    }
+
+    files.sort((a, b) => b.mtime - a.mtime);
+    return files.length > 0 ? fs.readFileSync(files[0].path, 'utf8') : null;
+  } catch {
+    return null;
+  }
+}
+
+async function main() {
+  const raw = readStdin();
+
+  let input = {};
+  if (raw.trim()) {
+    try {
+      input = JSON.parse(raw);
+    } catch {
+      process.stderr.write('curate-discoveries: stdin is not valid JSON\n');
+      process.exit(0);
+    }
+  }
+
+  let section = null;
+  const lastMessage = input.last_assistant_message || '';
+  const cwd = input.cwd || process.cwd();
+
+  if (lastMessage) {
+    section = parseGeneralDiscoveries(lastMessage);
+  }
+
+  if (!section) {
+    const research = findLatestResearch(cwd);
+    if (research) {
+      section = parseGeneralDiscoveries(research);
+    }
+  }
+
+  if (!section) {
+    process.stderr.write('curate-discoveries: No General Discoveries section found\n');
+    process.exit(0);
+  }
+
+  const entries = parseEntries(section);
+  if (entries.length === 0) {
+    process.stderr.write('curate-discoveries: No parseable discovery entries found\n');
+    process.exit(0);
+  }
+
+  let saved = 0;
+  let skipped = 0;
+
+  for (const entry of entries) {
+    let queryResults = [];
+    try {
+      const output = runForgetfulClient([
+        'call-tool',
+        'query_memory',
+        JSON.stringify({ query: entry.title, k: 3 }),
+      ]);
+      const parsed = JSON.parse(output);
+      queryResults = parsed.memories || parsed.results || parsed || [];
+      if (!Array.isArray(queryResults)) queryResults = [];
+    } catch {
+      queryResults = [];
+    }
+
+    if (isDuplicate(entry.title, queryResults)) {
+      process.stderr.write(`SKIP (duplicate): ${entry.title}\n`);
+      skipped++;
+      continue;
+    }
+
+    if (DRY_RUN) {
+      process.stderr.write(`DRY-RUN WOULD SAVE: ${entry.title}\n`);
+      saved++;
+      continue;
+    }
+
+    try {
+      runForgetfulClient([
+        'call-tool',
+        'create_memory',
+        JSON.stringify({
+          title: entry.title,
+          content: entry.content,
+          metadata: {
+            scope: entry.scope,
+            domain: entry.domain,
+            confidence: entry.confidence,
+            tags: entry.tags.join(', '),
+            source: 'gsd-research-auto-curation',
+            created_by: 'curate-discoveries',
+          },
+        }),
+      ]);
+      process.stderr.write(`SAVED: ${entry.title}\n`);
+      saved++;
+    } catch (err) {
+      process.stderr.write(`ERROR saving "${entry.title}": ${err.message}\n`);
+    }
+  }
+
+  const action = DRY_RUN ? 'would save' : 'saved';
+  process.stdout.write(`Curated ${entries.length} discoveries: ${saved} ${action}, ${skipped} skipped (duplicate)\n`);
+}
+
+main().catch(err => {
+  process.stderr.write(`curate-discoveries: ${err.message}\n`);
+  process.exit(0);
+});
