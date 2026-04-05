@@ -19,7 +19,7 @@ echo "$REPO_ID"
 Resolve the Forgetful project ID:
 
 ```bash
-node ${CLAUDE_PLUGIN_ROOT}/scripts/forgetful-client.js call-tool list_projects '{"repo_name": "<REPO_ID>"}'
+forgetful-client call-tool list_projects '{"repo_name": "<REPO_ID>"}'
 ```
 
 Extract the project ID from the JSON response. If no project is found, ask the user for the project name and retry with `list_projects`. If still no match, stop -- memories cannot be saved without project context.
@@ -96,7 +96,7 @@ Act as a curation agent. For each included artifact, read its content and evalua
 For each candidate, query existing Forgetful memories to detect overlap:
 
 ```bash
-node ${CLAUDE_PLUGIN_ROOT}/scripts/forgetful-client.js call-tool query_memory '{
+forgetful-client call-tool query_memory '{
   "query": "<candidate title>",
   "query_context": "Dedup check for save-findings curation",
   "k": 5,
@@ -149,7 +149,7 @@ For each approved action in order:
 
 **CREATE:**
 ```bash
-node ${CLAUDE_PLUGIN_ROOT}/scripts/forgetful-client.js call-tool create_memory '{
+forgetful-client call-tool create_memory '{
   "title": "<title>",
   "content": "<content>",
   "context": "Phase {N} save-findings extraction",
@@ -163,7 +163,7 @@ Record the returned memory ID.
 
 **UPDATE:**
 ```bash
-node ${CLAUDE_PLUGIN_ROOT}/scripts/forgetful-client.js call-tool update_memory '{
+forgetful-client call-tool update_memory '{
   "memory_id": <existing memory ID>,
   "title": "<updated title if changed>",
   "content": "<updated content if changed>",
@@ -174,7 +174,7 @@ node ${CLAUDE_PLUGIN_ROOT}/scripts/forgetful-client.js call-tool update_memory '
 
 **OBSOLETE:**
 ```bash
-node ${CLAUDE_PLUGIN_ROOT}/scripts/forgetful-client.js call-tool mark_memory_obsolete '{
+forgetful-client call-tool mark_memory_obsolete '{
   "memory_id": <memory ID>,
   "reason": "<why this memory is outdated or superseded>",
   "superseded_by": <new memory ID if a CREATE in this batch replaces it>

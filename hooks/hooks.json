@@ -11,6 +11,19 @@
           }
         ]
       }
+    ],
+    "SubagentStop": [
+      {
+        "matcher": "gsd-phase-researcher",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "${CLAUDE_PLUGIN_ROOT}/bin/curate-discoveries",
+            "async": true,
+            "timeout": 120
+          }
+        ]
+      }
     ]
   }
 }

@@ -21,7 +21,7 @@ If the command fails (not a git repo), warn the user that project scoping is una
 If the command succeeds, resolve the Forgetful project ID:
 
 ```bash
-node ${CLAUDE_PLUGIN_ROOT}/scripts/forgetful-client.js call-tool list_projects '{"repo_name": "<REPO_ID>"}'
+forgetful-client call-tool list_projects '{"repo_name": "<REPO_ID>"}'
 ```
 
 Extract the project ID from the JSON response. If no project is found (empty projects array), warn the user and continue without project scoping.
@@ -40,7 +40,7 @@ If `$ARGUMENTS` is empty (no query provided), ask the user what topic they want 
 ### 3. Execute semantic query
 
 ```bash
-node ${CLAUDE_PLUGIN_ROOT}/scripts/forgetful-client.js call-tool query_memory '{
+forgetful-client call-tool query_memory '{
   "query": "<query text, with phase {N} prepended if --phase was given>",
   "query_context": "<brief description of why searching>",
   "k": 15,
@@ -94,7 +94,7 @@ After displaying results, present three actions:
 **Expand a memory:** The user provides a memory number from the displayed list. Call:
 
 ```bash
-node ${CLAUDE_PLUGIN_ROOT}/scripts/forgetful-client.js call-tool query_memory '{
+forgetful-client call-tool query_memory '{
   "query": "<memory title>",
   "query_context": "Expanding memory for full details",
   "k": 1
@@ -123,7 +123,7 @@ After loading, confirm: "Loaded {N} memories into context. These will be availab
 **Mark obsolete:** The user specifies which memories by number (e.g., "obsolete 2,4"). Ask the user for a reason, then for each selected memory call:
 
 ```bash
-node ${CLAUDE_PLUGIN_ROOT}/scripts/forgetful-client.js call-tool mark_memory_obsolete '{
+forgetful-client call-tool mark_memory_obsolete '{
   "memory_id": <memory ID>,
   "reason": "<user-provided reason>"
 }'
