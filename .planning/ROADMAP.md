@@ -153,13 +153,14 @@ Plans:
 - [x] 21.1-02-PLAN.md — Research-phase patch for General Discoveries section + verify-patches extension
 - [ ] 21.1-03-PLAN.md — Curation script, SubagentStop hook, and SKILL.md migration to bare commands
 
-## Backlog
+## Upcoming (Unassigned to Milestone)
 
-### Phase 999.1: Auto-inject Forgetful context on every prompt (BACKLOG)
+### Phase 22: Auto-inject Forgetful context on every prompt
 
 **Goal:** UserPromptSubmit hook that always queries Forgetful with deterministic similarity search, includes top-N most important memories above relevance threshold, gracefully no-ops if Forgetful unreachable. No prompt filtering heuristics — keep it simple.
+**Depends on:** Phase 18 (Forgetful client)
 **Requirements:** TBD
 **Plans:** 0 plans
 
 Plans:
-- [ ] TBD (promote with /gsd:review-backlog when ready)
+- [ ] TBD (run /gsd:plan-phase 22 to break down)
