@@ -108,17 +108,17 @@ Plans:
 **Milestone Goal:** Automatically inject relevant Forgetful memories into every prompt via UserPromptSubmit hook.
 
 - [x] **Phase 22 Plan 01: Core Hook** - UserPromptSubmit hook script + hooks.json registration (completed 2026-04-09)
-- [ ] **Phase 22 Plan 02: Settings.json Fallback** - Doctor check + settings.json fallback for bug #12151
+- [x] **Phase 22 Plan 02: Settings.json Fallback** - Doctor check + settings.json fallback for bug #12151 (completed 2026-04-09)
 
 ### Phase 22: Auto-inject Forgetful Context
 **Goal**: User prompts automatically trigger Forgetful similarity search with project scoping, filtered by importance
 **Depends on**: Phase 18 (forgetful-client.js)
 **Requirements**: CTXI-01, CTXI-02, CTXI-03, CTXI-04, CTXI-05, CTXI-06, CTXI-07, HOOK-01, HOOK-02, HOOK-03
-**Plans:** 1/2 plans complete
+**Plans:** 2/2 plans complete
 
 Plans:
 - [x] 22-01-PLAN.md -- UserPromptSubmit hook script + hooks.json registration
-- [ ] 22-02-PLAN.md -- Doctor check + settings.json fallback
+- [x] 22-02-PLAN.md -- Doctor check + settings.json fallback
 
 ## Progress
 
@@ -132,7 +132,7 @@ Phases execute in numeric order: 18 -> 19 -> 20 -> 21 -> 21.1 -> 22
 | 19. GSD Workflow Patches | v1.1 | 2/2 | Complete | 2026-04-01 |
 | 20. Bootstrap & Update | v1.1 | 1/1 | Complete | 2026-04-02 |
 | 21. Memory Skills | v1.1 | 1/1 | Complete | 2026-04-02 |
-| 22. Auto-inject Context | v1.2 | 1/2 | Executing | -- |
+| 22. Auto-inject Context | v1.2 | 2/2 | Complete   | 2026-04-09 |
 
 ---
 *Last updated: 2026-04-09 after Phase 22 Plan 01 complete*

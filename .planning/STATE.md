@@ -1,16 +1,16 @@
 ---
 gsd_state_version: 1.0
-milestone: v1.2
-milestone_name: Auto-inject Forgetful Context
-status: executing
-stopped_at: Completed 22-01-PLAN.md
-last_updated: "2026-04-09T14:25:36.346Z"
-last_activity: 2026-04-09 -- Phase 22 Plan 01 complete
+milestone: v1.1
+milestone_name: GSD & Forgetful Integration
+status: verifying
+stopped_at: Completed 22-02-PLAN.md
+last_updated: "2026-04-09T14:31:37.769Z"
+last_activity: 2026-04-09
 progress:
-  total_phases: 1
+  total_phases: 4
   completed_phases: 0
-  total_plans: 2
-  completed_plans: 1
+  total_plans: 0
+  completed_plans: 0
   percent: 50
 ---
 
@@ -27,8 +27,8 @@ See: .planning/PROJECT.md (updated 2026-04-05)
 
 Phase: 22 (auto-inject-forgetful-context-on-every-prompt) — EXECUTING
 Plan: 2 of 2
-Status: Plan 01 complete, Plan 02 next
-Last activity: 2026-04-09 -- Phase 22 Plan 01 complete
+Status: Phase complete — ready for verification
+Last activity: 2026-04-09
 
 Progress: [█████░░░░░] 50%
 
@@ -69,6 +69,8 @@ Recent decisions affecting current work:
 - [22-01]: additionalContext for failure notice (D-07) -- avoids triggering bug #34713 false error labels
 - [22-01]: 1-hour TTL for project ID cache (D-09) -- balances freshness with performance
 - [22-01]: process.ppid for session-scoped failure flag -- scopes to Claude session parent process
+- [Phase 22]: Dual-source detection in doctor check -- checks hooks.json first, falls back to settings.json
+- [Phase 22]: Bootstrap provides fallback command but does not auto-register -- detection requires user verification
 
 ### Pending Todos
 
@@ -81,5 +83,5 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-04-09T14:25:36Z
-Stopped at: Completed 22-01-PLAN.md
+Last session: 2026-04-09T14:31:37.767Z
+Stopped at: Completed 22-02-PLAN.md

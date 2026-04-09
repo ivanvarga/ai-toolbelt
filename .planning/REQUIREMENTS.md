@@ -20,8 +20,8 @@ Requirements for auto-inject Forgetful context milestone. Each maps to roadmap p
 ### Hook Registration
 
 - [ ] **HOOK-01**: UserPromptSubmit hook registered in hooks.json (synchronous, ~10s timeout)
-- [ ] **HOOK-02**: Doctor check verifies UserPromptSubmit hook is registered and script exists
-- [ ] **HOOK-03**: If plugin hooks.json output is silently discarded (bug #12151), fall back to settings.json registration with documented workaround
+- [x] **HOOK-02**: Doctor check verifies UserPromptSubmit hook is registered and script exists
+- [x] **HOOK-03**: If plugin hooks.json output is silently discarded (bug #12151), fall back to settings.json registration with documented workaround
 
 ## Future Requirements
 
@@ -57,8 +57,8 @@ Which phases cover which requirements. Updated during roadmap creation.
 | CTXI-06 | Phase 22 | Pending |
 | CTXI-07 | Phase 22 | Pending |
 | HOOK-01 | Phase 22 | Pending |
-| HOOK-02 | Phase 22 | Pending |
-| HOOK-03 | Phase 22 | Pending |
+| HOOK-02 | Phase 22 | Complete |
+| HOOK-03 | Phase 22 | Complete |
 
 **Coverage:**
 - v1.2 requirements: 10 total
