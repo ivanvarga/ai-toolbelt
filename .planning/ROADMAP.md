@@ -9,7 +9,7 @@
 ## Phases
 
 <details>
-<summary>✅ v1.0 MVP (Phases 1-17) — SHIPPED 2026-03-28</summary>
+<summary>v1.0 MVP (Phases 1-17) — SHIPPED 2026-03-28</summary>
 
 - [x] Phase 1: Plugin Scaffold (1/1 plans)
 - [x] Phase 2: Plugin Install + Operations (2/2 plans)
@@ -109,16 +109,18 @@ Plans:
 
 - [x] **Phase 22 Plan 01: Core Hook** - UserPromptSubmit hook script + hooks.json registration (completed 2026-04-09)
 - [x] **Phase 22 Plan 02: Settings.json Fallback** - Doctor check + settings.json fallback for bug #12151 (completed 2026-04-09)
+- [ ] **Phase 22 Plan 03: Gap Closure** - Restore SubagentStop regression + add internal 3s timeout
 
 ### Phase 22: Auto-inject Forgetful Context
 **Goal**: User prompts automatically trigger Forgetful similarity search with project scoping, filtered by importance
 **Depends on**: Phase 18 (forgetful-client.js)
 **Requirements**: CTXI-01, CTXI-02, CTXI-03, CTXI-04, CTXI-05, CTXI-06, CTXI-07, HOOK-01, HOOK-02, HOOK-03
-**Plans:** 2/2 plans complete
+**Plans:** 3 plans (2 complete, 1 gap closure)
 
 Plans:
 - [x] 22-01-PLAN.md -- UserPromptSubmit hook script + hooks.json registration
 - [x] 22-02-PLAN.md -- Doctor check + settings.json fallback
+- [ ] 22-03-PLAN.md -- Gap closure: restore SubagentStop regression + internal 3s timeout
 
 ## Progress
 
@@ -132,7 +134,7 @@ Phases execute in numeric order: 18 -> 19 -> 20 -> 21 -> 21.1 -> 22
 | 19. GSD Workflow Patches | v1.1 | 2/2 | Complete | 2026-04-01 |
 | 20. Bootstrap & Update | v1.1 | 1/1 | Complete | 2026-04-02 |
 | 21. Memory Skills | v1.1 | 1/1 | Complete | 2026-04-02 |
-| 22. Auto-inject Context | v1.2 | 2/2 | Complete   | 2026-04-09 |
+| 22. Auto-inject Context | v1.2 | 2/3 | Gap Closure | - |
 
 ---
-*Last updated: 2026-04-09 after Phase 22 Plan 01 complete*
+*Last updated: 2026-04-09 after gap closure plan created*
