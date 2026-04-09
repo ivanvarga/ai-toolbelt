@@ -3,8 +3,8 @@ gsd_state_version: 1.0
 milestone: v1.1
 milestone_name: GSD & Forgetful Integration
 status: verifying
-stopped_at: Completed 22-02-PLAN.md
-last_updated: "2026-04-09T14:31:37.769Z"
+stopped_at: Completed 22-03-PLAN.md
+last_updated: "2026-04-09T14:52:23.609Z"
 last_activity: 2026-04-09
 progress:
   total_phases: 4
@@ -71,6 +71,7 @@ Recent decisions affecting current work:
 - [22-01]: process.ppid for session-scoped failure flag -- scopes to Claude session parent process
 - [Phase 22]: Dual-source detection in doctor check -- checks hooks.json first, falls back to settings.json
 - [Phase 22]: Bootstrap provides fallback command but does not auto-register -- detection requires user verification
+- [Phase 22]: Extract Forgetful operations into queryForgetful helper for clean Promise.race timeout pattern
 
 ### Pending Todos
 
@@ -83,5 +84,5 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-04-09T14:31:37.767Z
-Stopped at: Completed 22-02-PLAN.md
+Last session: 2026-04-09T14:52:23.607Z
+Stopped at: Completed 22-03-PLAN.md

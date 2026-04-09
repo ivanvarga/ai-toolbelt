@@ -12,14 +12,14 @@ Requirements for auto-inject Forgetful context milestone. Each maps to roadmap p
 - [ ] **CTXI-01**: User prompt automatically triggers Forgetful similarity search with project scoping via git remote
 - [ ] **CTXI-02**: Relevant memories injected as structured additionalContext JSON with XML-tagged compact snippets (300 char, title + importance)
 - [ ] **CTXI-03**: Hook exits silently (exit 0, no output) on any failure -- Forgetful unreachable, no project found, no results
-- [ ] **CTXI-04**: Hook completes within 3 seconds; times out gracefully if slower
+- [x] **CTXI-04**: Hook completes within 3 seconds; times out gracefully if slower
 - [ ] **CTXI-05**: Results filtered by importance threshold (>=7) and low-K retrieval (k=5)
 - [ ] **CTXI-06**: Hook skips auto-inject when prompt starts with /gsd: or /tb:load-context to avoid duplication with targeted context scripts
 - [ ] **CTXI-07**: Project ID cached per session to avoid repeated list_projects API calls
 
 ### Hook Registration
 
-- [ ] **HOOK-01**: UserPromptSubmit hook registered in hooks.json (synchronous, ~10s timeout)
+- [x] **HOOK-01**: UserPromptSubmit hook registered in hooks.json (synchronous, ~10s timeout)
 - [x] **HOOK-02**: Doctor check verifies UserPromptSubmit hook is registered and script exists
 - [x] **HOOK-03**: If plugin hooks.json output is silently discarded (bug #12151), fall back to settings.json registration with documented workaround
 
@@ -52,11 +52,11 @@ Which phases cover which requirements. Updated during roadmap creation.
 | CTXI-01 | Phase 22 | Pending |
 | CTXI-02 | Phase 22 | Pending |
 | CTXI-03 | Phase 22 | Pending |
-| CTXI-04 | Phase 22 | Pending |
+| CTXI-04 | Phase 22 | Complete |
 | CTXI-05 | Phase 22 | Pending |
 | CTXI-06 | Phase 22 | Pending |
 | CTXI-07 | Phase 22 | Pending |
-| HOOK-01 | Phase 22 | Pending |
+| HOOK-01 | Phase 22 | Complete |
 | HOOK-02 | Phase 22 | Complete |
 | HOOK-03 | Phase 22 | Complete |
 
