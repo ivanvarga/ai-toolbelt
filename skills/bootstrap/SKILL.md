@@ -87,13 +87,60 @@ bash "$PLUGIN_ROOT/patches/apply-all.sh"
 
 Patches are idempotent -- they check for `TB_PATCH:` markers before applying and skip if already present. Safe to run on every bootstrap invocation.
 
-### 5. Summary
+### 5. Verify UserPromptSubmit hook
 
-Report final status of all three components:
+The UserPromptSubmit hook auto-injects Forgetful memories into every prompt. Due to bug #12151, plugin hooks.json output may be silently discarded. This step checks if fallback registration in settings.json is needed.
+
+First, check if the hook is already registered in settings.json:
+
+```bash
+SETTINGS_JSON="$HOME/.claude/settings.json"
+if [ -f "$SETTINGS_JSON" ] && python3 -c "import json; d=json.load(open('$SETTINGS_JSON')); assert 'UserPromptSubmit' in d.get('hooks', {})" 2>/dev/null; then
+  echo "UserPromptSubmit: already registered in settings.json (fallback mode active)"
+else
+  echo "UserPromptSubmit: using plugin hooks.json registration (primary mode)"
+  echo "If Forgetful context is not appearing in prompts, run the fallback registration below."
+fi
+```
+
+- If already in settings.json: report "UserPromptSubmit: fallback mode active" and continue to step 6.
+- If NOT in settings.json (primary mode): the hook is registered via plugin hooks.json. To verify it works, ask Claude "what Forgetful context was injected?" after your next prompt. If nothing appears, run `/tb:doctor` to confirm Forgetful is reachable, then run the fallback registration command below:
+
+  ```bash
+  PLUGIN_ROOT="${CLAUDE_SKILL_DIR}/../.."
+  ABSOLUTE_HOOK="$(cd "$PLUGIN_ROOT" && pwd)/hooks/user-prompt-context.js"
+  SETTINGS_JSON="$HOME/.claude/settings.json"
+
+  if [ ! -f "$SETTINGS_JSON" ]; then
+    echo '{}' > "$SETTINGS_JSON"
+  fi
+
+  python3 -c "
+  import json
+  with open('$SETTINGS_JSON') as f:
+      settings = json.load(f)
+  hooks = settings.setdefault('hooks', {})
+  hooks['UserPromptSubmit'] = [{'hooks': [{'type': 'command', 'command': 'node $ABSOLUTE_HOOK', 'timeout': 10}]}]
+  with open('$SETTINGS_JSON', 'w') as f:
+      json.dump(settings, f, indent=2)
+  "
+  echo "UserPromptSubmit: registered in settings.json as fallback"
+  ```
+
+  After running the fallback registration, verify:
+
+  ```bash
+  python3 -c "import json; d=json.load(open('$SETTINGS_JSON')); assert 'UserPromptSubmit' in d.get('hooks', {}); print('Verified: UserPromptSubmit in settings.json')" 2>/dev/null || echo "ERROR: Registration failed"
+  ```
+
+### 6. Summary
+
+Report final status of all four components:
 
 - **GSD:** installed (v{X.Y.Z}) or not installed
 - **forgetful-plugin:** installed (v{X.Y.Z}) or not installed
 - **GSD patches:** {N} applied/confirmed, {M} errors (from apply-all.sh output) or skipped (GSD not installed)
+- **UserPromptSubmit hook:** primary mode (hooks.json) or fallback mode (settings.json) or not verified
 
 If all components are healthy, report: "Bootstrap complete -- all components ready."
 
