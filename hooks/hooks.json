@@ -12,15 +12,13 @@
         ]
       }
     ],
-    "SubagentStop": [
+    "UserPromptSubmit": [
       {
-        "matcher": "gsd-phase-researcher",
         "hooks": [
           {
             "type": "command",
-            "command": "${CLAUDE_PLUGIN_ROOT}/bin/curate-discoveries",
-            "async": true,
-            "timeout": 120
+            "command": "node ${CLAUDE_PLUGIN_ROOT}/hooks/user-prompt-context.js",
+            "timeout": 10
           }
         ]
       }
