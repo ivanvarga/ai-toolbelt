@@ -2,8 +2,9 @@
 
 ## Milestones
 
-- ✅ **v1.0 MVP** — Phases 1-17 (shipped 2026-03-28)
-- 🚧 **v1.1 GSD & Forgetful Integration** — Phases 18-21 (in progress)
+- v1.0 MVP -- Phases 1-17 (shipped 2026-03-28)
+- v1.1 GSD & Forgetful Integration -- Phases 18-21 (shipped 2026-04-05)
+- v1.2 Auto-inject Forgetful Context -- Phase 22 (in progress)
 
 ## Phases
 
@@ -32,7 +33,7 @@ Full details: `.planning/milestones/v1.0-ROADMAP.md`
 
 </details>
 
-### 🚧 v1.1 GSD & Forgetful Integration (In Progress)
+### v1.1 GSD & Forgetful Integration (Shipped 2026-04-05)
 
 **Milestone Goal:** Make GSD and Forgetful first-class parts of the tb toolkit -- one-command bootstrap, automatic context injection on GSD workflows, and bidirectional memory sync.
 
@@ -102,18 +103,36 @@ Plans:
 Plans:
 - [x] 21-01-PLAN.md — load-context and save-findings SKILL.md files for ad-hoc Forgetful interaction
 
+### v1.2 Auto-inject Forgetful Context (In Progress)
+
+**Milestone Goal:** Automatically inject relevant Forgetful memories into every prompt via UserPromptSubmit hook.
+
+- [x] **Phase 22 Plan 01: Core Hook** - UserPromptSubmit hook script + hooks.json registration (completed 2026-04-09)
+- [ ] **Phase 22 Plan 02: Settings.json Fallback** - Doctor check + settings.json fallback for bug #12151
+
+### Phase 22: Auto-inject Forgetful Context
+**Goal**: User prompts automatically trigger Forgetful similarity search with project scoping, filtered by importance
+**Depends on**: Phase 18 (forgetful-client.js)
+**Requirements**: CTXI-01, CTXI-02, CTXI-03, CTXI-04, CTXI-05, CTXI-06, CTXI-07, HOOK-01, HOOK-02, HOOK-03
+**Plans:** 1/2 plans complete
+
+Plans:
+- [x] 22-01-PLAN.md -- UserPromptSubmit hook script + hooks.json registration
+- [ ] 22-02-PLAN.md -- Doctor check + settings.json fallback
+
 ## Progress
 
 **Execution Order:**
-Phases execute in numeric order: 18 -> 19 -> 20 -> 21
+Phases execute in numeric order: 18 -> 19 -> 20 -> 21 -> 21.1 -> 22
 
 | Phase | Milestone | Plans Complete | Status | Completed |
 |-------|-----------|----------------|--------|-----------|
 | 1-17 | v1.0 | 36/36 | Complete | 2026-03-28 |
-| 18. Foundation | v1.1 | 2/2 | Complete    | 2026-04-01 |
-| 19. GSD Workflow Patches | v1.1 | 2/2 | Complete    | 2026-04-01 |
-| 20. Bootstrap & Update | v1.1 | 1/1 | Complete    | 2026-04-02 |
-| 21. Memory Skills | v1.1 | 1/1 | Complete    | 2026-04-02 |
+| 18. Foundation | v1.1 | 2/2 | Complete | 2026-04-01 |
+| 19. GSD Workflow Patches | v1.1 | 2/2 | Complete | 2026-04-01 |
+| 20. Bootstrap & Update | v1.1 | 1/1 | Complete | 2026-04-02 |
+| 21. Memory Skills | v1.1 | 1/1 | Complete | 2026-04-02 |
+| 22. Auto-inject Context | v1.2 | 1/2 | Executing | -- |
 
 ---
-*Last updated: 2026-04-03 after Phase 21 planning*
+*Last updated: 2026-04-09 after Phase 22 Plan 01 complete*

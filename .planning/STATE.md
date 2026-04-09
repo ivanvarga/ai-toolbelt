@@ -1,16 +1,16 @@
 ---
 gsd_state_version: 1.0
-milestone: v1.1
-milestone_name: GSD & Forgetful Integration
+milestone: v1.2
+milestone_name: Auto-inject Forgetful Context
 status: executing
-stopped_at: Phase 21 context gathered
-last_updated: "2026-04-02T23:53:35.872Z"
-last_activity: 2026-04-02
+stopped_at: Completed 22-01-PLAN.md
+last_updated: "2026-04-09T14:25:36.346Z"
+last_activity: 2026-04-09 -- Phase 22 Plan 01 complete
 progress:
-  total_phases: 4
-  completed_phases: 4
-  total_plans: 6
-  completed_plans: 6
+  total_phases: 1
+  completed_phases: 0
+  total_plans: 2
+  completed_plans: 1
   percent: 50
 ---
 
@@ -18,38 +18,40 @@ progress:
 
 ## Project Reference
 
-See: .planning/PROJECT.md (updated 2026-03-28)
+See: .planning/PROJECT.md (updated 2026-04-05)
 
 **Core value:** One repo, one install command -- every custom skill, credential setup, and dev tool available on any machine, always up to date.
-**Current focus:** Phase 21 — memory-skills
+**Current focus:** Phase 22 — auto-inject-forgetful-context-on-every-prompt
 
 ## Current Position
 
-Phase: 21 (Complete)
-Plan: 1/1 complete
-Status: Phase 21 complete, v1.1 milestone fully executed
-Last activity: 2026-04-03
+Phase: 22 (auto-inject-forgetful-context-on-every-prompt) — EXECUTING
+Plan: 2 of 2
+Status: Plan 01 complete, Plan 02 next
+Last activity: 2026-04-09 -- Phase 22 Plan 01 complete
 
-Progress: [██████████] 100%
+Progress: [█████░░░░░] 50%
 
 ## Performance Metrics
 
 **Velocity:**
 
-- Total plans completed: 36 (from v1.0)
+- Total plans completed: 46 (36 v1.0 + 9 v1.1 + 1 v1.2)
 - Average duration: ~2.5 min
-- Total execution time: ~1.5 hours
+- Total execution time: ~2 hours
 
-**Recent Trend:**
+**Recent Trend (v1.1+):**
 
-- v1.0 final phases averaged 2-3 min/plan
-- Trend: Stable
-
-*Updated after each plan completion*
 | Phase 18 P01 | 2min | 1 tasks | 1 files |
 | Phase 19 P02 | 3min | 2 tasks | 6 files |
 | Phase 20 P01 | 2min | 2 tasks | 2 files |
 | Phase 21 P01 | 3min | 2 tasks | 2 files |
+| Phase 21.1 P01 | 2min | 2 tasks | 8 files |
+| Phase 21.1 P02 | 3min | 2 tasks | 2 files |
+| Phase 21.1 P03 | 2min | 2 tasks | 4 files |
+| Phase 22 P01 | 2min | 2 tasks | 2 files |
+
+- Trend: Stable
 
 ## Accumulated Context
 
@@ -58,19 +60,15 @@ Progress: [██████████] 100%
 Decisions are logged in PROJECT.md Key Decisions table.
 Recent decisions affecting current work:
 
-- [v1.1 Roadmap]: 4 phases derived from 19 requirements -- Foundation, GSD Patches, Bootstrap & Update, Memory Skills
-- [v1.1 Roadmap]: GSD Patches separated from Bootstrap because patches are content (what to inject), bootstrap is mechanism (how to apply)
-- [v1.1 Roadmap]: Bootstrap and Update combined -- both manage dependency installation and patch application lifecycle
+- [v1.2 Roadmap]: Single phase (22) for all 10 requirements -- feature is too minimal for multi-phase split
+- [v1.2 Roadmap]: Research recommends 2 plans: core hook + conditional settings.json fallback (bug #12151)
 - [18-01]: Native fetch + SSE text parsing for MCP Streamable HTTP client (no http module, no EventSource)
-- [Research]: Plugin hook output bug #12151 requires settings.json registration workaround -- check status at Phase 20
-- [Phase 18]: jq for JSON parsing in bash checks, MCP initialize request for Forgetful reachability, WARN for unreachable Forgetful
-- [19-02]: Used awk instead of sed for complete-milestone patch (sed r only inserts after match, needed before)
-- [19-02]: PLUGIN_ROOT resolved at patch-apply time and embedded as literal absolute path
-- [19-02]: plan-phase uses single helper invocation reused across two injection points via two markers
-- [20-01]: Direct jq key lookup on installed_plugins.json v2 dict for forgetful-plugin detection (doctor check has jq bug)
-- [20-01]: GSD install guided (user runs manually per D-01), GSD update automated (npx in bash block per D-07)
-- [21-01]: No helper scripts for memory skills -- SKILL.md instructs Claude to call MCP tools directly (native MCP access in skill conversations)
-- [21-01]: Inline curation agent for save-findings (not subagent) -- keeps user in single conversation flow
+- [Research]: Plugin hook output bug #12151 requires settings.json registration workaround -- check status during implementation
+- [Research]: Node.js over bash for hook script (22% faster at 405ms vs 518ms, measured on target machine)
+- [Research]: Synchronous hook mandatory -- async hooks cannot inject additionalContext for current prompt
+- [22-01]: additionalContext for failure notice (D-07) -- avoids triggering bug #34713 false error labels
+- [22-01]: 1-hour TTL for project ID cache (D-09) -- balances freshness with performance
+- [22-01]: process.ppid for session-scoped failure flag -- scopes to Claude session parent process
 
 ### Pending Todos
 
@@ -78,11 +76,10 @@ None yet.
 
 ### Blockers/Concerns
 
-- Bug #12151 (plugin hook output silently discarded) -- may affect hook registration approach in Phase 20. Check status before planning.
-- GSD interactive installer prompts -- bootstrap SKILL.md must guide user through prompts. Confirm exact prompts at implementation time.
-- Forgetful HTTP vs STDIO -- hook needs HTTP endpoint even if MCP STDIO works. Doctor check must verify HTTP specifically.
+- Bug #12151 (plugin hook output silently discarded) -- may require settings.json fallback. v2.1.82 changelog suggests fix but unconfirmed for UserPromptSubmit. Verify during Plan 2.
+- Bug #34713 (false hook error labels) -- must test on current version. Visual transcript check during integration testing.
 
 ## Session Continuity
 
-Last session: 2026-04-03
-Stopped at: Phase 21 complete, v1.1 milestone fully executed
+Last session: 2026-04-09T14:25:36Z
+Stopped at: Completed 22-01-PLAN.md
