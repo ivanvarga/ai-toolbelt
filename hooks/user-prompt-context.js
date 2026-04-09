@@ -83,6 +83,54 @@ function outputFailureNotice() {
   }));
 }
 
+async function queryForgetful(prompt) {
+  const url = resolveForgetfulUrl();
+  if (!url) process.exit(0);
+
+  let repoName;
+  try {
+    repoName = extractRepoName();
+  } catch {
+    process.exit(0);
+  }
+
+  const sessionId = await createSession(url);
+  const projectId = await resolveProjectId(url, sessionId, repoName);
+  if (!projectId) process.exit(0);
+
+  const result = await callTool(url, sessionId, 'execute_forgetful_tool', {
+    tool_name: 'query_memory',
+    arguments: {
+      query: prompt,
+      query_context: 'auto-inject: relevant project context',
+      k: 5,
+      project_ids: [projectId],
+      include_links: false
+    }
+  });
+
+  const memories = parseMemories(result).filter(m => m.importance >= 7);
+  if (memories.length === 0) process.exit(0);
+
+  const context = [
+    '<forgetful_context>',
+    'Relevant memories from Forgetful (' + memories.length + ' found):',
+    '',
+    ...memories.map(m => {
+      const snippet = (m.content || '').substring(0, 300);
+      return '- **' + m.title + '** (importance: ' + m.importance + '): ' + snippet + '...';
+    }),
+    '</forgetful_context>'
+  ].join('\n');
+
+  process.stdout.write(JSON.stringify({
+    hookSpecificOutput: {
+      hookEventName: 'UserPromptSubmit',
+      additionalContext: context
+    }
+  }));
+}
+
 async function main() {
   const input = JSON.parse(await readStdin());
   const prompt = (input.prompt || '').trim();
@@ -94,52 +142,13 @@ async function main() {
   const flagFile = failureFlagPath();
   if (fs.existsSync(flagFile)) process.exit(0);
 
+  const timeout = new Promise((_, reject) => {
+    const timer = setTimeout(() => reject(new Error('timeout')), 3000);
+    timer.unref?.();
+  });
+
   try {
-    const url = resolveForgetfulUrl();
-    if (!url) process.exit(0);
-
-    let repoName;
-    try {
-      repoName = extractRepoName();
-    } catch {
-      process.exit(0);
-    }
-
-    const sessionId = await createSession(url);
-    const projectId = await resolveProjectId(url, sessionId, repoName);
-    if (!projectId) process.exit(0);
-
-    const result = await callTool(url, sessionId, 'execute_forgetful_tool', {
-      tool_name: 'query_memory',
-      arguments: {
-        query: prompt,
-        query_context: 'auto-inject: relevant project context',
-        k: 5,
-        project_ids: [projectId],
-        include_links: false
-      }
-    });
-
-    const memories = parseMemories(result).filter(m => m.importance >= 7);
-    if (memories.length === 0) process.exit(0);
-
-    const context = [
-      '<forgetful_context>',
-      'Relevant memories from Forgetful (' + memories.length + ' found):',
-      '',
-      ...memories.map(m => {
-        const snippet = (m.content || '').substring(0, 300);
-        return '- **' + m.title + '** (importance: ' + m.importance + '): ' + snippet + '...';
-      }),
-      '</forgetful_context>'
-    ].join('\n');
-
-    process.stdout.write(JSON.stringify({
-      hookSpecificOutput: {
-        hookEventName: 'UserPromptSubmit',
-        additionalContext: context
-      }
-    }));
+    await Promise.race([queryForgetful(prompt), timeout]);
   } catch {
     if (!fs.existsSync(flagFile)) {
       fs.writeFileSync(flagFile, '');
