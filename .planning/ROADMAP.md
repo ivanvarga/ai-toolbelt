@@ -64,11 +64,11 @@ Full details: `.planning/milestones/v1.1-ROADMAP.md`
   3. Forgetful is unreachable (server down, no project found, no results) and the user experiences zero disruption -- no errors, no delays beyond 3 seconds
   4. Doctor check reports whether the UserPromptSubmit hook is properly registered and the script file exists
   5. Hook works regardless of whether plugin hooks.json output capture is functional (bug #12151 fallback to settings.json if needed)
-**Plans**: TBD
+**Plans**: 2 plans
 
 Plans:
-- [ ] 22-01: TBD
-- [ ] 22-02: TBD
+- [ ] 22-01-PLAN.md — Core hook script + hooks.json registration (CTXI-01 through CTXI-07, HOOK-01)
+- [ ] 22-02-PLAN.md — Doctor check + bootstrap settings.json fallback (HOOK-02, HOOK-03)
 
 ## Progress
 
@@ -83,7 +83,7 @@ Phases execute in numeric order: 1 -> ... -> 17 -> 18 -> 19 -> 20 -> 21 -> 21.1 
 | 20. Bootstrap & Update | v1.1 | 1/1 | Complete | 2026-04-02 |
 | 21. Memory Skills | v1.1 | 1/1 | Complete | 2026-04-02 |
 | 21.1. Plugin Bin Directory | v1.1 | 3/3 | Complete | 2026-04-05 |
-| 22. Auto-inject Forgetful Context | v1.2 | 0/? | Not started | - |
+| 22. Auto-inject Forgetful Context | v1.2 | 0/2 | Planning | - |
 
 ---
-*Last updated: 2026-04-05 after v1.2 roadmap creation*
+*Last updated: 2026-04-09 after phase 22 planning*
