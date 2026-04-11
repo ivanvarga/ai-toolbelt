@@ -35,7 +35,9 @@ ALLOW_RULES='[
   "Bash(adb *)",
   "Bash(cat *)",
   "Bash(jq *)",
+  "Bash(curl *)",
   "Bash(cd *)",
+  "Bash(cd * && git *)",
   "Bash(git status *)",
   "Bash(git diff *)",
   "Bash(git log *)",
@@ -177,6 +179,9 @@ echo "Updated $SETTINGS_FILE (plugin + permissions)"
 echo ""
 echo "Registering marketplace..."
 claude plugin marketplace add "$REPO_URL" 2>/dev/null && echo "Marketplace registered." || echo "Marketplace already registered (or Claude CLI not in PATH)."
+
+SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
+bash "$SCRIPT_DIR/scripts/paperclip-symlink.sh" || true
 
 echo ""
 echo "Done! Next steps:"

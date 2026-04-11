@@ -139,7 +139,15 @@ bash "$PLUGIN_ROOT/patches/apply-all.sh"
 
 If GSD is not installed, skip and note "GSD patches skipped (GSD not installed)."
 
-13. **Summary** -- report what was updated.
+13. **Re-symlink Paperclip skills** -- update Paperclip symlinks to point to the new cached version.
+
+```bash
+bash "$PLUGIN_ROOT/scripts/paperclip-symlink.sh"
+```
+
+If the script outputs nothing, Paperclip was not detected (skip silently).
+
+14. **Summary** -- report what was updated.
 
 Summarize the update results:
 
@@ -147,5 +155,6 @@ Summarize the update results:
 - **GSD:** version after update or "skipped (not installed)"
 - **forgetful-plugin:** "updated" or "skipped (not installed)"
 - **GSD patches:** result from apply-all.sh or "skipped (GSD not installed)"
+- **Paperclip:** "skills re-symlinked" or omit if not detected
 
 Remind user to run `/reload-plugins` to pick up all changes in the current session.
