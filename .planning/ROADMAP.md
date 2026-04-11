@@ -110,12 +110,13 @@ Plans:
 - [x] **Phase 22 Plan 01: Core Hook** - UserPromptSubmit hook script + hooks.json registration (completed 2026-04-09)
 - [x] **Phase 22 Plan 02: Settings.json Fallback** - Doctor check + settings.json fallback for bug #12151 (completed 2026-04-09)
 - [x] **Phase 22 Plan 03: Gap Closure** - Restore SubagentStop regression + add internal 3s timeout (completed 2026-04-09)
+- [ ] **Phase 23: Adopt Skills** - Explore, improve, and migrate playwright-cli and visualize-changes into tb plugin
 
 ### Phase 22: Auto-inject Forgetful Context
 **Goal**: User prompts automatically trigger Forgetful similarity search with project scoping, filtered by importance
 **Depends on**: Phase 18 (forgetful-client.js)
 **Requirements**: CTXI-01, CTXI-02, CTXI-03, CTXI-04, CTXI-05, CTXI-06, CTXI-07, HOOK-01, HOOK-02, HOOK-03
-**Plans:** 3/3 plans complete
+**Plans:** 0/0 plans complete
 
 Plans:
 - [x] 22-01-PLAN.md -- UserPromptSubmit hook script + hooks.json registration
@@ -134,7 +135,18 @@ Phases execute in numeric order: 18 -> 19 -> 20 -> 21 -> 21.1 -> 22
 | 19. GSD Workflow Patches | v1.1 | 2/2 | Complete | 2026-04-01 |
 | 20. Bootstrap & Update | v1.1 | 1/1 | Complete | 2026-04-02 |
 | 21. Memory Skills | v1.1 | 1/1 | Complete | 2026-04-02 |
-| 22. Auto-inject Context | v1.2 | 3/3 | Complete   | 2026-04-09 |
+| 22. Auto-inject Context | v1.2 | 3/3 | Complete | 2026-04-09 |
+| 23. Adopt Skills | v1.2 | 0/0 | Not planned | - |
+
+### Phase 23: Adopt playwright-cli and visualize-changes into tb plugin
+
+**Goal:** Explore, improve, and adopt playwright-cli and visualize-changes as tb plugin skills with proper naming
+**Requirements**: TBD
+**Depends on:** Phase 22
+**Plans:** 0 plans
+
+Plans:
+- TBD (run /gsd:plan-phase 23 to break down)
 
 ---
-*Last updated: 2026-04-09 after gap closure plan created*
+*Last updated: 2026-04-11*
