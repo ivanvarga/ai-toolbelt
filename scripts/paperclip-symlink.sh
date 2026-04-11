@@ -25,7 +25,8 @@ fi
 
 for skill in "$SKILL_SOURCE"/*/; do
     name=$(basename "$skill")
-    ln -sfn "$skill" "$PAPERCLIP_ROOT/skills/$name"
+    rm -rf "$PAPERCLIP_ROOT/skills/$name"
+    cp -R "$skill" "$PAPERCLIP_ROOT/skills/$name"
 done
 
-echo "Paperclip: symlinked tb skills into $PAPERCLIP_ROOT/skills (v$PLUGIN_VERSION)"
+echo "Paperclip: copied tb skills into $PAPERCLIP_ROOT/skills (v$PLUGIN_VERSION)"
