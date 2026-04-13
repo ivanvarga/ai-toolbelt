@@ -110,7 +110,7 @@ Plans:
 - [x] **Phase 22 Plan 01: Core Hook** - UserPromptSubmit hook script + hooks.json registration (completed 2026-04-09)
 - [x] **Phase 22 Plan 02: Settings.json Fallback** - Doctor check + settings.json fallback for bug #12151 (completed 2026-04-09)
 - [x] **Phase 22 Plan 03: Gap Closure** - Restore SubagentStop regression + add internal 3s timeout (completed 2026-04-09)
-- [ ] **Phase 23: Adopt Skills** - Explore, improve, and migrate playwright-cli and visualize-changes into tb plugin
+- [x] **Phase 23: Adopt Skills** - Explore, improve, and migrate playwright-cli and visualize-changes into tb plugin (completed 2026-04-12)
 - [ ] **Phase 24: Paperclip Triage Pipeline** - GitHub webhook → triage → route to GSD or oneshot agent → human gate → ship
 
 ### Phase 22: Auto-inject Forgetful Context
@@ -137,7 +137,7 @@ Phases execute in numeric order: 18 -> 19 -> 20 -> 21 -> 21.1 -> 22
 | 20. Bootstrap & Update | v1.1 | 1/1 | Complete | 2026-04-02 |
 | 21. Memory Skills | v1.1 | 1/1 | Complete | 2026-04-02 |
 | 22. Auto-inject Context | v1.2 | 3/3 | Complete | 2026-04-09 |
-| 23. Adopt Skills | v1.2 | 0/2 | Planned | - |
+| 23. Adopt Skills | v1.2 | 2/2 | Complete    | 2026-04-13 |
 | 24. Triage Pipeline | v1.2 | 0/0 | Not planned | - |
 
 ### Phase 23: Adopt playwright-cli and visualize-changes into tb plugin
@@ -145,11 +145,11 @@ Phases execute in numeric order: 18 -> 19 -> 20 -> 21 -> 21.1 -> 22
 **Goal:** Copy, rename, and polish playwright-cli and visualize-changes as tb:browser and tb:change-map plugin skills
 **Requirements**: D-01, D-02, D-03, D-04, D-05, D-06, D-07, D-08, D-09, D-10, D-11, D-12
 **Depends on:** Phase 22
-**Plans:** 2 plans
+**Plans:** 2/2 plans complete
 
 Plans:
-- [ ] 23-01-PLAN.md — Copy playwright-cli into skills/browser/ as tb:browser with light polish
-- [ ] 23-02-PLAN.md — Copy visualize-changes into skills/change-map/ as tb:change-map with placeholder fixes and improvements
+- [x] 23-01-PLAN.md — Copy playwright-cli into skills/browser/ as tb:browser with light polish
+- [x] 23-02-PLAN.md — Copy visualize-changes into skills/change-map/ as tb:change-map with placeholder fixes and improvements
 
 ### Phase 24: Paperclip Triage Pipeline
 
