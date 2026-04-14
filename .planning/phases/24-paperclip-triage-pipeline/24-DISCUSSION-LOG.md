@@ -3,9 +3,10 @@
 > **Audit trail only.** Do not use as input to planning, research, or execution agents.
 > Decisions are captured in CONTEXT.md — this log preserves the alternatives considered.
 
-**Date:** 2026-04-13
+**Date:** 2026-04-13 (initial); 2026-04-14 (revision pass)
 **Phase:** 24-paperclip-triage-pipeline
 **Areas discussed:** Integration shape & intake, Triage & routing logic, Worktree lifecycle, Human gate & ship semantics
+**Revision pass:** Ticket→repo mapping, decision group revisions (D-01–03, D-04–06), new areas (failure/retry, observability, secrets, SOUL.md), locked items (deploy, tags, confidence format, rejection default)
 
 ---
 
@@ -210,3 +211,189 @@
 - Alternative intakes beyond webhooks (Paperclip UI paste, CLI submit)
 - Time-based / idle worktree pruning
 - `/tb:setup-paperclip-triage` scripted installer (vs. hand-written setup-instruction doc)
+
+---
+
+# Revision Pass — 2026-04-14
+
+Purpose: revisit existing decisions, add new gray areas, and lock selected Claude-discretion items.
+
+## New Gray Area: Ticket → local repo mapping
+
+### Q13: How should the system determine which local git repo (and worktree base) an incoming ticket/issue belongs to?
+
+| Option | Description | Selected |
+|--------|-------------|----------|
+| GitHub inferred + Jira config map | Infer GitHub repo from payload; explicit map for Jira | |
+| Single mapping file for both | `.paperclip/repo-map.yaml` in tb for all sources | |
+| Convention over config | `~/Projects/<name>` assumed; fail loudly if missing | |
+| Research Paperclip / ask at dispatch | Check Paperclip primitive; fallback ask-once-cache | ✓ |
+
+**User's choice:** Research idiomatic Paperclip / ask at dispatch
+**Notes:** Captured as D-19.
+
+---
+
+## Decision Group Revisions
+
+### Q14: D-01–D-03 (Integration & delivery) — what to change?
+
+| Option | Description | Selected |
+|--------|-------------|----------|
+| No change | | |
+| Adjust runtime location | | |
+| Adjust authoring/delivery | | |
+| Other (free-text) | | ✓ |
+
+**User's choice:** "Runtime should be in paperclip, agentcompanies spec should rely on tb-skills"
+**Notes:** Runtime decision (D-01) unchanged; D-03 refined — AgentCompanies artifacts reference/depend on tb skills rather than inlining behavior.
+
+### Q15: D-04–D-06 (Event intake) — what to change?
+
+| Option | Description | Selected |
+|--------|-------------|----------|
+| No change | | |
+| Tighten trigger | | |
+| Tighten dedup | | |
+| Other (free-text) | | ✓ |
+
+**User's choice:** "I think we can use dedup key, but I would also like to research how to integrate that with paperclip"
+**Notes:** D-06 refined — dedup uses canonical `{source}#{id}` key; research integration with Paperclip's dedup primitives.
+
+### Q16: D-07–D-12 (Triage & routing) — what to change?
+
+| Option | Description | Selected |
+|--------|-------------|----------|
+| No change, skip | | ✓ |
+| Tighten confidence signals | | |
+| Tighten tag vocabulary | | |
+| Other | | |
+
+**User's choice:** No change, skip (tightening handled in Q21/Q22 below)
+
+### Q17: D-13–D-18 (Worktree + ship) — what to change?
+
+| Option | Description | Selected |
+|--------|-------------|----------|
+| No change, skip | | ✓ |
+| Tighten cleanup | | |
+| Tighten rejection behavior | | |
+| Other | | |
+
+**User's choice:** No change, skip (rejection tightening handled in Q23 below)
+
+---
+
+## New Gray Areas
+
+### Q18: Failure / retry — what happens when a coder agent errors mid-run?
+
+| Option | Description | Selected |
+|--------|-------------|----------|
+| Retry once, then escalate | Auto single retry; persistent failure → Paperclip queue | |
+| Fail fast to human | No auto-retry; immediate escalation with error trace | |
+| Research idiomatic Paperclip | Use Paperclip's native retry/escalation primitive | |
+| Other (free-text) | | ✓ |
+
+**User's choice:** "Research idiomatic paperclip, but if in sync with paperclip approach I would like one automatic retry"
+**Notes:** Captured as D-20 — research Paperclip first; prefer one automatic retry if compatible; worktree preserved for debugging regardless.
+
+### Q19: Observability — where do triage + agent logs + decision traces go?
+
+| Option | Description | Selected |
+|--------|-------------|----------|
+| Paperclip-native | | |
+| Paperclip + tb files | | |
+| Research idiomatic Paperclip | | |
+| Other (free-text) | | ✓ |
+
+**User's choice:** "I would like combination because I don't necessarily know I will stay on paperclip. But .planning will be erased with worktree so it's ok"
+**Notes:** Captured as D-21 — combination approach (Paperclip-native telemetry + tb-side per-task artifact); acceptable for per-task log to live alongside worktree and die with cleanup.
+
+### Q20: Secrets — how do dispatched agents access credentials in worktrees?
+
+| Option | Description | Selected |
+|--------|-------------|----------|
+| tb keychain via resolve-credential | | ✓ |
+| Paperclip secret store | | |
+| Research + prefer Paperclip if native | | |
+
+**User's choice:** tb keychain via resolve-credential
+**Notes:** Captured as D-22 — reuse existing `bin/resolve-credential`. Paperclip secret store moved to Deferred.
+
+### Q21: SOUL.md for triage agent — tone/principles?
+
+| Option | Description | Selected |
+|--------|-------------|----------|
+| Cautious escalator | Bias toward pause | |
+| Confident dispatcher | Bias toward routing | |
+| Balanced + explicit reasoning | Neutral; always emit three signals | |
+| Claude's discretion | Planner drafts; user reviews | ✓ |
+
+**User's choice:** Claude's discretion
+**Notes:** Captured as D-23 (Claude's Discretion) — planner drafts initial SOUL.md; user reviews during execution.
+
+---
+
+## Locked Claude-Discretion Items
+
+### Q22: Deploy mechanism for tb → Paperclip?
+
+| Option | Description | Selected |
+|--------|-------------|----------|
+| Extend paperclip-symlink.sh | Add agents/, companies/, AgentCompanies artifacts | ✓ |
+| New tb:deploy-paperclip skill | Dedicated skill with Node deploy script | |
+| Paperclip's native import command | Use import/export mechanism | |
+| Defer to research | | |
+
+**User's choice:** Extend paperclip-symlink.sh
+**Notes:** Captured as D-24 (locked). Paperclip native import flow moved to Deferred for later evaluation.
+
+### Q23: Tag vocabulary on source tickets/issues?
+
+| Option | Description | Selected |
+|--------|-------------|----------|
+| triage:oneshot / triage:process / triage:skip | Namespaced prefix | ✓ |
+| one_shot / process_loop | User's original framing | |
+| paperclip:oneshot / paperclip:process / paperclip:skip | Branded prefix | |
+| Claude's discretion / research | | |
+
+**User's choice:** triage:oneshot / triage:process / triage:skip
+**Notes:** Captured as D-25 (locked).
+
+### Q24: Confidence score format + auto-dispatch threshold?
+
+| Option | Description | Selected |
+|--------|-------------|----------|
+| Labels low/med/high; all three high → dispatch | | ✓ |
+| Numeric 0–1; all three ≥0.7 → dispatch | | |
+| Labels + weighted (trace can be med) | | |
+
+**User's choice:** Labels: low/med/high; all three 'high' auto-dispatches
+**Notes:** Captured as D-26 (locked). Threshold tuning and alternative weighting moved to Deferred.
+
+### Q25: Default rejection behavior at Paperclip gate?
+
+| Option | Description | Selected |
+|--------|-------------|----------|
+| Re-queue with feedback | Same agent retries with feedback appended | ✓ |
+| Re-triage with feedback | Triage re-runs; routing may flip | |
+| Discard + notify | Close task, delete worktree, notify user | |
+
+**User's choice:** Re-queue with feedback
+**Notes:** Captured as D-18 (locked). Re-triage and discard variants moved to Deferred.
+
+---
+
+## Scope Decision
+
+### Q26: Phase scope
+
+| Option | Description | Selected |
+|--------|-------------|----------|
+| Keep current scope | Full end-to-end pipeline in one phase | ✓ |
+| Split: triage + manual dispatch first | | |
+| Split: setup instructions as own phase | | |
+| Other | | |
+
+**User's choice:** Keep current scope
