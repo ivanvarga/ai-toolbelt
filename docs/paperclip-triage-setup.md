@@ -165,7 +165,22 @@ if the agent secrets aren't seeded yet — `requirement: optional` in `.papercli
 matches this behavior.)
 
 For persistence, wrap in a launchd plist at
-`~/Library/LaunchAgents/com.ai-toolbelt.tb-triage.plist` — example template:
+`~/Library/LaunchAgents/com.ai-toolbelt.tb-triage.plist`.
+
+**First, resolve your node path** — launchd does not use your shell PATH, so the
+plist must hardcode an absolute path to `node`. The path differs by platform:
+
+```bash
+which node
+# Apple Silicon (M1/M2/M3/M4) homebrew: /opt/homebrew/bin/node
+# Intel homebrew:                       /usr/local/bin/node
+# nvm:                                  /Users/YOU/.nvm/versions/node/vX.Y.Z/bin/node
+# asdf:                                 /Users/YOU/.asdf/shims/node
+```
+
+Paste the exact output of `which node` into the `<string>` element below (the
+`/opt/homebrew/bin/node` value in the template assumes Apple Silicon — replace it
+if you're on Intel or a version manager).
 
 ```xml
 <?xml version="1.0" encoding="UTF-8"?>
@@ -175,7 +190,7 @@ For persistence, wrap in a launchd plist at
   <key>Label</key><string>com.ai-toolbelt.tb-triage</string>
   <key>ProgramArguments</key>
   <array>
-    <string>/usr/local/bin/node</string>
+    <string>/opt/homebrew/bin/node</string> <!-- Apple Silicon; use /usr/local/bin/node on Intel, or paste `which node` output -->
     <string>-e</string>
     <string>require('/Users/YOU/Projects/ai-toolbelt/scripts/tb-triage/relay').createServer({port:3100,keychainResolver:require('/Users/YOU/Projects/ai-toolbelt/scripts/resolve-credential').getCredential})</string>
   </array>
@@ -186,6 +201,10 @@ For persistence, wrap in a launchd plist at
 ```
 
 Load: `launchctl load ~/Library/LaunchAgents/com.ai-toolbelt.tb-triage.plist`.
+
+Verify it loaded: `launchctl print gui/$UID/com.ai-toolbelt.tb-triage | head -20`.
+If `state = not running` with a `last exit code = 1` or `No such file or directory`,
+the node path is wrong — re-check `which node` and edit the plist.
 
 ## Step 5 — Start smee.io tunnel (DEV ONLY)
 
