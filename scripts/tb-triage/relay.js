@@ -205,7 +205,16 @@ async function handleRequest(req, res, config) {
 
 function createServer({ port = 0, keychainResolver }) {
   const config = buildConfig(keychainResolver);
-  const server = http.createServer((req, res) => handleRequest(req, res, config).catch(() => {}));
+  const server = http.createServer((req, res) =>
+    handleRequest(req, res, config).catch((err) => {
+      log({ route: req.url, status: 500, error: err.message, fatal: true });
+      if (!res.headersSent) {
+        try { reply(res, 500, { error: 'internal error' }); } catch { res.destroy(); }
+      } else {
+        res.destroy();
+      }
+    })
+  );
   return new Promise((resolve) => {
     server.listen(port, '127.0.0.1', () => {
       const addr = server.address();
