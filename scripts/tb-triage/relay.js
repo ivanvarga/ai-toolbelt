@@ -3,6 +3,7 @@ const { URL } = require('node:url');
 const filters = require('./relay-filters');
 const paperclip = require('./relay-paperclip-client');
 const dedup = require('./dedup-store');
+const cleanup = require('./cleanup');
 
 const MAX_BODY = 1 * 1024 * 1024;
 
@@ -67,6 +68,17 @@ async function handleGithub(req, res, config) {
   if (!decision.relay) {
     log({ route: 'github', event, relay: false, reason: decision.reason, status: 200 });
     return reply(res, 200, { ok: true, relayed: false, reason: decision.reason });
+  }
+
+  if (event === 'pull_request') {
+    try {
+      const result = await cleanup.removeWorktreeForPr(payload);
+      log({ route: 'github', event, cleaned: result.cleaned, dedupKey: result.key || null, status: 200 });
+      return reply(res, 200, { ok: true, cleaned: result.cleaned, key: result.key || null, reason: result.reason });
+    } catch (err) {
+      log({ route: 'github', event, status: 500, error: err.message });
+      return reply(res, 500, { error: 'cleanup failed' });
+    }
   }
 
   if (decision.dedupKey) {
