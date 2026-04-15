@@ -2,7 +2,7 @@
 phase: 24-paperclip-triage-pipeline
 verified: 2026-04-15T16:00:00Z
 status: human_needed
-score: 13/14 must-haves verified
+score: 14/14 must-haves verified (code gap resolved in code-review-fix)
 overrides_applied: 0
 human_verification:
   - test: "End-to-end smoke — assign a GitHub issue to configured user, confirm Paperclip triage routine fires, triage agent classifies, routes to oneshot or GSD agent, agent produces a worktree + draft PR, Paperclip human gate appears, approve, PR opens on GitHub"
@@ -19,23 +19,16 @@ human_verification:
     why_human: "Plan 04 Summary documents that {{issue.metadata.*}} is unsupported in claude_local adapter config.cwd — but the .paperclip.yaml still contains the unsupported template. Operator must confirm and fix at setup time."
 gaps:
   - truth: "Relay routes triage:skip > triage:oneshot > triage:process priority correctly"
-    status: failed
-    reason: "WR-01 (code review): extractTriageTag returns first label in array order, not skip>oneshot>process priority order. If a ticket has [triage:oneshot, triage:skip], relay dispatches to oneshot instead of skipping. Confirmed by runtime test: extractTriageTag([{name:'triage:oneshot'},{name:'triage:skip'}]) returns 'oneshot', not 'skip'."
-    artifacts:
-      - path: "scripts/tb-triage/relay-filters.js"
-        issue: "extractTriageTag iterates labels array with first-match; no TAG_PRIORITY ordering"
-      - path: "scripts/tests/triage-tag-override.test.js"
-        issue: "Test case 'mixed labels' uses [bug, triage:skip] (skip second) — passes correctly but does not cover the conflict case where a higher-priority override appears after a lower one"
-    missing:
-      - "Add TAG_PRIORITY = ['triage:skip','triage:oneshot','triage:process'] and rewrite extractTriageTag to scan TAG_PRIORITY order (see WR-01 fix in 24-REVIEW.md)"
-      - "Add conflict test case: extractTriageTag([{name:'triage:oneshot'},{name:'triage:skip'}]) must equal 'skip'"
+    status: resolved
+    resolved_in: "20a28ed fix(24): WR-01 enforce tag priority skip > oneshot > process regardless of label order"
+    reason: "WR-01 fixed in code-review-fix cycle. TAG_PRIORITY added to relay-filters.js; extractTriageTag now scans in priority order. 3 new priority-ordering tests added to triage-tag-override.test.js including conflict case [oneshot, skip] → skip."
 ---
 
 # Phase 24: Paperclip Triage Pipeline — Verification Report
 
 **Phase Goal:** Build a Paperclip-integrated triage pipeline that receives GitHub/Jira events, classifies work complexity, routes to autonomous GSD or oneshot coder agents in worktrees, and gates on human verification before shipping.
 **Verified:** 2026-04-15T16:00:00Z
-**Status:** human_needed (1 gap + 4 items requiring human testing)
+**Status:** human_needed (0 open gaps — WR-01 resolved in code-review-fix; 4 items requiring human testing remain)
 **Re-verification:** No — initial verification
 
 ## Goal Achievement

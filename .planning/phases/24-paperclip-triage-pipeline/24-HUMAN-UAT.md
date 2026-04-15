@@ -48,6 +48,5 @@ blocked: 0
 ## Gaps
 
 - truth: "Relay routes triage:skip > triage:oneshot > triage:process priority correctly"
-  status: failed
-  reason: "WR-01 (code review): extractTriageTag returns first-match by label order, not priority order. If a ticket has [triage:oneshot, triage:skip], relay dispatches to oneshot instead of skipping."
-  fix_via: "/gsd-code-review-fix 24"
+  status: resolved
+  resolved_in: "20a28ed fix(24): WR-01 enforce tag priority skip > oneshot > process regardless of label order"
