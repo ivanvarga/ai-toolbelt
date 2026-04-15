@@ -68,4 +68,33 @@ test('repo-map', async (t) => {
     assert.throws(() => rm.setCache('gh:bad/repo', '/nonexistent/path'), /invalid cwd/);
     assert.throws(() => rm.setCache('gh:bad/repo', 'relative/path'), /invalid cwd/);
   }));
+
+  await t.test('parseCliFlags — equals form', () => {
+    const { parseCliFlags } = require('../tb-triage/repo-map');
+    assert.deepEqual(
+      parseCliFlags(['--source=gh', '--owner=acme', '--repo=lfcr']),
+      { source: 'gh', owner: 'acme', repo: 'lfcr' }
+    );
+  });
+
+  await t.test('parseCliFlags — space-separated form', () => {
+    const { parseCliFlags } = require('../tb-triage/repo-map');
+    assert.deepEqual(
+      parseCliFlags(['--source', 'gh', '--owner', 'acme', '--repo', 'lfcr']),
+      { source: 'gh', owner: 'acme', repo: 'lfcr' }
+    );
+  });
+
+  await t.test('parseCliFlags — mixed equals and space forms', () => {
+    const { parseCliFlags } = require('../tb-triage/repo-map');
+    assert.deepEqual(
+      parseCliFlags(['--source=jira', '--project', 'LFCR']),
+      { source: 'jira', project: 'LFCR' }
+    );
+  });
+
+  await t.test('parseCliFlags — bare flag becomes true', () => {
+    const { parseCliFlags } = require('../tb-triage/repo-map');
+    assert.deepEqual(parseCliFlags(['--verbose']), { verbose: true });
+  });
 });

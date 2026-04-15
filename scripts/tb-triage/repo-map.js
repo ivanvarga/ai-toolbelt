@@ -70,15 +70,29 @@ async function resolve(ticket, paperclipClient) {
   return null;
 }
 
-module.exports = { resolve, setCache, getCache, normalizeGithubUrl };
+function parseCliFlags(argv) {
+  const opts = {};
+  for (let i = 0; i < argv.length; i++) {
+    const a = argv[i];
+    if (!a.startsWith('--')) continue;
+    const eq = a.indexOf('=');
+    if (eq !== -1) {
+      opts[a.slice(2, eq)] = a.slice(eq + 1);
+    } else {
+      const next = argv[i + 1];
+      if (next && !next.startsWith('--')) { opts[a.slice(2)] = next; i++; }
+      else opts[a.slice(2)] = true;
+    }
+  }
+  return opts;
+}
+
+module.exports = { resolve, setCache, getCache, normalizeGithubUrl, parseCliFlags };
 
 if (require.main === module) {
   const [, , cmd, ...rest] = process.argv;
-  if (cmd !== 'resolve') { console.error('usage: repo-map.js resolve --source=<gh|jira> [--owner=X --repo=Y | --project=KEY]'); process.exit(2); }
-  const opts = Object.fromEntries(rest.map(a => {
-    const [k, ...v] = a.replace(/^--/, '').split('=');
-    return [k, v.join('=')];
-  }));
+  if (cmd !== 'resolve') { console.error('usage: repo-map.js resolve --source <gh|jira> [--owner X --repo Y | --project KEY] (--key=value also accepted)'); process.exit(2); }
+  const opts = parseCliFlags(rest);
   (async () => {
     let client = null;
     try {
