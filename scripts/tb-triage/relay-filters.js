@@ -2,6 +2,7 @@ const crypto = require('node:crypto');
 const { KEY_PATTERN } = require('./dedup-store');
 
 const TAG_VOCAB = { 'triage:oneshot': 'oneshot', 'triage:process': 'process', 'triage:skip': 'skip' };
+const TAG_PRIORITY = ['triage:skip', 'triage:oneshot', 'triage:process'];
 
 function verifyGithubSignature(rawBody, header, secret) {
   if (!header || typeof header !== 'string' || !header.startsWith('sha256=')) return false;
@@ -22,9 +23,13 @@ function verifyJiraSignature(rawBody, header, secret) {
 
 function extractTriageTag(labels) {
   if (!Array.isArray(labels)) return null;
-  for (const l of labels) {
-    const name = typeof l === 'string' ? l : l?.name;
-    if (name && TAG_VOCAB[name]) return TAG_VOCAB[name];
+  const names = new Set(
+    labels
+      .map((l) => (typeof l === 'string' ? l : l?.name))
+      .filter(Boolean)
+  );
+  for (const tag of TAG_PRIORITY) {
+    if (names.has(tag)) return TAG_VOCAB[tag];
   }
   return null;
 }
