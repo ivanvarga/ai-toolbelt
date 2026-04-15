@@ -1,0 +1,73 @@
+schema: paperclip/v1
+
+agents:
+  triage:
+    adapter:
+      type: claude_local
+      config:
+        model: claude-opus-4-6
+        maxTurnsPerRun: 150
+        dangerouslySkipPermissions: true
+    inputs:
+      env:
+        ANTHROPIC_API_KEY:
+          kind: secret
+          requirement: optional
+          description: Anthropic API key; resolved via bin/resolve-credential at runtime
+        GH_TOKEN:
+          kind: secret
+          requirement: optional
+          description: GitHub token for tb:task-github; resolved via bin/resolve-credential
+
+  oneshot-coder:
+    adapter:
+      type: claude_local
+      config:
+        model: claude-opus-4-6
+        maxTurnsPerRun: 300
+        dangerouslySkipPermissions: true
+        cwd: "{{issue.metadata.worktreeCwd}}"
+        extraArgs:
+          - "--worktree"
+          - "{{issue.metadata.worktreeName}}"
+    inputs:
+      env:
+        ANTHROPIC_API_KEY:
+          kind: secret
+          requirement: optional
+        GH_TOKEN:
+          kind: secret
+          requirement: optional
+
+  gsd-orchestrator:
+    adapter:
+      type: claude_local
+      config:
+        model: claude-opus-4-6
+        maxTurnsPerRun: 600
+        dangerouslySkipPermissions: true
+        cwd: "{{issue.metadata.worktreeCwd}}"
+        extraArgs:
+          - "--worktree"
+          - "{{issue.metadata.worktreeName}}"
+    inputs:
+      env:
+        ANTHROPIC_API_KEY:
+          kind: secret
+          requirement: optional
+        GH_TOKEN:
+          kind: secret
+          requirement: optional
+
+routines:
+  intake-github:
+    description: Inbound GitHub issue/pr webhook intake from tb-triage relay
+    triggers:
+      - kind: webhook
+        signingMode: hmac_sha256
+        description: Verified by tb-triage relay before forwarding
+  intake-jira:
+    description: Inbound Jira issue webhook intake from tb-triage relay
+    triggers:
+      - kind: webhook
+        signingMode: hmac_sha256
