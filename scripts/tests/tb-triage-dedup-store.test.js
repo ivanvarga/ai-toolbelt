@@ -46,4 +46,27 @@ test('dedup-store', async (t) => {
     assert.throws(() => store.insert('gh:acme/repo', {}), /invalid dedup key/);
     assert.throws(() => store.check('random-junk'), /invalid dedup key/);
   }));
+
+  await t.test('upsert overwrites existing entry', withTempHome(() => {
+    const store = require('../tb-triage/dedup-store');
+    store.insert('gh:acme/repo#42', { inflight: true });
+    const v = store.upsert('gh:acme/repo#42', { paperclipIssueId: 'uuid-99', source: 'github' });
+    assert.equal(v.paperclipIssueId, 'uuid-99');
+    assert.equal(store.check('gh:acme/repo#42').paperclipIssueId, 'uuid-99');
+    assert.equal(store.check('gh:acme/repo#42').inflight, undefined);
+  }));
+
+  await t.test('update patches existing entry', withTempHome(() => {
+    const store = require('../tb-triage/dedup-store');
+    store.insert('gh:acme/repo#42', { paperclipIssueId: 'uuid-1', source: 'github' });
+    const v = store.update('gh:acme/repo#42', { worktreeName: 'gh-acme-repo-42', worktreeCwd: '/tmp/wt' });
+    assert.equal(v.paperclipIssueId, 'uuid-1');
+    assert.equal(v.worktreeName, 'gh-acme-repo-42');
+    assert.equal(v.worktreeCwd, '/tmp/wt');
+  }));
+
+  await t.test('update throws when no entry exists', withTempHome(() => {
+    const store = require('../tb-triage/dedup-store');
+    assert.throws(() => store.update('gh:acme/repo#42', { x: 1 }), /no dedup entry/);
+  }));
 });

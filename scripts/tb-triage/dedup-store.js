@@ -27,6 +27,23 @@ function insert(key, value) {
   return value;
 }
 
+function upsert(key, value) {
+  if (!KEY_PATTERN.test(key)) throw new Error(`invalid dedup key: ${key}`);
+  const data = readAll();
+  data[key] = value;
+  writeAll(data);
+  return value;
+}
+
+function update(key, partial) {
+  if (!KEY_PATTERN.test(key)) throw new Error(`invalid dedup key: ${key}`);
+  const data = readAll();
+  if (!data[key]) throw new Error(`no dedup entry for key: ${key}`);
+  data[key] = { ...data[key], ...partial };
+  writeAll(data);
+  return data[key];
+}
+
 function remove(key) {
   if (!KEY_PATTERN.test(key)) throw new Error(`invalid dedup key: ${key}`);
   const data = readAll();
@@ -36,4 +53,4 @@ function remove(key) {
 
 function list() { return readAll(); }
 
-module.exports = { check, insert, remove, list, KEY_PATTERN };
+module.exports = { check, insert, upsert, update, remove, list, KEY_PATTERN };

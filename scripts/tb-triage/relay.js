@@ -87,6 +87,11 @@ async function handleGithub(req, res, config) {
       log({ route: 'github', event, relay: false, reason: 'dedup hit', dedupKey: decision.dedupKey, status: 200 });
       return reply(res, 200, { ok: true, relayed: false, reason: 'dedup hit', issueId: existing.paperclipIssueId });
     }
+    dedup.insert(decision.dedupKey, {
+      inflight: true,
+      source: 'github',
+      createdAt: new Date().toISOString(),
+    });
   }
 
   try {
@@ -103,7 +108,7 @@ async function handleGithub(req, res, config) {
     );
 
     if (decision.dedupKey) {
-      dedup.insert(decision.dedupKey, {
+      dedup.upsert(decision.dedupKey, {
         paperclipIssueId: result.runId,
         source: 'github',
         createdAt: new Date().toISOString(),
@@ -113,6 +118,9 @@ async function handleGithub(req, res, config) {
     log({ route: 'github', event, relay: true, dedupKey: decision.dedupKey, status: 200 });
     return reply(res, 200, { ok: true, relayed: true, runId: result.runId });
   } catch (err) {
+    if (decision.dedupKey) {
+      try { dedup.remove(decision.dedupKey); } catch { }
+    }
     log({ route: 'github', event, relay: true, status: 502, error: err.message });
     return reply(res, 502, { error: 'paperclip fire failed' });
   }
@@ -139,6 +147,11 @@ async function handleJira(req, res, config) {
       log({ route: 'jira', relay: false, reason: 'dedup hit', dedupKey: decision.dedupKey, status: 200 });
       return reply(res, 200, { ok: true, relayed: false, reason: 'dedup hit', issueId: existing.paperclipIssueId });
     }
+    dedup.insert(decision.dedupKey, {
+      inflight: true,
+      source: 'jira',
+      createdAt: new Date().toISOString(),
+    });
   }
 
   try {
@@ -154,7 +167,7 @@ async function handleJira(req, res, config) {
     );
 
     if (decision.dedupKey) {
-      dedup.insert(decision.dedupKey, {
+      dedup.upsert(decision.dedupKey, {
         paperclipIssueId: result.runId,
         source: 'jira',
         createdAt: new Date().toISOString(),
@@ -164,6 +177,9 @@ async function handleJira(req, res, config) {
     log({ route: 'jira', relay: true, dedupKey: decision.dedupKey, status: 200 });
     return reply(res, 200, { ok: true, relayed: true, runId: result.runId });
   } catch (err) {
+    if (decision.dedupKey) {
+      try { dedup.remove(decision.dedupKey); } catch { }
+    }
     log({ route: 'jira', relay: true, status: 502, error: err.message });
     return reply(res, 502, { error: 'paperclip fire failed' });
   }
