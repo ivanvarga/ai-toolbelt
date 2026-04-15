@@ -138,7 +138,7 @@ Phases execute in numeric order: 18 -> 19 -> 20 -> 21 -> 21.1 -> 22
 | 21. Memory Skills | v1.1 | 1/1 | Complete | 2026-04-02 |
 | 22. Auto-inject Context | v1.2 | 3/3 | Complete | 2026-04-09 |
 | 23. Adopt Skills | v1.2 | 2/2 | Complete    | 2026-04-13 |
-| 24. Triage Pipeline | v1.2 | 0/7 | Planned     | - |
+| 24. Triage Pipeline | v1.2 | 4/7 | In Progress|  |
 
 ### Phase 23: Adopt playwright-cli and visualize-changes into tb plugin
 
@@ -156,13 +156,13 @@ Plans:
 **Goal:** Build a Paperclip-integrated triage pipeline that receives GitHub/Jira events, classifies work complexity, routes to autonomous GSD or oneshot coder agents in worktrees, and gates on human verification before shipping
 **Requirements**: D-01 through D-26 (26 implicit requirements derived from CONTEXT.md decisions; see individual PLAN.md `requirements_addressed` fields)
 **Depends on:** Phase 23
-**Plans:** 7 plans
+**Plans:** 4/7 plans executed
 
 Plans:
-- [ ] 24-01-PLAN.md — Wave 0: Test scaffolding (fixtures + helpers + scaffold test)
-- [ ] 24-02-PLAN.md — Wave 1: bin/resolve-credential wrapper + dedup-store + repo-map modules
-- [ ] 24-03-PLAN.md — Wave 1: Webhook relay (HMAC verify + filter + Paperclip re-sign/fire)
-- [ ] 24-04-PLAN.md — Wave 2: AgentCompanies artifacts (COMPANY.md + .paperclip.yaml + 3 agent packages)
+- [x] 24-01-PLAN.md — Wave 0: Test scaffolding (fixtures + helpers + scaffold test)
+- [x] 24-02-PLAN.md — Wave 1: bin/resolve-credential wrapper + dedup-store + repo-map modules
+- [x] 24-03-PLAN.md — Wave 1: Webhook relay (HMAC verify + filter + Paperclip re-sign/fire)
+- [x] 24-04-PLAN.md — Wave 2: AgentCompanies artifacts (COMPANY.md + .paperclip.yaml + 3 agent packages)
 - [ ] 24-05-PLAN.md — Wave 2: PR-merged cleanup (worktree removal + dedup removal)
 - [ ] 24-06-PLAN.md — Wave 3: Deploy script extension + claude-worktree wrapper fallback
 - [ ] 24-07-PLAN.md — Wave 4: Setup doc (docs/paperclip-triage-setup.md) + validation finalization
