@@ -1,0 +1,40 @@
+{
+  "webhookEvent": "jira:issue_updated",
+  "timestamp": 1715000000000,
+  "user": {
+    "accountId": "other-accountid-placeholder",
+    "displayName": "Trigger User"
+  },
+  "issue": {
+    "id": "10042",
+    "key": "LFCR-360",
+    "fields": {
+      "summary": "Investigate flaky auth flow",
+      "description": { "content": [] },
+      "assignee": {
+        "accountId": "my-accountid-placeholder",
+        "displayName": "Ivan"
+      },
+      "reporter": {
+        "accountId": "other-accountid-placeholder",
+        "displayName": "Trigger User"
+      },
+      "labels": [],
+      "project": { "key": "LFCR" },
+      "status": { "name": "To Do" },
+      "priority": { "name": "Medium" }
+    }
+  },
+  "changelog": {
+    "items": [
+      {
+        "field": "assignee",
+        "fieldtype": "jira",
+        "fromString": "Someone Else",
+        "toString": "Ivan",
+        "from": "other-accountid-placeholder",
+        "to": "my-accountid-placeholder"
+      }
+    ]
+  }
+}

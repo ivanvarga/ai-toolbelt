@@ -1,0 +1,31 @@
+{
+  "action": "closed",
+  "number": 99,
+  "pull_request": {
+    "number": 99,
+    "title": "Fix login loop",
+    "merged": true,
+    "merged_at": "2026-04-15T12:00:00Z",
+    "state": "closed",
+    "html_url": "https://github.com/acme/repo/pull/99",
+    "head": {
+      "ref": "worktree-gh-acme-repo-42",
+      "sha": "abc1234def5678abc1234def5678abc1234def56"
+    },
+    "base": {
+      "ref": "main",
+      "sha": "0000000000000000000000000000000000000000"
+    },
+    "user": { "login": "ivan" },
+    "merged_by": { "login": "ivan" }
+  },
+  "repository": {
+    "full_name": "acme/repo",
+    "name": "repo",
+    "owner": { "login": "acme" },
+    "html_url": "https://github.com/acme/repo",
+    "default_branch": "main",
+    "clone_url": "https://github.com/acme/repo.git"
+  },
+  "sender": { "login": "ivan" }
+}

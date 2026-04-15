@@ -1,0 +1,38 @@
+{
+  "webhookEvent": "jira:issue_updated",
+  "timestamp": 1715000000001,
+  "user": {
+    "accountId": "other-accountid-placeholder",
+    "displayName": "Trigger User"
+  },
+  "issue": {
+    "id": "10043",
+    "key": "LFCR-361",
+    "fields": {
+      "summary": "Add telemetry to checkout",
+      "description": { "content": [] },
+      "assignee": {
+        "accountId": "my-accountid-placeholder",
+        "displayName": "Ivan"
+      },
+      "reporter": {
+        "accountId": "other-accountid-placeholder",
+        "displayName": "Trigger User"
+      },
+      "labels": ["triage:process", "backend"],
+      "project": { "key": "LFCR" },
+      "status": { "name": "To Do" },
+      "priority": { "name": "Medium" }
+    }
+  },
+  "changelog": {
+    "items": [
+      {
+        "field": "labels",
+        "fieldtype": "jira",
+        "fromString": "backend",
+        "toString": "triage:process backend"
+      }
+    ]
+  }
+}

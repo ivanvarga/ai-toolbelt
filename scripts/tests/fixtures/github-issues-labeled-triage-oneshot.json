@@ -1,0 +1,26 @@
+{
+  "action": "labeled",
+  "issue": {
+    "number": 43,
+    "title": "Crash on upload",
+    "body": "Upload crashes app",
+    "labels": [
+      { "name": "bug" },
+      { "name": "triage:oneshot" }
+    ],
+    "assignee": { "login": "ivan" },
+    "user": { "login": "reporter" },
+    "html_url": "https://github.com/acme/repo/issues/43",
+    "state": "open"
+  },
+  "label": { "name": "triage:oneshot" },
+  "repository": {
+    "full_name": "acme/repo",
+    "name": "repo",
+    "owner": { "login": "acme" },
+    "html_url": "https://github.com/acme/repo",
+    "default_branch": "main",
+    "clone_url": "https://github.com/acme/repo.git"
+  },
+  "sender": { "login": "reporter" }
+}

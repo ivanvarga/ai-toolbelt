@@ -1,0 +1,25 @@
+{
+  "action": "assigned",
+  "issue": {
+    "number": 42,
+    "title": "Login loop on iOS",
+    "body": "Reproduce login loop",
+    "labels": [
+      { "name": "bug" }
+    ],
+    "assignee": { "login": "ivan" },
+    "user": { "login": "reporter" },
+    "html_url": "https://github.com/acme/repo/issues/42",
+    "state": "open"
+  },
+  "repository": {
+    "full_name": "acme/repo",
+    "name": "repo",
+    "owner": { "login": "acme" },
+    "html_url": "https://github.com/acme/repo",
+    "default_branch": "main",
+    "clone_url": "https://github.com/acme/repo.git"
+  },
+  "assignee": { "login": "ivan" },
+  "sender": { "login": "reporter" }
+}
