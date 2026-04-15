@@ -85,4 +85,38 @@ test('cleanup-on-merge', async (t) => {
     assert.equal(result.cleaned, false);
     assert.match(result.reason, /worktreeCwd not under/);
   });
+
+  await t.test('relay-insert + update() + cleanup end-to-end shape', async () => {
+    const fs = require('node:fs');
+    const os = require('node:os');
+    const path = require('node:path');
+    const tmpHome = fs.mkdtempSync(path.join(os.tmpdir(), 'tb-triage-e2e-'));
+    const origHome = process.env.HOME;
+    process.env.HOME = tmpHome;
+    delete require.cache[require.resolve('../tb-triage/paths')];
+    delete require.cache[require.resolve('../tb-triage/dedup-store')];
+    try {
+      const store = require('../tb-triage/dedup-store');
+      store.insert('gh:acme/repo#42', {
+        paperclipIssueId: 'uuid-relay',
+        source: 'github',
+        createdAt: new Date().toISOString(),
+      });
+      store.update('gh:acme/repo#42', {
+        worktreeName: 'gh-acme-repo-42',
+        worktreeCwd: '/Users/x/repos/acme-repo/.claude/worktrees/gh-acme-repo-42',
+        prUrl: 'https://github.com/acme/repo/pull/99',
+      });
+      let capturedArgs = null;
+      const gitExec = async (args) => { capturedArgs = args; return { stdout: '', stderr: '' }; };
+      const result = await removeWorktreeForPr(fixture, { dedupStore: store, gitExec });
+      assert.equal(result.cleaned, true);
+      assert.equal(result.worktreeName, 'gh-acme-repo-42');
+      assert.deepEqual(capturedArgs, ['-C', '/Users/x/repos/acme-repo', 'worktree', 'remove', '--force', 'gh-acme-repo-42']);
+      assert.equal(store.check('gh:acme/repo#42'), null);
+    } finally {
+      process.env.HOME = origHome;
+      fs.rmSync(tmpHome, { recursive: true, force: true });
+    }
+  });
 });

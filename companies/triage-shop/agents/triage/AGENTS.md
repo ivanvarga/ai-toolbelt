@@ -94,9 +94,15 @@ When dispatching to an executor:
 1. Compute worktree name: `triage-${dedupKey.replace(/[:/#]/g, '-')}` (e.g., `triage-gh-acme-repo-42`).
 2. Write `issue.metadata.worktreeName` and `issue.metadata.worktreeCwd` on the issue via PATCH.
    - `worktreeCwd` = `<repo-cwd>/.claude/worktrees/<worktreeName>` (Claude Code's default location per 24-RESEARCH.md §Claude Code Worktree Mechanism).
-3. Check dedup store for worktree reuse (D-14) — if an entry with same `dedupKey` already has a `worktreeName`, reuse it (don't spawn a duplicate).
-4. Reassign issue from `triage` to `{oneshot-coder | gsd-orchestrator}`. Paperclip wakes that agent on assignment.
-5. Set `executionPolicy.stages = [{ type: "approval", participants: [{ type: "user", userId: <operator> }] }]` on the issue so the human gate fires when the executor transitions to `done` (D-11, D-16).
+3. **Patch the dedup entry** so PR-merge cleanup can find this worktree later. The relay only seeded `{paperclipIssueId, source, createdAt}`; cleanup needs `{worktreeName, worktreeCwd, prUrl}`. Call:
+   ```js
+   require('${CLAUDE_PLUGIN_ROOT}/scripts/tb-triage/dedup-store')
+     .update(dedupKey, { worktreeName, worktreeCwd, prUrl });
+   ```
+   Without this update the `pull_request.closed merged:true` handler will hit the "dedup entry had no worktree; removed entry only" branch in `cleanup.js` and the worktree will leak on disk.
+4. Check dedup store for worktree reuse (D-14) — if an entry with same `dedupKey` already has a `worktreeName`, reuse it (don't spawn a duplicate).
+5. Reassign issue from `triage` to `{oneshot-coder | gsd-orchestrator}`. Paperclip wakes that agent on assignment.
+6. Set `executionPolicy.stages = [{ type: "approval", participants: [{ type: "user", userId: <operator> }] }]` on the issue so the human gate fires when the executor transitions to `done` (D-11, D-16).
 
 ## Step 6 — Telemetry (D-21)
 
