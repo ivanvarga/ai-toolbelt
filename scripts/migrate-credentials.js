@@ -9,7 +9,7 @@ const DEFAULT_SCAN_DIRS = [
   path.join(os.homedir(), 'Projects'),
   path.join(os.homedir(), 'Work')
 ];
-const SERVICES = ['tb.sentry-token', 'tb.github-session', 'tb.contentful-token', 'tb.jira-token'];
+const SERVICES = ['tb.sentry-token', 'tb.github-session', 'tb.contentful-token', 'tb.jira-token', 'tb.linear-token'];
 const KEYCHAIN = path.join(__dirname, 'keychain.js');
 
 function prompt(question) {

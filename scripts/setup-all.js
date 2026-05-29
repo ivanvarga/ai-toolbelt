@@ -21,6 +21,7 @@ const setups = [
   { name: 'Contentful', script: 'skills/contentful/setup.js' },
   { name: 'GitHub Upload', script: 'skills/pr-upload/setup.js' },
   { name: 'Jira (acli)', script: 'skills/task-jira/setup.js' },
+  { name: 'Linear', script: 'skills/task-linear/setup.js' },
 ];
 
 const failed = [];
