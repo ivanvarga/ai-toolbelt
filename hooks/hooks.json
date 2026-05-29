@@ -35,6 +35,18 @@
           }
         ]
       }
+    ],
+    "PreToolUse": [
+      {
+        "matcher": "Bash",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "python3 ${CLAUDE_PLUGIN_ROOT}/hooks/rm-cwd-allow.py",
+            "timeout": 3
+          }
+        ]
+      }
     ]
   }
 }
