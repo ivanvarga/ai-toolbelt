@@ -1,0 +1,225 @@
+{
+  "audited_at": "2026-05-28T00:00:00Z",
+  "milestone": "v1.2",
+  "phases_checked": ["22", "23", "24"],
+  "status": "warnings",
+  "integration_findings": [
+    {
+      "id": "INT-01",
+      "severity": "info",
+      "phases": ["22"],
+      "finding": "UserPromptSubmit hook registered in hooks.json (synchronous, 10s timeout, no matcher). user-prompt-context.js exists and imports from ../scripts/forgetful-client.js. forgetful-client.js exports resolveForgetfulUrl, createSession, callTool — all three consumed correctly.",
+      "evidence": "hooks/hooks.json line 28-38; hooks/user-prompt-context.js line 6; scripts/forgetful-client.js line 158",
+      "affected_requirements": ["HOOK-01", "CTXI-01"]
+    },
+    {
+      "id": "INT-02",
+      "severity": "info",
+      "phases": ["22"],
+      "finding": "3-second internal Promise.race timeout + timer.unref() present. 10s hooks.json external timeout also present. CTXI-04 fully wired.",
+      "evidence": "hooks/user-prompt-context.js lines 145-158",
+      "affected_requirements": ["CTXI-04"]
+    },
+    {
+      "id": "INT-03",
+      "severity": "info",
+      "phases": ["22"],
+      "finding": "Skip conditions (/gsd: prefix, /tb:load-context prefix, trivial prompts <20 chars) all implemented. Session failure flag via process.ppid temp file prevents repeated failure notices.",
+      "evidence": "hooks/user-prompt-context.js lines 139-143",
+      "affected_requirements": ["CTXI-06", "CTXI-03", "CTXI-07"]
+    },
+    {
+      "id": "INT-04",
+      "severity": "info",
+      "phases": ["22"],
+      "finding": "k=5 retrieval and importance>=7 filter both present. Memories filtered via .filter(m => m.importance >= 7) after query_memory call.",
+      "evidence": "hooks/user-prompt-context.js lines 101-112",
+      "affected_requirements": ["CTXI-05"]
+    },
+    {
+      "id": "INT-05",
+      "severity": "info",
+      "phases": ["22"],
+      "finding": "Project ID cache uses 1-hour TTL temp file keyed by repo name. getCachedProjectId/setCachedProjectId fully wired into resolveProjectId.",
+      "evidence": "hooks/user-prompt-context.js lines 44-75",
+      "affected_requirements": ["CTXI-07"]
+    },
+    {
+      "id": "INT-06",
+      "severity": "info",
+      "phases": ["22"],
+      "finding": "additionalContext injected as hookSpecificOutput JSON with XML-tagged compact snippets (<forgetful_context> wrapper, bullet per memory with title+importance+300-char snippet).",
+      "evidence": "hooks/user-prompt-context.js lines 115-132",
+      "affected_requirements": ["CTXI-02"]
+    },
+    {
+      "id": "INT-07",
+      "severity": "info",
+      "phases": ["22"],
+      "finding": "Doctor check scripts/checks/user-prompt-hook.sh exists and is auto-discovered by tb:doctor which globs all *.sh in scripts/checks/. Dual-source detection (hooks.json primary, settings.json fallback) wired.",
+      "evidence": "skills/doctor/SKILL.md line 22; scripts/checks/user-prompt-hook.sh",
+      "affected_requirements": ["HOOK-02", "HOOK-03"]
+    },
+    {
+      "id": "INT-08",
+      "severity": "warning",
+      "phases": ["22"],
+      "finding": "user-prompt-hook is not listed in the doctor SKILL.md category mapping (line 43-46). The check runs and reports correctly (falls into 'Other' per line 64), but it is not surfaced in Setup/Integration sections. Low impact — functional, just uncategorized in display output.",
+      "evidence": "skills/doctor/SKILL.md lines 42-46: category mapping lists Setup/Credentials/Tools/Integration but omits user-prompt-hook",
+      "affected_requirements": ["HOOK-02"]
+    },
+    {
+      "id": "INT-09",
+      "severity": "info",
+      "phases": ["22"],
+      "finding": "Bootstrap SKILL.md step 5 adds UserPromptSubmit fallback registration via settings.json. Step 6 summary reports hook status. Both steps correctly wired.",
+      "evidence": "skills/bootstrap/SKILL.md lines 90-143",
+      "affected_requirements": ["HOOK-03"]
+    },
+    {
+      "id": "INT-10",
+      "severity": "info",
+      "phases": ["23"],
+      "finding": "skills/browser/SKILL.md exists with name: tb:browser. All 7 reference docs present. ${CLAUDE_SKILL_DIR} not needed (no bash commands referencing skill dir). No hardcoded paths.",
+      "evidence": "skills/browser/SKILL.md frontmatter; skills/browser/references/ (7 files)",
+      "affected_requirements": []
+    },
+    {
+      "id": "INT-11",
+      "severity": "info",
+      "phases": ["23"],
+      "finding": "skills/change-map/SKILL.md exists with name: tb:change-map. ${CLAUDE_SKILL_DIR} used correctly at lines 82 and 88. $BASE_BRANCH variable substituted correctly. Scripts file-deps.mjs and symbol-map.mjs both present.",
+      "evidence": "skills/change-map/SKILL.md lines 82,88; skills/change-map/scripts/",
+      "affected_requirements": []
+    },
+    {
+      "id": "INT-12",
+      "severity": "info",
+      "phases": ["24"],
+      "finding": "relay.js wiring complete: requires relay-filters, relay-paperclip-client, dedup-store, cleanup. All modules present in scripts/tb-triage/. All exports consumed correctly.",
+      "evidence": "scripts/tb-triage/relay.js lines 1-6; all referenced modules verified on disk",
+      "affected_requirements": []
+    },
+    {
+      "id": "INT-13",
+      "severity": "info",
+      "phases": ["24"],
+      "finding": "cleanup.js (D-15) wired into relay.js at top-level require. removeWorktreeForPr called on pull_request.closed merged events. dedup-remove-last-on-success pattern implemented.",
+      "evidence": "scripts/tb-triage/relay.js line 6, 75; scripts/tb-triage/cleanup.js line 61",
+      "affected_requirements": []
+    },
+    {
+      "id": "INT-14",
+      "severity": "info",
+      "phases": ["24"],
+      "finding": "WR-01 tag-override priority fix confirmed in production: TAG_PRIORITY array ['triage:skip','triage:oneshot','triage:process'] replaces array-order iteration in extractTriageTag.",
+      "evidence": "scripts/tb-triage/relay-filters.js lines 5,31; commit 20a28ed",
+      "affected_requirements": []
+    },
+    {
+      "id": "INT-15",
+      "severity": "info",
+      "phases": ["24"],
+      "finding": "companies/triage-shop/ fully present: COMPANY.md, .paperclip.yaml (with intake-github and intake-jira webhook routines), 3 agents (triage/oneshot-coder/gsd-orchestrator) each with AGENTS.md + SOUL.md.",
+      "evidence": "companies/triage-shop/ directory listing",
+      "affected_requirements": []
+    },
+    {
+      "id": "INT-16",
+      "severity": "info",
+      "phases": ["24"],
+      "finding": "scripts/paperclip-symlink.sh (deploy) and scripts/tb-triage-worktree-wrapper.sh (Open Question #7 fallback) both exist. Wrapper not wired into .paperclip.yaml by default — intentional; setup doc documents fallback path at line 354.",
+      "evidence": "scripts/paperclip-symlink.sh; scripts/tb-triage-worktree-wrapper.sh; docs/paperclip-triage-setup.md line 354",
+      "affected_requirements": []
+    },
+    {
+      "id": "INT-17",
+      "severity": "info",
+      "phases": ["24"],
+      "finding": "relay-paperclip-client.js exports signPaperclip but it is not called from relay.js. It is used only in tests (relay-paperclip-fire.test.js). This is test-only exposure — not a production dead export.",
+      "evidence": "scripts/tb-triage/relay-paperclip-client.js line 61; grep confirms no relay.js call",
+      "affected_requirements": []
+    },
+    {
+      "id": "INT-18",
+      "severity": "info",
+      "phases": ["24"],
+      "finding": "Full test suite: 76/76 pass (node --test scripts/tests/*.test.js, 112ms). Bash integration test: PASS (paperclip-symlink.test.sh). Both confirmed on current HEAD.",
+      "evidence": "Live test run output: tests 76, pass 76, fail 0; paperclip-symlink.test.sh: PASS",
+      "affected_requirements": []
+    }
+  ],
+  "flow_findings": [
+    {
+      "id": "FLOW-01",
+      "name": "Forgetful auto-inject (CTXI-01..07)",
+      "status": "complete",
+      "steps": [
+        "UserPromptSubmit hook registered in hooks.json (HOOK-01)",
+        "user-prompt-context.js reads stdin, skips /gsd:, /tb:load-context, trivial prompts (CTXI-06)",
+        "Session failure flag checked via process.ppid temp file (CTXI-03, CTXI-07)",
+        "resolveForgetfulUrl() from forgetful-client.js called (CTXI-01)",
+        "extractRepoName() from git remote get-url for project scoping (CTXI-01)",
+        "1-hour TTL project ID cache via temp file (CTXI-07)",
+        "query_memory called with k=5, project_ids filter (CTXI-05)",
+        "memories.filter(m => m.importance >= 7) applied (CTXI-05)",
+        "additionalContext emitted as XML-tagged hookSpecificOutput JSON (CTXI-02)",
+        "Promise.race 3s timeout + timer.unref() for graceful exit (CTXI-04)",
+        "On any error: write flag file, emit one-time notice, exit 0 (CTXI-03)"
+      ]
+    },
+    {
+      "id": "FLOW-02",
+      "name": "Doctor health check for UserPromptSubmit (HOOK-02)",
+      "status": "complete",
+      "steps": [
+        "tb:doctor globs all *.sh in scripts/checks/",
+        "user-prompt-hook.sh auto-discovered and executed",
+        "Checks hooks.json first, settings.json fallback (HOOK-03)",
+        "Resolves script path and verifies file exists",
+        "Outputs PASS/FAIL line; falls into 'Other' category in display (warning: not in category map)"
+      ]
+    },
+    {
+      "id": "FLOW-03",
+      "name": "Paperclip triage pipeline (Phase 24 end-to-end)",
+      "status": "complete",
+      "steps": [
+        "GitHub/Jira webhook → relay.js HTTP server",
+        "HMAC verified via relay-filters.js verifyGithubSignature/verifyJiraSignature",
+        "shouldRelayGithub/shouldRelayJira determines relay decision with extractTriageTag (priority: skip>oneshot>process)",
+        "Dedup check via dedup-store.js; inflight:true marker inserted before fire (WR-02)",
+        "Paperclip routine fired via relay-paperclip-client.js fireRoutine",
+        "dedup.upsert with runId on success; dedup.remove on failure",
+        "pull_request.closed merged → cleanup.removeWorktreeForPr → git worktree remove + dedup.remove (D-15)",
+        "companies/triage-shop/ deployed to Paperclip via paperclip-symlink.sh",
+        "Paperclip routes to triage/oneshot-coder/gsd-orchestrator agents",
+        "Worktree wrapper fallback documented in setup doc if {{issue.metadata.*}} templating unsupported"
+      ]
+    }
+  ],
+  "anti_patterns": [],
+  "pending_human_verifications": [
+    {
+      "phase": "22",
+      "item": "Verify hooks.json UserPromptSubmit output is captured by Claude (bug #12151 check). Ask 'what Forgetful context was injected?' after a prompt. If nothing: run /tb:bootstrap step 5 to register fallback in settings.json.",
+      "source": "22-HUMAN-UAT.md status: partial"
+    },
+    {
+      "phase": "22",
+      "item": "Verify graceful failure notice appears exactly once per session when Forgetful is unreachable (session flag reset between sessions).",
+      "source": "22-HUMAN-UAT.md status: partial"
+    },
+    {
+      "phase": "24",
+      "item": "End-to-end smoke: assign GitHub issue → Paperclip UI shows agent response → approve → PR opens → merge → worktree cleanup. 12-step procedure in docs/paperclip-triage-setup.md.",
+      "source": "24-HUMAN-UAT.md status: partial"
+    },
+    {
+      "phase": "24",
+      "item": "SOUL.md tone review (D-23): subjective taste decision, user reads triage/oneshot-coder/gsd-orchestrator SOUL.md files and approves or iterates.",
+      "source": "24-HUMAN-UAT.md status: partial"
+    }
+  ],
+  "summary": "All 3 phases wire together correctly. Phase 22: hook script exists, imports forgetful-client.js exports cleanly, all CTXI-01..07 and HOOK-01..03 requirements verified end-to-end in code. Phase 23: tb:browser and tb:change-map skills exist with correct frontmatter, ${CLAUDE_SKILL_DIR} paths wired, both support scripts present. Phase 24: relay→cleanup→dedup→paperclip chain fully wired; WR-01 tag priority fix, WR-02 inflight dedup, WR-03..06 fixes all confirmed in production files; 76/76 tests pass. One WARNING: user-prompt-hook check falls into 'Other' category in doctor display (not listed in SKILL.md category map) — functional, cosmetic gap only. 4 items deferred to human verification as documented."
+}
