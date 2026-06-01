@@ -43,7 +43,7 @@ done
 - **Setup:** plugin-registered, global-config, git-identity, skills-valid, hooks-valid
 - **Credentials:** cred-acli, cred-contentful, cred-github, cred-jira-token, cred-sentry
 - **Tools:** tool-mbridge
-- **Integration:** gsd-installed, forgetful-mcp, forgetful-plugin
+- **Integration:** forgetful-mcp, forgetful-plugin
 
 **Display rules:**
 - PASS: checkmark with message

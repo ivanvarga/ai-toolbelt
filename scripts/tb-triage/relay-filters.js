@@ -1,8 +1,8 @@
 const crypto = require('node:crypto');
 const { KEY_PATTERN } = require('./dedup-store');
 
-const TAG_VOCAB = { 'triage:oneshot': 'oneshot', 'triage:process': 'process', 'triage:skip': 'skip' };
-const TAG_PRIORITY = ['triage:skip', 'triage:oneshot', 'triage:process'];
+const TAG_VOCAB = { 'triage:oneshot': 'oneshot', 'triage:skip': 'skip' };
+const TAG_PRIORITY = ['triage:skip', 'triage:oneshot'];
 
 function verifyGithubSignature(rawBody, header, secret) {
   if (!header || typeof header !== 'string' || !header.startsWith('sha256=')) return false;

@@ -15,7 +15,7 @@ claude plugin marketplace add ivanvarga/ai-toolbelt
 claude plugin install tb@tb-marketplace
 ```
 
-After install, start a Claude Code session and run `/tb:bootstrap` to set up GSD, forgetful-plugin, and GSD patches.
+After install, start a Claude Code session and run `/tb:bootstrap` to set up forgetful-plugin and the Forgetful auto-context hook.
 
 ## Usage
 

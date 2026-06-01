@@ -82,31 +82,7 @@ If no new commits, tell the user the plugin is already up to date.
 
 9. **Remind to reload** -- tell the user to run `/reload-plugins` to pick up changes in the current session.
 
-10. **Update GSD** -- update GSD to the latest version if installed.
-
-Check if GSD is installed:
-
-```bash
-GSD_CHECK=$(bash "$PLUGIN_ROOT/scripts/checks/gsd-installed.sh" "$PLUGIN_ROOT")
-echo "$GSD_CHECK"
-```
-
-- If output starts with `PASS` (GSD is installed): run the update:
-
-  ```bash
-  npx -y get-shit-done-cc@latest --claude --global
-  ```
-
-  After completion, re-run the check to show the new version:
-
-  ```bash
-  GSD_CHECK=$(bash "$PLUGIN_ROOT/scripts/checks/gsd-installed.sh" "$PLUGIN_ROOT")
-  echo "$GSD_CHECK"
-  ```
-
-- If output starts with `FAIL` (GSD not installed): skip this step, report "GSD not installed -- skipping update. Run /tb:bootstrap to install."
-
-11. **Update forgetful-plugin** -- update the forgetful-plugin to the latest version if installed.
+10. **Update forgetful-plugin** -- update the forgetful-plugin to the latest version if installed.
 
 Check if forgetful-plugin is installed:
 
@@ -129,17 +105,7 @@ fi
 
 - If not installed (jq fails or file missing): skip, report "forgetful-plugin not installed -- skipping update. Run /tb:bootstrap to install."
 
-12. **Re-apply GSD patches** -- re-apply GSD workflow patches after GSD update.
-
-Only run if GSD is installed (step 10 check was `PASS`). GSD update does a clean install that wipes workflow files, so patches must be re-applied.
-
-```bash
-bash "$PLUGIN_ROOT/patches/apply-all.sh"
-```
-
-If GSD is not installed, skip and note "GSD patches skipped (GSD not installed)."
-
-13. **Re-symlink Paperclip skills** -- update Paperclip symlinks to point to the new cached version.
+11. **Re-symlink Paperclip skills** -- update Paperclip symlinks to point to the new cached version.
 
 ```bash
 bash "$PLUGIN_ROOT/scripts/paperclip-symlink.sh"
@@ -147,14 +113,12 @@ bash "$PLUGIN_ROOT/scripts/paperclip-symlink.sh"
 
 If the script outputs nothing, Paperclip was not detected (skip silently).
 
-14. **Summary** -- report what was updated.
+12. **Summary** -- report what was updated.
 
 Summarize the update results:
 
 - **tb plugin:** version change (from step 7) or "already up to date"
-- **GSD:** version after update or "skipped (not installed)"
 - **forgetful-plugin:** "updated" or "skipped (not installed)"
-- **GSD patches:** result from apply-all.sh or "skipped (GSD not installed)"
 - **Paperclip:** "skills re-symlinked" or omit if not detected
 
 Remind user to run `/reload-plugins` to pick up all changes in the current session.

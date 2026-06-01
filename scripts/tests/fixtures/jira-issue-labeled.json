@@ -19,7 +19,7 @@
         "accountId": "other-accountid-placeholder",
         "displayName": "Trigger User"
       },
-      "labels": ["triage:process", "backend"],
+      "labels": ["triage:oneshot", "backend"],
       "project": { "key": "LFCR" },
       "status": { "name": "To Do" },
       "priority": { "name": "Medium" }
@@ -31,7 +31,7 @@
         "field": "labels",
         "fieldtype": "jira",
         "fromString": "backend",
-        "toString": "triage:process backend"
+        "toString": "triage:oneshot backend"
       }
     ]
   }

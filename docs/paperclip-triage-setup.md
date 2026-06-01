@@ -1,8 +1,8 @@
 # Paperclip Triage Pipeline — Setup
 
 Turn your GitHub + Jira inbound-issue workflow into a Paperclip-orchestrated triage
-pipeline that routes all-high-confidence work to autonomous oneshot or GSD agents
-in isolated worktrees, gated on human approval in Paperclip before opening a PR.
+pipeline that routes all-high-confidence single-fix work to an autonomous oneshot agent
+in an isolated worktree, gated on human approval in Paperclip before opening a PR.
 
 > Assumes macOS. Linux works but Keychain paths differ; substitute your OS keyring
 > via `scripts/keychain.js` shim.
@@ -29,7 +29,7 @@ GitHub/Jira webhook ───▶ smee.io (dev) ───▶ tb-triage relay (loc
                                          Triage agent (in Paperclip)
                                               │
                                               ▼ (classifies; if all-high)
-                                         Oneshot or GSD agent in Claude Code worktree
+                                         Oneshot agent in Claude Code worktree
                                               │
                                               ▼
                                          Draft PR + diff comment
@@ -95,8 +95,8 @@ $PAPERCLIP_ROOT/companies/triage-shop --target existing`** — Paperclip does no
 auto-scan `companies/` for changes. (This is the Research Open Question #2 manual
 step; automation deferred per D-24 locked scope.)
 
-Verify in Paperclip UI: Companies → Triage Shop appears with 3 agents (triage,
-oneshot-coder, gsd-orchestrator).
+Verify in Paperclip UI: Companies → Triage Shop appears with 2 agents (triage,
+oneshot-coder).
 
 ## Step 3 — Create Paperclip company + agents + routines
 
@@ -321,7 +321,7 @@ smee → relay → Paperclip UI.
 3. Relay log: `relay:true, dedupKey:gh:...`.
 4. Paperclip UI: new issue, status `in_progress`, assigned to triage agent.
 5. Wait for triage heartbeat (up to 1-2 min). Triage posts a comment with 3 confidence labels + routing verdict.
-6. If all-high → triage reassigns to oneshot-coder (or gsd-orchestrator), creates worktree at `<cwd>/.claude/worktrees/gh-<owner>-<repo>-<number>/`.
+6. If all-high and single-fix → triage reassigns to oneshot-coder, creates worktree at `<cwd>/.claude/worktrees/gh-<owner>-<repo>-<number>/`. If all-high but too large for a single shot → transitions to `blocked` for a human.
 7. Coder agent runs. Posts diff comment + draft PR URL.
 8. Coder transitions to `done`. Paperclip intercepts — status becomes `in_review`, assigned to YOU (human approver).
 9. Open the Paperclip UI card. Review the diff comment + draft PR.
@@ -336,7 +336,6 @@ Apply these labels on the source ticket/issue to override triage classifier:
 | Tag | Effect |
 |-----|--------|
 | `triage:oneshot` | Force oneshot-coder route (skip confidence scoring) |
-| `triage:process` | Force gsd-orchestrator route |
 | `triage:skip` | Exclude from pipeline — triage agent transitions to `done` with skip comment |
 
 ## Troubleshooting

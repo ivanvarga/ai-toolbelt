@@ -14,9 +14,9 @@ test('companies-artifacts', async (t) => {
     assert.match(s, /slug:\s*triage-shop/);
   });
 
-  await t.test('.paperclip.yaml has 3 claude_local agents and 2 webhook routines', () => {
+  await t.test('.paperclip.yaml has 2 claude_local agents and 2 webhook routines', () => {
     const s = read('.paperclip.yaml');
-    assert.equal((s.match(/type:\s*claude_local/g) || []).length, 3);
+    assert.equal((s.match(/type:\s*claude_local/g) || []).length, 2);
     assert.match(s, /intake-github:/);
     assert.match(s, /intake-jira:/);
     assert.match(s, /kind:\s*webhook/);
@@ -32,16 +32,16 @@ test('companies-artifacts', async (t) => {
     }
   });
 
-  await t.test('3 agent packages exist', () => {
-    for (const slug of ['triage', 'oneshot-coder', 'gsd-orchestrator']) {
+  await t.test('2 agent packages exist', () => {
+    for (const slug of ['triage', 'oneshot-coder']) {
       assert.ok(fs.existsSync(path.join(ROOT, 'agents', slug, 'AGENTS.md')), `${slug}/AGENTS.md`);
       assert.ok(fs.existsSync(path.join(ROOT, 'agents', slug, 'SOUL.md')), `${slug}/SOUL.md`);
     }
   });
 
-  await t.test('triage AGENTS.md references full D-25 tag vocabulary + D-26 labels', () => {
+  await t.test('triage AGENTS.md references tag vocabulary + D-26 labels', () => {
     const s = read('agents/triage/AGENTS.md');
-    for (const tag of ['triage:oneshot', 'triage:process', 'triage:skip']) {
+    for (const tag of ['triage:oneshot', 'triage:skip']) {
       assert.match(s, new RegExp(tag), `tag ${tag} present`);
     }
     for (const label of ['low', 'med', 'high']) {
@@ -63,22 +63,16 @@ test('companies-artifacts', async (t) => {
     assert.match(s, /changes_requested/);
   });
 
-  await t.test('gsd-orchestrator AGENTS.md references gsd workflow', () => {
-    const s = read('agents/gsd-orchestrator/AGENTS.md');
-    assert.match(s, /gsd/i);
-    assert.match(s, /autonomous/i);
-  });
-
-  await t.test('all 3 SOUL.md files have principles + uncertainty sections', () => {
-    for (const slug of ['triage', 'oneshot-coder', 'gsd-orchestrator']) {
+  await t.test('all SOUL.md files have principles + uncertainty sections', () => {
+    for (const slug of ['triage', 'oneshot-coder']) {
       const s = read(`agents/${slug}/SOUL.md`);
       assert.match(s, /principles/i);
       assert.match(s, /uncertainty/i);
     }
   });
 
-  await t.test('all 3 AGENTS.md reference decision.json (D-21 telemetry)', () => {
-    for (const slug of ['triage', 'oneshot-coder', 'gsd-orchestrator']) {
+  await t.test('all AGENTS.md reference decision.json (D-21 telemetry)', () => {
+    for (const slug of ['triage', 'oneshot-coder']) {
       const s = read(`agents/${slug}/AGENTS.md`);
       assert.match(s, /decision\.json/);
     }

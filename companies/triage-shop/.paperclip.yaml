@@ -39,26 +39,6 @@ agents:
           kind: secret
           requirement: optional
 
-  gsd-orchestrator:
-    adapter:
-      type: claude_local
-      config:
-        model: claude-opus-4-6
-        maxTurnsPerRun: 600
-        dangerouslySkipPermissions: true
-        cwd: "{{issue.metadata.worktreeCwd}}"
-        extraArgs:
-          - "--worktree"
-          - "{{issue.metadata.worktreeName}}"
-    inputs:
-      env:
-        ANTHROPIC_API_KEY:
-          kind: secret
-          requirement: optional
-        GH_TOKEN:
-          kind: secret
-          requirement: optional
-
 routines:
   intake-github:
     description: Inbound GitHub issue/pr webhook intake from tb-triage relay

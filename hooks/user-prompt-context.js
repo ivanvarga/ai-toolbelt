@@ -136,7 +136,7 @@ async function main() {
   const prompt = (input.prompt || '').trim();
 
   if (!prompt) process.exit(0);
-  if (/^\/?gsd:|^\/?tb:load-context/i.test(prompt)) process.exit(0);
+  if (/^\/?tb:load-context/i.test(prompt)) process.exit(0);
   if (isTrivialPrompt(prompt)) process.exit(0);
 
   const flagFile = failureFlagPath();

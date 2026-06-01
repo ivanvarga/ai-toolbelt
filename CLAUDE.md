@@ -43,3 +43,11 @@ Claude Code has hardcoded safety rules that trigger manual approval regardless o
 - NEVER use backslash-escaped whitespace in paths. Quote the path instead. Bad: `ls /foo/Target\ Support\ Files`. Good: `ls "/foo/Target Support Files"`.
 - PREFER single-stage commands over compound `;`/`&&` chains. Multi-stage chains don't match simple allowlist prefixes and trigger approval. Split into separate Bash calls — each matches the allowlist cleanly.
 - When inspecting build artifacts in `~/Library/Developer/Xcode/DerivedData/`, expect dynamic hash paths — don't rely on "don't ask again" permission captures since they're literal-match.
+
+## Forgetful Memory
+
+This repo uses Forgetful (semantic memory via the Forgetful MCP, `mcp__forgetful__*`, keyed per-repo) as its project memory. The `tb:` UserPromptSubmit hook (`hooks/user-prompt-context.js`) auto-injects relevant memories into each prompt; the forgetful-plugin provides the MCP and memory skills.
+
+- **Save useful findings.** When you discover something durable and non-obvious — a decision and its rationale, a gotcha, a non-trivial how-to, an architectural constraint — save it to Forgetful. Skip what the code or git history already makes obvious.
+- **Check assumptions.** Before assuming how something in this project works (why a choice was made, where something lives, how a system behaves), query Forgetful first. Treat recalled memories as context that was true when written — verify against current code before relying on it.
+- If Forgetful is unreachable, proceed without it and don't block.

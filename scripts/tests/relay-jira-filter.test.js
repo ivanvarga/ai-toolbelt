@@ -23,11 +23,11 @@ test('relay-jira-filter', async (t) => {
     assert.equal(r.relay, false);
   });
 
-  await t.test('labeled with triage:process relays as tag override', () => {
+  await t.test('labeled with triage:oneshot relays as tag override', () => {
     const payload = fixture('jira-issue-labeled.json');
     const r = shouldRelayJira(payload, { triageUserAccountId: TRIAGE_ACCOUNT_ID });
     assert.equal(r.relay, true);
     assert.equal(r.dedupKey, 'jira:LFCR-361');
-    assert.match(r.reason, /tag override: process/);
+    assert.match(r.reason, /tag override: oneshot/);
   });
 });

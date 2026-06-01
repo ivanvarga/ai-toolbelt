@@ -70,7 +70,6 @@ ALLOW_RULES='[
   "Read",
   "Edit",
   "Write",
-  "Skill(gsd:*)",
   "Skill(tb:*)"
 ]'
 

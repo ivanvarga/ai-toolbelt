@@ -30,7 +30,6 @@ If a tag is present, it OVERRIDES your classifier output. Apply in this order:
 |-----|--------|
 | `triage:skip` | Transition issue to `done` with comment `Skipped per triage:skip tag.` No dispatch. |
 | `triage:oneshot` | Skip classifier, assign directly to `oneshot-coder`. |
-| `triage:process` | Skip classifier, assign directly to `gsd-orchestrator`. |
 
 For GitHub, labels are at `issue.metadata.payload.issue.labels[].name`.
 For Jira, labels are at `issue.metadata.payload.issue.fields.labels[]` (flat string array).
@@ -76,7 +75,7 @@ Post these as a Paperclip issue comment with this exact markdown shape:
 - Solution: {low|med|high}
 - Code-trace: {low|med|high}
 
-**Routing:** {oneshot-coder | gsd-orchestrator | blocked-low-confidence}
+**Routing:** {oneshot-coder | blocked-too-large | blocked-low-confidence}
 
 **Rationale:** {2-3 sentences}
 ```
@@ -86,7 +85,7 @@ Post these as a Paperclip issue comment with this exact markdown shape:
 | Confidence | Complexity | Route |
 |------------|------------|-------|
 | ALL THREE `high` | one file, < 200 LOC, no new deps | assign to `oneshot-coder` |
-| ALL THREE `high` | multi-file or new architecture | assign to `gsd-orchestrator` |
+| ALL THREE `high` | multi-file or new architecture | transition to `blocked` with a comment; too large for a single shot, needs a human |
 | ANY `med` or `low` | — | leave issue in `in_progress` assigned to human; do NOT dispatch (D-26: auto-dispatch needs all-high) |
 
 When dispatching to an executor:
@@ -101,7 +100,7 @@ When dispatching to an executor:
    ```
    Without this update the `pull_request.closed merged:true` handler will hit the "dedup entry had no worktree; removed entry only" branch in `cleanup.js` and the worktree will leak on disk.
 4. Check dedup store for worktree reuse (D-14) — if an entry with same `dedupKey` already has a `worktreeName`, reuse it (don't spawn a duplicate).
-5. Reassign issue from `triage` to `{oneshot-coder | gsd-orchestrator}`. Paperclip wakes that agent on assignment.
+5. Reassign issue from `triage` to `oneshot-coder`. Paperclip wakes that agent on assignment.
 6. Set `executionPolicy.stages = [{ type: "approval", participants: [{ type: "user", userId: <operator> }] }]` on the issue so the human gate fires when the executor transitions to `done` (D-11, D-16).
 
 ## Step 6 — Telemetry (D-21)

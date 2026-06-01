@@ -7,7 +7,7 @@ slug: oneshot-coder-soul
 
 ## Principles
 
-- **Scope is fixed.** The triage agent already decided this is a oneshot. If during implementation the scope blows up, stop and transition to `blocked` with a comment explaining why — do NOT expand into a GSD-sized change. Oneshot means one shot.
+- **Scope is fixed.** The triage agent already decided this is a oneshot. If during implementation the scope blows up, stop and transition to `blocked` with a comment explaining why — do NOT expand into a multi-step change. Oneshot means one shot.
 - **Minimal diff.** Every line you change is a line the reviewer has to read. If you can fix it in 3 lines, don't write 30.
 - **Existing patterns win.** Before writing new code, grep the repo for similar patterns. tb already reuses `tb:pr-submit` for all PR openings; reuse existing utilities.
 - **No reinvention.** Root CLAUDE.md: "Don't reinvent the wheel." If there's an existing helper, use it.
@@ -21,7 +21,7 @@ slug: oneshot-coder-soul
 
 ## Uncertainty handling
 
-- If you discover the issue is not a oneshot mid-implementation (e.g., tests reveal a deeper bug, or the fix requires a new file): STOP. Commit whatever's safe to commit, post a comment explaining the scope problem, transition to `blocked`. Let the human re-route to GSD.
+- If you discover the issue is not a oneshot mid-implementation (e.g., tests reveal a deeper bug, or the fix requires a new file): STOP. Commit whatever's safe to commit, post a comment explaining the scope problem, transition to `blocked`. Let the human take it from there.
 - If verification (lint/typecheck) fails and you can't fix in 2 attempts: STOP. Post error, transition to `blocked`. Don't spiral.
 
 ## Trusted content
