@@ -66,6 +66,46 @@ For multiple diagrams the producer calls `render.mjs` once per model.
 Common envelope: every model has a `type` discriminator and an optional `title`.
 Unknown `type` → `render.mjs` exits non-zero with a clear error listing supported types.
 
+### Generic links (all chart types)
+
+Every chart type uses ONE `links` array for connectors — no per-type `edges`/`relations`/
+`cardinality` fields. A link's **type is a data string** the renderer resolves through an
+extensible per-renderer registry:
+
+```json
+{ "from": "A", "to": "B", "type": "inheritance", "label": "uses", "url": "https://..." }
+```
+
+- `type` (string): resolved via the renderer's link-type map → mermaid connector + style.
+  Adding a new connector is one map entry, never a schema change.
+- `label` (optional): edge/relationship label.
+- `url` (optional): see "Uniform URLs" below — links are clickable wherever the chart type allows.
+
+Per-renderer link-type registries (the starting vocabulary; grows over time):
+
+```
+flowchart:  happy → "-->" green  · error → "-->" red  · deleted → "-.->" dashed-red  · neutral → "-->" gray
+class:      inheritance → "<|--" · composition → "*--" · aggregation → "o--"
+            · association → "-->" · dependency → "..>"
+er:         one-to-one → "||--||" · one-to-many → "||--o{" · many-to-one → "}o--||"
+            · many-to-many → "}o--o{"   (er adds: identifying:false → ".." connector instead of "--")
+```
+
+Unknown `type` → renderer falls back to a default connector + emits a stderr warning (degrade,
+never crash). The registry is the single place a new link type is registered.
+
+### Uniform URLs
+
+Any **node** and any **link** may carry an optional `url`. The renderer emits it as the chart
+type allows, with a consistent out-of-band fallback:
+
+- flowchart → `click <id> "<url>" _blank`, clickable labels wrapped in `<u>`.
+- class → `click <name> href "<url>" "<tooltip>"`.
+- er → no native node/link interaction; `url` is not emitted inline.
+- **All types** additionally emit a trailing `<!-- LINKS: {id|name → url} -->` comment, so links
+  survive even when GitHub strips inline `click`/`href` (see caveats). One unified comment marker
+  (`LINKS`) replaces the old per-type `FILE_LINKS`/`ENTITY_LINKS`.
+
 ### flowchart
 
 One flowchart type covers BOTH diagrams change-map produces today (the dependency graph and the
@@ -78,23 +118,23 @@ hand-authored logical-flow), so producers never hand-write flowchart syntax.
   "groups":  [{ "id": "auth", "label": "providers/auth", "nodeIds": ["a", "b"] }],
   "nodes":   [{ "id": "a", "label": "auth-provider: login()", "shape": "action",
                 "category": "new", "url": "https://github.com/.../auth.ts#L12" }],
-  "edges":   [{ "from": "a", "to": "b", "label": "success", "category": "happy" }]
+  "links":   [{ "from": "a", "to": "b", "label": "success", "type": "happy" }]
 }
 ```
 
 - `shape`: `action` (rounded `(...)`) | `decision` (diamond `{...}`). Default `action`.
 - node `category`: `new` (green) | `modified` (blue) | `deleted` (red) | `neutral` (default). Maps to `classDef`.
-- edge `category`: `happy` (green) | `error` (red) | `deleted` (dashed red) | `neutral` (gray). Maps to `linkStyle`.
+- link `type`: resolved via the flowchart link-type registry → `linkStyle`.
 - `groups` optional → `subgraph` panes with the existing pane styling.
-- `url` optional → `click <id> "<url>" _blank`; clickable node labels wrapped in `<u>`.
 
 ### class
 
 ```json
 {
   "type": "class",
-  "classes": [{
-    "name": "AuthProvider",
+  "nodes": [{
+    "id": "AuthProvider",
+    "label": "AuthProvider",
     "category": "modified",
     "url": "https://github.com/.../auth.ts#L12",
     "members": [
@@ -102,25 +142,23 @@ hand-authored logical-flow), so producers never hand-write flowchart syntax.
       { "kind": "method", "name": "login",  "type": "Promise<void>", "visibility": "+" }
     ]
   }],
-  "relations": [
-    { "from": "AuthProvider", "to": "HttpClient", "kind": "composition", "label": "uses" }
+  "links": [
+    { "from": "AuthProvider", "to": "HttpClient", "type": "composition", "label": "uses" }
   ]
 }
 ```
 
 - `visibility`: `+` public | `-` private | `#` protected. Rendered in mermaid member syntax.
-- relation `kind` → arrow: `inheritance` `<|--` | `composition` `*--` | `aggregation` `o--` |
-  `association` `-->` | `dependency` `..>`.
-- `category` → `classDef` + `cssClass "<name>" <category>` (mermaid class diagrams support classDef/cssClass).
-- `url` → `click <name> href "<url>" "<tooltip>"` (subject to GitHub stripping; see caveats).
+- link `type` → arrow via the class registry (`inheritance`, `composition`, …).
+- `category` → `classDef` + `cssClass "<id>" <category>` (mermaid class diagrams support classDef/cssClass).
 
 ### er
 
 ```json
 {
   "type": "er",
-  "entities": [{
-    "name": "PERSON",
+  "nodes": [{
+    "id": "PERSON",
     "category": "new",
     "attributes": [
       { "name": "id",        "type": "uuid",   "key": "PK" },
@@ -128,19 +166,20 @@ hand-authored logical-flow), so producers never hand-write flowchart syntax.
       { "name": "email",     "type": "string", "key": null }
     ]
   }],
-  "relations": [
-    { "from": "PERSON", "to": "COMPANY", "cardinality": "many-to-one",
+  "links": [
+    { "from": "PERSON", "to": "COMPANY", "type": "many-to-one",
       "label": "works at", "identifying": false }
   ]
 }
 ```
 
 - attribute `key`: `PK` | `FK` | `UK` | `null`. Rendered as the mermaid key suffix.
-- `cardinality` → crow's-foot: `one-to-one` `||--||` | `one-to-many` `||--o{` |
-  `many-to-one` `}o--||` | `many-to-many` `}o--o{`. `identifying:true` uses `--`, false uses `..`.
-- `category` → `classDef` + `<entity>:::<category>` (mermaid v11 ER styling).
-- **No click**: mermaid ER diagrams do not support node interactions. `url` on entities is ignored;
-  a `<!-- ENTITY_LINKS -->` comment is emitted instead (see caveats) so links survive out-of-band.
+- link `type` → crow's-foot via the er registry; `identifying:false` swaps the `--` connector for `..`.
+- `category` → `classDef` + `<id>:::<category>` (mermaid v11 ER styling).
+
+> **Node naming**: every type uses a `nodes` array with an `id`. flowchart/er use `id` directly as
+> the mermaid node id; class uses `id` as the class name. `members`/`attributes` are node fields
+> specific to class/er. This keeps `nodes` + `links` + `url` uniform across all renderers.
 
 ## Styling semantics (owned by `lib/style.mjs`)
 
@@ -155,10 +194,9 @@ existing PRs stay visually consistent:
 ## GitHub-compatibility caveats (verified 2026-06-02)
 
 - GitHub renders mermaid but **strips `click`/hyperlinks and tooltips** for security. The renderer
-  still emits `click` (works in other viewers) AND emits a trailing HTML comment
-  (`<!-- FILE_LINKS: {...} -->` for flowchart/class, `<!-- ENTITY_LINKS: {...} -->` for er) carrying
-  the same id→url map, so a consumer can post links out-of-band. This preserves the existing
-  change-map behavior.
+  still emits `click`/`href` (works in other viewers) AND emits a single trailing
+  `<!-- LINKS: {id → url} -->` comment (all chart types) carrying the id→url map, so a consumer can
+  post links out-of-band. This preserves and unifies the existing change-map FILE_LINKS behavior.
 - ER `classDef`/`style` is mermaid v11. If GitHub's pinned renderer rejects it, the diagram still
   renders unstyled rather than failing — category coloring is best-effort for ER.
 - Class/ER coloring is best-effort; flowchart styling is full. This is a known mermaid limitation,
@@ -180,8 +218,10 @@ existing PRs stay visually consistent:
 ## Testing
 
 - Per-renderer unit tests in `scripts/tests/`: feed a fixture model, assert the output contains the
-  expected mermaid markers — init directive; `classDef` lines for each category; correct relation
-  arrows (`<|--`, `*--`, `..>`); crow's-foot cardinality (`||--o{`); FILE_LINKS/ENTITY_LINKS comment.
+  expected mermaid markers — init directive; `classDef` lines for each category; correct link-type
+  arrows (`<|--`, `*--`, `..>`); crow's-foot cardinality (`||--o{`); the unified `LINKS` comment.
+- Link-type registry tests: known `type` → expected connector/style; unknown `type` → default
+  connector + stderr warning (no crash).
 - `render.mjs` dispatch tests: unknown `type` exits non-zero with a helpful message; each known type
   routes to its renderer.
 - Update `companies-artifacts`-style expectations only if affected (they are not).
