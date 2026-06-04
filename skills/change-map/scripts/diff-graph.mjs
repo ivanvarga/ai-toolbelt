@@ -34,8 +34,7 @@ for (const [filepath, status] of allFiles) {
 }
 
 const dirGroups = groupByDir(allFiles);
-const output = generateMermaid(dirGroups, fileData, githubPrefix);
-process.stdout.write(output);
+process.stdout.write(JSON.stringify(buildModel(dirGroups, fileData), null, 2) + "\n");
 
 function run(cmd) {
   try {
@@ -217,110 +216,41 @@ function groupByDir(allFiles) {
   return new Map([...groups.entries()].sort(([a], [b]) => a.localeCompare(b)));
 }
 
-function generateMermaid(dirGroups, fileData, ghPrefix) {
-  const lines = [];
-  lines.push("```mermaid");
-  lines.push("%%{init: {'flowchart': {'wrappingWidth': 9999}, 'themeVariables': {'fontSize': '14px'}}}%%");
-  lines.push("flowchart TD");
+function statusToCategory(status) {
+  if (status === "A") return "new";
+  if (status === "D") return "deleted";
+  return "modified";
+}
 
-  let sgIdx = 0;
-  const sgIds = [];
+function buildModel(dirGroups, fileData) {
+  const groups = [];
+  const nodes = [];
   for (const [dirLabel, files] of dirGroups) {
-    const sgId = `sg_${sgIdx}`;
-    sgIds.push(sgId);
-    lines.push(`    subgraph ${sgId}["${dirLabel}"]`);
+    const nodeIds = [];
     for (const filepath of files) {
       const d = fileData.get(filepath);
       const tag = d.status === "A" ? "[+]" : d.status === "D" ? "[-]" : "[M]";
-      const fname = basename(filepath);
-      let label = `<u>${tag} ${fname}</u>`;
+      let label = `${tag} ${basename(filepath)}`;
       for (const sym of d.symbols) {
-        if (sym.prefix === "⊖") {
-          label += `\\n${sym.prefix} ${sym.name}`;
-        } else {
-          label += `\\n${sym.prefix} <u>${sym.name}()${sym.line ? ` :${sym.line}` : ""}</u>`;
-        }
+        label += `\\n${sym.prefix} ${sym.name}()${sym.line ? ` :${sym.line}` : ""}`;
       }
-      lines.push(`        ${d.nodeId}("${label}")`);
+      const firstSym = d.symbols.find((s) => s.prefix === "⊕" || s.prefix === "⊙");
+      const url = d.status === "D" ? null : buildFileUrl(filepath, firstSym?.line || 1, d.status);
+      nodes.push({ id: d.nodeId, label, shape: "action", category: statusToCategory(d.status), url });
+      nodeIds.push(d.nodeId);
     }
-    lines.push("    end");
-    sgIdx++;
+    groups.push({ id: makeNodeId("g/" + dirLabel), label: dirLabel, nodeIds });
   }
 
-  lines.push("");
-
-  const linkTypes = [];
+  const links = [];
   for (const [, d] of fileData) {
     for (const target of d.imports) {
       const td = fileData.get(target);
       if (!td) continue;
-      if (td.status === "D") {
-        lines.push(`    ${d.nodeId} -.-> ${td.nodeId}`);
-        linkTypes.push("deleted");
-      } else {
-        lines.push(`    ${d.nodeId} --> ${td.nodeId}`);
-        linkTypes.push(d.status === "A" || td.status === "A" ? "added" : "existing");
-      }
+      const type = td.status === "D" ? "deleted" : (d.status === "A" || td.status === "A") ? "happy" : "neutral";
+      links.push({ from: d.nodeId, to: td.nodeId, type });
     }
   }
 
-  lines.push("");
-  lines.push("    classDef modified fill:#60a5fa,color:#000,stroke:#3b82f6,stroke-width:2px,cursor:pointer");
-  lines.push("    classDef added fill:#4ade80,color:#000,stroke:#22c55e,stroke-width:2px,cursor:pointer");
-  lines.push("    classDef deleted fill:#f87171,color:#000,stroke:#ef4444,stroke-width:2px,cursor:pointer");
-  lines.push("");
-
-  const byClass = { modified: [], added: [], deleted: [] };
-  for (const [, d] of fileData) {
-    const cls = d.status === "A" ? "added" : d.status === "D" ? "deleted" : "modified";
-    byClass[cls].push(d.nodeId);
-  }
-  if (byClass.modified.length) lines.push(`    class ${byClass.modified.join(",")} modified`);
-  if (byClass.added.length) lines.push(`    class ${byClass.added.join(",")} added`);
-  if (byClass.deleted.length) lines.push(`    class ${byClass.deleted.join(",")} deleted`);
-
-  lines.push("");
-  for (const sgId of sgIds) {
-    lines.push(`    style ${sgId} rx:10,ry:10,fill:#1e293b,stroke:#334155,color:#94a3b8`);
-  }
-
-  lines.push("");
-  lines.push("    linkStyle default stroke:#475569,stroke-width:1.5px");
-  const indicesOf = (val) => linkTypes.reduce((acc, t, i) => (t === val ? [...acc, i] : acc), []);
-  const existingLinks = indicesOf("existing");
-  const addedLinks = indicesOf("added");
-  const deletedLinks = indicesOf("deleted");
-  if (existingLinks.length) lines.push(`    linkStyle ${existingLinks.join(",")} stroke:#60a5fa,stroke-width:2px`);
-  if (addedLinks.length) lines.push(`    linkStyle ${addedLinks.join(",")} stroke:#4ade80,stroke-width:2px`);
-  if (deletedLinks.length) lines.push(`    linkStyle ${deletedLinks.join(",")} stroke:#f87171,stroke-width:2px,stroke-dasharray:5`);
-
-  if (ghPrefix) {
-    lines.push("");
-    for (const [fp, d] of fileData) {
-      if (d.status === "D") continue;
-      const firstSym = d.symbols.find(s => s.prefix === "⊕" || s.prefix === "⊙");
-      const lineNum = firstSym?.line || 1;
-      const tooltip = firstSym ? `${firstSym.name}() :${firstSym.line}` : "Open file";
-      const url = buildFileUrl(fp, lineNum, d.status);
-      if (url) lines.push(`    click ${d.nodeId} "${url}" _blank`);
-    }
-  }
-
-  lines.push("```");
-
-  if (ghPrefix || prInfo) {
-    const fileLinks = {};
-    for (const [fp, d] of fileData) {
-      if (d.status === "D") continue;
-      const firstSym = d.symbols.find(s => s.prefix === "⊕" || s.prefix === "⊙");
-      const lineNum = firstSym?.line || 1;
-      const tooltip = firstSym ? `${firstSym.name}() :${firstSym.line}` : "Open file";
-      const url = buildFileUrl(fp, lineNum, d.status);
-      if (url) fileLinks[fp] = { url, tooltip, line: lineNum };
-    }
-    lines.push("");
-    lines.push(`<!-- FILE_LINKS: ${JSON.stringify(fileLinks)} -->`);
-  }
-
-  return lines.join("\n") + "\n";
+  return { type: "flowchart", direction: "TD", groups, nodes, links };
 }

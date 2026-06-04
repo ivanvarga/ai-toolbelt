@@ -11,7 +11,7 @@ The goal is minimum mental load for reviewers: they should glance at the diagram
 
 ## Scope and Limitations
 
-The bundled scripts (`file-deps.mjs`, `symbol-map.mjs`) analyze **TypeScript and TSX files only** (`.ts`, `.tsx`). For other languages the scripts will still run but emit "No changed TS/TSX files found" — the subagent should then fall back to generating diagrams directly from the git diff rather than relying on the scripts. Skills that need cross-language support should extend the scripts; the limitation is intentional, not a bug.
+The bundled scripts (`diff-graph.mjs`, `symbol-map.mjs`) analyze **TypeScript and TSX files only** (`.ts`, `.tsx`). For other languages the scripts will still run but emit "No changed TS/TSX files found" — the subagent should then fall back to generating diagrams directly from the git diff rather than relying on the scripts. Skills that need cross-language support should extend the scripts; the limitation is intentional, not a bug.
 
 ## Execution
 
@@ -79,9 +79,10 @@ Two scripts do the mechanical work. Run each once and save their output — you'
 
 **2a. File dependencies diagram:**
 ```bash
-node "${CLAUDE_SKILL_DIR}/scripts/file-deps.mjs"
+node "${CLAUDE_PLUGIN_ROOT}/skills/change-map/scripts/diff-graph.mjs" \
+  | node "${CLAUDE_PLUGIN_ROOT}/skills/mermaid-render/scripts/render.mjs" --split
 ```
-The script parses the git diff, resolves imports, extracts symbols, and emits a fully-styled mermaid diagram (with classDef, subgraph grouping, linkStyle, and click URLs). Its output goes directly into the final markdown as the File Dependencies section — do not regenerate or modify it.
+`diff-graph.mjs` parses the git diff, resolves imports, extracts symbols, and emits a flowchart JSON model; `tb:mermaid-render`'s `render.mjs` applies all styling (classDef, subgraph grouping, linkStyle, click URLs) and `--split`s large graphs into an Overview + per-group diagrams. Its output goes directly into the final markdown as the File Dependencies section — do not modify it.
 
 **2b. Symbol map (JSON lookup for click URLs):**
 ```bash
@@ -91,7 +92,7 @@ Outputs a JSON object keyed by symbol name. Exported symbols use their name dire
 
 You will use this map in Phase 5 to build accurate `click` directives for the Logical Flow diagram. **Never guess line numbers or construct URLs manually — always look up the symbol in this map.** If a symbol isn't in the map, omit the click directive for that node.
 
-**Note on TS/TSX-only scripts:** Both scripts only analyze `.ts` and `.tsx` files. If they print "No changed TS/TSX files found," the current diff is in other languages — skip the scripted File Dependencies section and generate a simpler file-level diagram manually from the diff stat.
+**Note on TS/TSX-only scripts:** `diff-graph.mjs` and `symbol-map.mjs` only analyze `.ts` and `.tsx` files. If `diff-graph.mjs` prints "No changed TS/TSX files found," the current diff is in other languages — skip the scripted File Dependencies section and build a simpler flowchart model by hand (see Phase 4) from the diff stat, then pipe it through `render.mjs`.
 
 ---
 
@@ -111,51 +112,39 @@ Apply scaling rules to decide what to draw:
 
 ---
 
-## Phase 4: Render the Logical Flow diagram
+## Phase 4: Build the Logical Flow model
 
-This is a `flowchart TD` mermaid diagram that shows how the code flows through the changes, with decision paths a reviewer should follow. Skip this diagram entirely if Phase 3 determined it isn't needed.
+A flowchart that shows how the code flows through the changes, with the decision paths a reviewer should follow. You decide *what matters* (which nodes/paths); `tb:mermaid-render` owns *all styling*. Skip this entirely if Phase 3 determined it isn't needed.
 
-**4a. Preamble (first line):** always begin with an init directive that prevents text wrapping:
-```
-%%{init: {'flowchart': {'wrappingWidth': 9999}}}%%
-```
+Build a flowchart JSON model (the full contract is in `skills/mermaid-render/references/model-schema.md`):
 
-**4b. Node shapes — pick the shape that matches intent:**
-- Action nodes: rounded rectangles `A("label")` — NOT sharp rectangles `A["label"]`
-- Decision points: diamonds `B{"condition?"}`
-- Labels follow `file: functionName()` format so reviewers know where to look
-
-**4c. Content guidelines:**
-- Show 3-8 key paths — tell the story, don't overwhelm
-- Use descriptive edge labels (`|success|`, `|401 error|`, `|already registered|`)
-- Group with `subgraph` using explicit IDs when it clarifies layers (e.g. auth vs. handlers)
-
-**4d. Node styling — keep colors consistent with the dependency diagram:**
-- New nodes: `style X fill:#4ade80,color:#000,text-align:left`
-- Modified nodes: `style X fill:#60a5fa,color:#000,text-align:left`
-- Subgraph panes: `style ID rx:10,ry:10,fill:#1e293b,stroke:#334155,color:#94a3b8`
-- Always include `color:#000` and `text-align:left` in every style directive for nodes (improves contrast on GitHub's dark theme)
-
-**4e. Arrow styling — use color to signal happy vs. error paths:**
-- Baseline: `linkStyle default stroke:#475569,stroke-width:1.5px`
-- Happy path (green): `linkStyle N stroke:#4ade80,stroke-width:2px`
-- Error path (red): `linkStyle N stroke:#f87171,stroke-width:2px`
-- `N` is the 0-indexed order in which links appear in the diagram source — count carefully, miscounting produces wrong-colored arrows.
-
-**4f. Clickable links — always use the Symbol Map:**
-For each node you want to make clickable, look up its symbol in the Phase 2b output and use the `label` and `url` fields directly. Example symbol map entry:
 ```json
-"handlePostAuthConsent": {
-  "url": "https://github.com/.../auth-provider.ts#L102",
-  "label": "providers/auth-provider: handlePostAuthConsent() :102"
+{
+  "type": "flowchart",
+  "direction": "TD",
+  "groups": [{ "id": "auth", "label": "auth", "nodeIds": ["A", "B"] }],
+  "nodes": [
+    { "id": "A", "label": "auth-provider: login()", "shape": "action", "category": "modified", "url": "<from symbol map>" },
+    { "id": "B", "label": "registered?", "shape": "decision", "category": "neutral" }
+  ],
+  "links": [
+    { "from": "A", "to": "B", "label": "success", "type": "happy" },
+    { "from": "B", "to": "A", "label": "401", "type": "error" }
+  ]
 }
 ```
-Translates to:
+
+Guidelines:
+- **Nodes:** `shape` is `action` or `decision`; `label` uses `file: functionName()`; `category` is `new`/`modified`/`neutral` (matches the diff). Show 3–8 key paths — tell the story, don't overwhelm.
+- **Links:** `type` is `happy` (success path), `error` (failure path), or `neutral`; add a `label` like `success` / `401 error`.
+- **URLs:** populate `url` from the Phase 2b symbol map's `url` field. **Never guess line numbers or construct URLs** — if a symbol isn't in the map, omit `url` for that node. The renderer wraps clickable nodes in `<u>` and emits the `click`/`LINKS` directives.
+- **Groups:** optional `subgraph` panes when layering clarifies (e.g. auth vs handlers).
+
+Render it (and split if large):
+```bash
+echo "$LOGICAL_FLOW_JSON" | node "${CLAUDE_PLUGIN_ROOT}/skills/mermaid-render/scripts/render.mjs" --split
 ```
-E("<u>providers/auth-provider: handlePostAuthConsent() :102</u>")
-click E "https://github.com/.../auth-provider.ts#L102" _blank
-```
-Notes: wrap node labels in `<u>` tags for clickable nodes to signal clickability; always pass `_blank` so the link opens in a new tab; if a symbol isn't in the map, leave the node un-clickable rather than guessing a URL.
+All colors, shapes, arrow styling, clickable wrapping, and the init directive are applied by the renderer — do not hand-write mermaid styling.
 
 ---
 
@@ -167,13 +156,15 @@ Emit exactly one markdown block with this structure (no prose outside the block)
 ## Change Map
 
 ### Logical Flow
-<mermaid flowchart from Phase 4, or omit this subsection if Phase 3 said to skip it>
+<render.mjs output for the Phase 4 model, or omit this subsection if Phase 3 said to skip it>
 
 ### File Dependencies
-<mermaid code block produced by file-deps.mjs from Phase 2a, verbatim>
+<render.mjs output for the Phase 2a pipe, verbatim>
 ```
 
-Do not regenerate or post-edit the File Dependencies diagram — the script already handled styling, symbols, click URLs, and subgraph grouping. Your only job is to splice its output into the final markdown.
+Do not post-edit the rendered diagrams — `tb:mermaid-render` already handled styling, symbols, click URLs, splitting, and subgraph grouping. Your only job is to splice its output into the final markdown.
+
+To view locally instead of emitting markdown, pipe either model through `mermaid-render/scripts/view.mjs` (writes a `.md` and opens it in the cmux markdown panel).
 ```
 
 ### What you do with the result
