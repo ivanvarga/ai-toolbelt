@@ -23,6 +23,9 @@ with the diff workflow as its first consumer.
   `mermaid-render`. No styling logic remains in change-map.
 - The styling skill is general enough that a future architecture-analysis producer feeds it the
   same way the diff skill does.
+- **Large-diagram splitting** so output reads well at a fixed size in viewers that can't zoom.
+- **cmux markdown as the default viewer** — generated diagrams open in the cmux markdown panel,
+  never a browser ([[prefers-cmux-markdown-viewer]]).
 
 ## Non-goals
 
@@ -35,12 +38,14 @@ with the diff workflow as its first consumer.
 ```
 skills/mermaid-render/
   SKILL.md                     # when/how to use; the contract; how consumers invoke render.mjs
-  scripts/render.mjs           # entry: reads JSON model on stdin, validates, dispatches on model.type
+  scripts/render.mjs           # entry: stdin model -> dispatch; --split; exports renderToMarkdown()
+  scripts/view.mjs             # render + write .md + `cmux markdown open` (default viewer)
   scripts/renderers/
     flowchart.mjs              # model -> flowchart TD (subgraphs, categories, clicks)
     class.mjs                  # model -> classDiagram
     er.mjs                     # model -> erDiagram
-  scripts/lib/style.mjs        # shared palette, init directive, <u>/click + FILE_LINKS helpers
+  scripts/lib/style.mjs        # shared palette, init directive, <u>/click + LINKS helpers
+  scripts/lib/split.mjs        # splitFlowchart(model, threshold) -> [{heading, model}]
   references/model-schema.md   # the JSON contract for each type (what producers target)
 
 skills/change-map/             # refactored: analysis only
@@ -201,6 +206,32 @@ existing PRs stay visually consistent:
   renders unstyled rather than failing — category coloring is best-effort for ER.
 - Class/ER coloring is best-effort; flowchart styling is full. This is a known mermaid limitation,
   not a bug to fix.
+
+## Large-diagram splitting (`lib/split.mjs`)
+
+Viewers that render at a fixed size (cmux markdown, GitHub) can't zoom, so a big graph becomes
+unreadable. `render.mjs --split [--threshold N]` (default N=25) breaks a large flowchart into
+several small, readable diagrams instead of one:
+
+- Pass-through when `nodes.length <= N` or there is ≤1 group — single diagram, no headings.
+- Otherwise emit, each under a `### heading`:
+  - **Overview** — one node per `group` (labelled `"<group> (<count>)"`), with one edge per distinct
+    cross-group dependency. Gives the 10,000-ft view.
+  - **One diagram per group** — that group's nodes + only the intra-group links. Cross-group links
+    are intentionally dropped here (they live in the Overview), keeping each diagram small.
+- Splitting applies to `flowchart` only; `class`/`er` always render single (note in schema).
+- Implemented as a pure function `splitFlowchart(model, threshold) -> [{heading, model}]`, so it is
+  independently testable; `render.mjs` exposes `renderToMarkdown(model, {split, threshold})` which
+  both the CLI and the cmux viewer reuse.
+
+## Viewing (cmux markdown, default)
+
+Per [[prefers-cmux-markdown-viewer]], generated diagrams open in the cmux markdown panel — never a
+browser. A `scripts/view.mjs` convenience: read a model on stdin, call
+`renderToMarkdown(model, {split:true})`, write a `.md` (default under `/tmp` or a passed path), then
+run `cmux markdown open <path>`. The panel live-reloads, so re-running `view.mjs` refreshes it.
+`render.mjs` stays pure (stdout only); `view.mjs` owns the file-write + cmux side effects.
+SKILL.md documents `view.mjs` as the default path and the raw `render.mjs` for piping into PRs.
 
 ## change-map refactor
 

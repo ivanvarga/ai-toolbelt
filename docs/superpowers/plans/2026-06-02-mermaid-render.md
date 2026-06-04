@@ -1046,3 +1046,393 @@ git commit -m "Finalize mermaid-render split and change-map refactor"
 **Placeholder scan:** No TBD/TODO; every code step has complete code; Task 7 reference copies from a named spec section rather than inventing. ✓
 
 **Type consistency:** `renderFlowchart`/`renderClass`/`renderEr` named consistently across renderers, tests, and the `RENDERERS` map in Task 6. `linksComment`, `classDefLines`, `escapeLabel`, `fence` defined in Task 1 and imported identically in Tasks 3/4/5. `flowchartLink`/`classLink`/`erLink` defined in Task 2, used in 3/4/5. `buildModel`/`statusToCategory` defined and used in Task 8. ✓
+
+---
+
+# Addendum: large-diagram splitting + cmux viewer
+
+Added per user requirement: diagrams must read well at fixed size (no zoom) and always open in the
+cmux markdown panel. Implement Tasks 11–13 AFTER Task 6 (they extend `render.mjs`) and BEFORE
+Task 9 (change-map's SKILL.md should use `--split` + the viewer). Re-run Task 10 at the end.
+
+## Task 11: Flowchart splitting
+
+**Files:**
+- Create: `skills/mermaid-render/scripts/lib/split.mjs`
+- Test: `scripts/tests/mermaid-split.test.js`
+
+- [ ] **Step 1: Write the failing test**
+
+```js
+// scripts/tests/mermaid-split.test.js
+const { test } = require('node:test');
+const assert = require('node:assert/strict');
+
+const BIG = {
+  type: 'flowchart', direction: 'LR',
+  groups: [
+    { id: 'g_a', label: 'apps', nodeIds: ['a1', 'a2'] },
+    { id: 'g_b', label: 'shared', nodeIds: ['b1'] },
+  ],
+  nodes: [
+    { id: 'a1', label: 'a1' }, { id: 'a2', label: 'a2' }, { id: 'b1', label: 'b1' },
+  ],
+  links: [{ from: 'a1', to: 'a2', type: 'neutral' }, { from: 'a2', to: 'b1', type: 'neutral' }],
+};
+
+test('mermaid-split', async (t) => {
+  const { splitFlowchart } = await import('../../skills/mermaid-render/scripts/lib/split.mjs');
+
+  await t.test('passes through when under threshold', () => {
+    const parts = splitFlowchart(BIG, 25);
+    assert.equal(parts.length, 1);
+    assert.equal(parts[0].heading, null);
+  });
+
+  await t.test('splits into overview + per-group above threshold', () => {
+    const parts = splitFlowchart(BIG, 2);
+    assert.equal(parts[0].heading, 'Overview');
+    assert.deepEqual(parts.map((p) => p.heading), ['Overview', 'apps', 'shared']);
+  });
+
+  await t.test('overview has one node per group + cross-group edge only', () => {
+    const ov = splitFlowchart(BIG, 2)[0].model;
+    assert.equal(ov.nodes.length, 2);
+    assert.match(ov.nodes[0].label, /apps \(2\)/);
+    assert.deepEqual(ov.links, [{ from: 'g_a', to: 'g_b', type: 'neutral' }]);
+  });
+
+  await t.test('group diagram keeps only intra-group links', () => {
+    const apps = splitFlowchart(BIG, 2).find((p) => p.heading === 'apps').model;
+    assert.equal(apps.nodes.length, 2);
+    assert.deepEqual(apps.links, [{ from: 'a1', to: 'a2', type: 'neutral' }]);
+  });
+});
+```
+
+- [ ] **Step 2: Run test to verify it fails**
+
+Run: `node --test scripts/tests/mermaid-split.test.js`
+Expected: FAIL — module not found.
+
+- [ ] **Step 3: Write minimal implementation**
+
+```js
+// skills/mermaid-render/scripts/lib/split.mjs
+export function splitFlowchart(model, threshold = 25) {
+  const nodes = model.nodes || [];
+  const groups = model.groups || [];
+  if (nodes.length <= threshold || groups.length <= 1) {
+    return [{ heading: null, model }];
+  }
+
+  const groupOf = new Map();
+  for (const g of groups) for (const id of g.nodeIds || []) groupOf.set(id, g.id);
+  const byId = new Map(nodes.map((n) => [n.id, n]));
+
+  const overviewNodes = groups.map((g) => ({
+    id: g.id,
+    label: `${g.label} (${(g.nodeIds || []).length})`,
+    shape: "action",
+    category: "neutral",
+  }));
+  const seen = new Set();
+  const overviewLinks = [];
+  for (const l of model.links || []) {
+    const a = groupOf.get(l.from);
+    const b = groupOf.get(l.to);
+    if (!a || !b || a === b) continue;
+    const key = `${a}->${b}`;
+    if (seen.has(key)) continue;
+    seen.add(key);
+    overviewLinks.push({ from: a, to: b, type: "neutral" });
+  }
+
+  const out = [{
+    heading: "Overview",
+    model: { type: "flowchart", direction: model.direction || "LR", nodes: overviewNodes, links: overviewLinks },
+  }];
+
+  for (const g of groups) {
+    const ids = new Set(g.nodeIds || []);
+    const gNodes = (g.nodeIds || []).map((id) => byId.get(id)).filter(Boolean);
+    const gLinks = (model.links || []).filter((l) => ids.has(l.from) && ids.has(l.to));
+    out.push({
+      heading: g.label,
+      model: { type: "flowchart", direction: "TD", nodes: gNodes, links: gLinks },
+    });
+  }
+  return out;
+}
+```
+
+- [ ] **Step 4: Run test to verify it passes**
+
+Run: `node --test scripts/tests/mermaid-split.test.js`
+Expected: PASS (4 subtests).
+
+- [ ] **Step 5: Commit**
+
+```bash
+git add skills/mermaid-render/scripts/lib/split.mjs scripts/tests/mermaid-split.test.js
+git commit -m "Add flowchart splitting for fixed-size readability"
+```
+
+---
+
+## Task 12: render.mjs `--split` + `renderToMarkdown` export
+
+**Files:**
+- Modify: `skills/mermaid-render/scripts/render.mjs`
+- Test: `scripts/tests/mermaid-render-split.test.js`
+
+Note: this changes `render.mjs` (from Task 6) to export `renderToMarkdown(model, {split, threshold})`
+and run its CLI block only when invoked directly (`import.meta.url === file://${process.argv[1]}`),
+so `view.mjs` (Task 13) and tests can import it without triggering stdin reads.
+
+- [ ] **Step 1: Write the failing test**
+
+```js
+// scripts/tests/mermaid-render-split.test.js
+const { test } = require('node:test');
+const assert = require('node:assert/strict');
+
+const BIG = {
+  type: 'flowchart',
+  groups: [{ id: 'g_a', label: 'apps', nodeIds: ['a1'] }, { id: 'g_b', label: 'shared', nodeIds: ['b1'] }],
+  nodes: [{ id: 'a1', label: 'a1' }, { id: 'b1', label: 'b1' }],
+  links: [{ from: 'a1', to: 'b1', type: 'neutral' }],
+};
+
+test('mermaid-render-split', async (t) => {
+  const { renderToMarkdown } = await import('../../skills/mermaid-render/scripts/render.mjs');
+
+  await t.test('no split -> single fenced block, no headings', () => {
+    const md = renderToMarkdown(BIG, { split: false });
+    assert.match(md, /```mermaid/);
+    assert.doesNotMatch(md, /^### /m);
+  });
+
+  await t.test('split above threshold -> Overview + group headings', () => {
+    const md = renderToMarkdown(BIG, { split: true, threshold: 1 });
+    assert.match(md, /### Overview/);
+    assert.match(md, /### apps/);
+    assert.match(md, /### shared/);
+  });
+
+  await t.test('unknown type throws', () => {
+    assert.throws(() => renderToMarkdown({ type: 'pie' }), /unknown model type "pie"/);
+  });
+});
+```
+
+- [ ] **Step 2: Run test to verify it fails**
+
+Run: `node --test scripts/tests/mermaid-render-split.test.js`
+Expected: FAIL — `renderToMarkdown` is not exported.
+
+- [ ] **Step 3: Replace render.mjs with the exporting version**
+
+```js
+// skills/mermaid-render/scripts/render.mjs
+#!/usr/bin/env node
+import { renderFlowchart } from "./renderers/flowchart.mjs";
+import { renderClass } from "./renderers/class.mjs";
+import { renderEr } from "./renderers/er.mjs";
+import { splitFlowchart } from "./lib/split.mjs";
+
+const RENDERERS = { flowchart: renderFlowchart, class: renderClass, er: renderEr };
+
+function fail(msg) {
+  process.stderr.write(`[mermaid-render] ${msg}\n`);
+  process.exit(1);
+}
+
+export function renderToMarkdown(model, { split = false, threshold = 25 } = {}) {
+  const render = RENDERERS[model.type];
+  if (!render) throw new Error(`unknown model type "${model.type}"; supported: flowchart, class, er`);
+  if (split && model.type === "flowchart") {
+    const parts = splitFlowchart(model, threshold);
+    if (parts.length === 1 && !parts[0].heading) return render(model);
+    return parts.map((p) => `### ${p.heading}\n\n${render(p.model)}`).join("\n\n");
+  }
+  return render(model);
+}
+
+async function readStdin() {
+  const chunks = [];
+  for await (const c of process.stdin) chunks.push(c);
+  return Buffer.concat(chunks).toString("utf8");
+}
+
+if (import.meta.url === `file://${process.argv[1]}`) {
+  const args = process.argv.slice(2);
+  const split = args.includes("--split");
+  const tIdx = args.indexOf("--threshold");
+  const threshold = tIdx >= 0 ? Number(args[tIdx + 1]) : 25;
+
+  const raw = await readStdin();
+  if (!raw.trim()) fail("no input on stdin; expected a JSON model");
+  let model;
+  try { model = JSON.parse(raw); } catch (e) { fail(`invalid JSON on stdin: ${e.message}`); }
+  try { process.stdout.write(renderToMarkdown(model, { split, threshold }) + "\n"); }
+  catch (e) { fail(e.message); }
+}
+```
+
+- [ ] **Step 4: Run tests (split + the Task 6 dispatch test still pass)**
+
+Run: `node --test scripts/tests/mermaid-render-split.test.js scripts/tests/mermaid-render-dispatch.test.js`
+Expected: PASS (both files).
+
+- [ ] **Step 5: Commit**
+
+```bash
+git add skills/mermaid-render/scripts/render.mjs scripts/tests/mermaid-render-split.test.js
+git commit -m "Add --split mode and renderToMarkdown export to render.mjs"
+```
+
+---
+
+## Task 13: cmux viewer (`view.mjs`)
+
+**Files:**
+- Create: `skills/mermaid-render/scripts/view.mjs`
+- Test: `scripts/tests/mermaid-view.test.js`
+
+`view.mjs`: read a model on stdin, `renderToMarkdown(model, {split:true})`, prepend an optional
+`# title` (`--title`), write to a `.md` (`--out <path>`, default `/tmp/mermaid-render-view.md`), then
+run `cmux markdown open <path>`. Set `MERMAID_VIEW_NO_OPEN=1` to skip the cmux call (used by the test
+and any non-cmux environment).
+
+- [ ] **Step 1: Write the failing test**
+
+```js
+// scripts/tests/mermaid-view.test.js
+const { test } = require('node:test');
+const assert = require('node:assert/strict');
+const { execFileSync } = require('node:child_process');
+const { readFileSync, mkdtempSync } = require('node:fs');
+const { tmpdir } = require('node:os');
+const path = require('node:path');
+
+const VIEW = path.join(__dirname, '..', '..', 'skills', 'mermaid-render', 'scripts', 'view.mjs');
+const MODEL = { type: 'flowchart', nodes: [{ id: 'a', label: 'A' }], links: [] };
+
+test('mermaid-view', async (t) => {
+  await t.test('writes a markdown file with title + mermaid, skips cmux when told', () => {
+    const out = path.join(mkdtempSync(path.join(tmpdir(), 'mv-')), 'v.md');
+    execFileSync('node', [VIEW, '--out', out, '--title', 'My Diagram'], {
+      input: JSON.stringify(MODEL),
+      encoding: 'utf8',
+      env: { ...process.env, MERMAID_VIEW_NO_OPEN: '1' },
+    });
+    const md = readFileSync(out, 'utf8');
+    assert.match(md, /^# My Diagram/);
+    assert.match(md, /```mermaid[\s\S]*flowchart/);
+  });
+});
+```
+
+- [ ] **Step 2: Run test to verify it fails**
+
+Run: `node --test scripts/tests/mermaid-view.test.js`
+Expected: FAIL — `view.mjs` not found.
+
+- [ ] **Step 3: Write view.mjs**
+
+```js
+// skills/mermaid-render/scripts/view.mjs
+#!/usr/bin/env node
+import { writeFileSync } from "node:fs";
+import { execFileSync } from "node:child_process";
+import { renderToMarkdown } from "./render.mjs";
+
+function arg(name, def) {
+  const i = process.argv.indexOf(name);
+  return i >= 0 ? process.argv[i + 1] : def;
+}
+
+async function readStdin() {
+  const chunks = [];
+  for await (const c of process.stdin) chunks.push(c);
+  return Buffer.concat(chunks).toString("utf8");
+}
+
+const out = arg("--out", "/tmp/mermaid-render-view.md");
+const title = arg("--title", null);
+
+const raw = await readStdin();
+let model;
+try { model = JSON.parse(raw); }
+catch (e) { process.stderr.write(`[mermaid-render] invalid JSON: ${e.message}\n`); process.exit(1); }
+
+let md = title ? `# ${title}\n\n` : "";
+try { md += renderToMarkdown(model, { split: true }) + "\n"; }
+catch (e) { process.stderr.write(`[mermaid-render] ${e.message}\n`); process.exit(1); }
+
+writeFileSync(out, md);
+process.stderr.write(`[mermaid-render] wrote ${out}\n`);
+
+if (process.env.MERMAID_VIEW_NO_OPEN !== "1") {
+  try { execFileSync("cmux", ["markdown", "open", out], { stdio: "inherit" }); }
+  catch (e) { process.stderr.write(`[mermaid-render] cmux open failed: ${e.message}\n`); }
+}
+```
+
+- [ ] **Step 4: Run test to verify it passes**
+
+Run: `node --test scripts/tests/mermaid-view.test.js`
+Expected: PASS (1 subtest).
+
+- [ ] **Step 5: Make executable + commit**
+
+```bash
+chmod +x skills/mermaid-render/scripts/view.mjs
+git add skills/mermaid-render/scripts/view.mjs scripts/tests/mermaid-view.test.js
+git commit -m "Add cmux markdown viewer (view.mjs)"
+```
+
+---
+
+## Task 14: Wire change-map + SKILL.md to split + cmux viewer
+
+**Files:**
+- Modify: `skills/change-map/SKILL.md`
+- Modify: `skills/mermaid-render/SKILL.md`
+
+- [ ] **Step 1: change-map uses `view.mjs` for terminal display**
+
+In `skills/change-map/SKILL.md`, the dependency-diagram step becomes (for in-terminal viewing):
+```bash
+node "${CLAUDE_PLUGIN_ROOT}/skills/change-map/scripts/diff-graph.mjs" \
+  | node "${CLAUDE_PLUGIN_ROOT}/skills/mermaid-render/scripts/view.mjs" --title "Change Map"
+```
+For PR-description output (raw markdown, no viewer), use `render.mjs --split` instead of `view.mjs`.
+
+- [ ] **Step 2: Document split + viewer in mermaid-render SKILL.md**
+
+Add a "Viewing" section to `skills/mermaid-render/SKILL.md`:
+```markdown
+## Viewing
+
+Default to the cmux markdown panel (never a browser):
+```bash
+echo '<model>' | node "${CLAUDE_PLUGIN_ROOT}/skills/mermaid-render/scripts/view.mjs" --title "My Diagram"
+```
+`view.mjs` renders with `--split` (large flowcharts become an Overview + per-group diagrams so they
+read at fixed size without zoom), writes a `.md`, and runs `cmux markdown open`. For raw markdown to
+paste into a PR, use `render.mjs --split` and capture stdout.
+```
+
+- [ ] **Step 3: Verify skills valid + full suite**
+
+Run: `bash scripts/checks/skills-valid.sh . && node --test scripts/tests/*.test.js`
+Expected: `PASS skills-valid`; all tests pass.
+
+- [ ] **Step 4: Commit**
+
+```bash
+git add skills/change-map/SKILL.md skills/mermaid-render/SKILL.md
+git commit -m "Wire change-map + mermaid-render docs to split + cmux viewer"
+```
