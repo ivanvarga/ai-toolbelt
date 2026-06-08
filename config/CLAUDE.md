@@ -11,6 +11,23 @@
 - NEVER rely on memory for syntax, config format, or API signatures — look it up first
 - This applies especially to: package versions, CLI flags, config schemas, deprecated APIs
 
+## Forgetful Memory (MANDATORY)
+
+Forgetful is a semantic memory store available via the Forgetful MCP (`mcp__forgetful__*`), keyed per-repository. Use it as project memory:
+
+- **Save useful findings.** When you discover something durable and non-obvious — a decision and its rationale, a gotcha, a non-trivial how-to, an architectural constraint — save it to Forgetful. Skip what the code or git history already makes obvious.
+- **Check assumptions.** Before assuming something about a project (why a choice was made, where something lives, how a system behaves), query Forgetful first. Treat recalled memories as context that was true when written — verify against current code before relying on it.
+- If Forgetful is unreachable, proceed without it and don't block.
+
+## Bash Command Structure (avoid permission prompts)
+
+Claude Code has hardcoded safety rules that trigger manual approval regardless of allowlist. To avoid needless prompts:
+
+- NEVER combine `cd` with output redirection (`>`, `2>`, `>>`) in one command — triggers path-resolution bypass check. When working in another directory: (a) issue `cd /foo` as a separate Bash call (working dir persists across Bash calls in the same session), then run the command in a follow-up call; or (b) use absolute paths. Bad: `cd /foo && ls 2>/dev/null`. Good: two calls — `cd /foo`, then `ls 2>/dev/null`. Also good: `ls /foo/* 2>/dev/null`.
+- NEVER use backslash-escaped whitespace in paths. Quote the path instead. Bad: `ls /foo/Target\ Support\ Files`. Good: `ls "/foo/Target Support Files"`.
+- PREFER single-stage commands over compound `;`/`&&` chains. Multi-stage chains don't match simple allowlist prefixes and trigger approval. Split into separate Bash calls — each matches the allowlist cleanly.
+- When inspecting build artifacts in `~/Library/Developer/Xcode/DerivedData/`, expect dynamic hash paths — don't rely on "don't ask again" permission captures since they're literal-match.
+
 ## Security Rules
 
 - NEVER read, print, or extract actual values from environment variables, secrets managers (Doppler, etc.), or configuration files containing sensitive data
@@ -53,30 +70,3 @@
 - NO multi-line descriptions, NO bullet points, NO detailed explanations
 - NO attribution (no Co-Authored-By, no Generated with Claude, no author credits)
 - Example: `Fix audio artwork for lockscreen` - that's it, nothing more
-
-## React Native / Expo Debugging
-
-### Metro Bundler
-
-```bash
-# Reload JS bundle: Press 'r' in Metro terminal
-# Open dev menu: Press 'd' in Metro terminal
-```
-
-### Common Issues & Solutions
-
-#### App stuck on splash screen
-1. Check Metro bundler output for errors
-2. Check if persisted query cache is corrupted (stale "pending" queries)
-   - Fix: Uninstall app to clear persistent storage
-3. Ensure initialization code has timeouts to prevent hanging forever
-
-#### Network issues in simulator
-1. Native iOS networking works via NSURLSession - check native logs with `xcrun simctl spawn`
-2. JavaScript `fetch()` works in React Native
-3. Third-party SDKs using `whatwg-fetch` polyfill may fail (XMLHttpRequest doesn't work properly in RN)
-4. Safari in simulator can test if network is reachable
-
-#### React Query / TanStack Query CancelledError
-- Usually means hydrated queries from storage were in "pending" state
-- Fix: Clear app data by uninstalling the app
