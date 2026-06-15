@@ -1,0 +1,48 @@
+{
+  "skill_name": "tb:handover",
+  "evals": [
+    {
+      "id": 1,
+      "prompt": "I have to stop here and a teammate is picking this up tomorrow. My working notes for this session are in session.md. Create a handover document so they can resume fresh without me explaining anything.",
+      "expected_output": "A concise HANDOVER.md that states the goal (fix the flaky refund test / refund race), preserves the non-discoverable CI-only TZ=UTC + toLocaleString gotcha, records the decision to use a per-charge queue and that a row-level lock was rejected (deadlock risk), references refunds/handler.ts:88 and the next-edit target refunds/writer.ts rather than reproducing code, includes branch fix/refund-race and ticket PAY-2231, and does NOT carry the ruled-out dead-ends (timeout bump, connection-pool check, abandoned sinon clock mock) as state or next steps.",
+      "files": ["evals/scenarios/debug-flaky-test/session.md"],
+      "expectations": [
+        "HANDOVER.md clearly states the session goal: fixing the flaky refund test caused by a race between the webhook handler and the refund writer",
+        "HANDOVER.md preserves the obscure, non-discoverable fact that the test flakes only on CI because CI sets TZ=UTC and an assertion compares a toLocaleString() timestamp",
+        "HANDOVER.md records the decision to serialize refund mutations through a per-charge queue, including that a row-level lock was considered and rejected due to cross-process deadlock risk",
+        "HANDOVER.md references the race location (refunds/handler.ts line 88) and the next-edit target (refunds/writer.ts) as pointers rather than reproducing source code",
+        "HANDOVER.md includes the branch (fix/refund-race) and ticket (PAY-2231)",
+        "HANDOVER.md does NOT present the ruled-out dead-ends (raising the timeout, the connection-pool investigation, the abandoned sinon clock mock) as current state or next steps to try",
+        "HANDOVER.md gives a concrete next step: implement the per-charge queue in refunds/writer.ts (and notes the TZ assertion is a separate test-bug fix)"
+      ]
+    },
+    {
+      "id": 2,
+      "prompt": "Context is getting full and I want to capture state before we lose it. session.md has where I'm at on the CSV export work. Write me a handover I can come back to fresh.",
+      "expected_output": "A HANDOVER.md that states the goal (streaming CSV export for the reports page, REP-417), preserves the non-discoverable Content-Disposition comma / Safari download gotcha, records the decision to stream the response (rejecting in-memory string building because reports can exceed 100k rows), references routes/reports.ts, reports/query.ts:120 (runReportQuery) and commit c4f9a01 instead of reproducing code, gives next steps (implement streaming writer, sanitize filename, remove 501 stub), and does NOT present the abandoned fast-csv dependency as an approach to try.",
+      "files": ["evals/scenarios/feature-csv-export/session.md"],
+      "expectations": [
+        "HANDOVER.md states the goal: add a streaming CSV export to the reports page (ticket REP-417)",
+        "HANDOVER.md preserves the obscure fact that the Content-Disposition filename must not contain a comma or Safari silently fails the download, so report names must be sanitized",
+        "HANDOVER.md records the decision to stream the response rather than build the CSV in memory, with the rationale that reports can exceed 100k rows",
+        "HANDOVER.md references the relevant code as pointers (routes/reports.ts, reports/query.ts:120 / runReportQuery, commit c4f9a01) rather than reproducing source",
+        "HANDOVER.md gives concrete next steps: implement the streaming CSV writer pulling from runReportQuery, sanitize the filename, and remove the 501 stub",
+        "HANDOVER.md does NOT recommend or list adopting fast-csv as a next step or open approach"
+      ]
+    },
+    {
+      "id": 3,
+      "prompt": "Quick one — pausing the Node bump for now. session.md is my notes. Make a handover.",
+      "expected_output": "A short HANDOVER.md (this is a small task — it should not be padded). States the goal (bump CI Node to 20, OPS-88), preserves the non-discoverable node-gyp-before-npm-ci ordering gotcha, records the decision to pin 20.11.1 to match prod, references .github/workflows/ci.yml and commit 3a1c8de, and gives the next step (push and watch one CI run go green).",
+      "files": ["evals/scenarios/sparse-node-bump/session.md"],
+      "expectations": [
+        "HANDOVER.md states the goal: bump CI from Node 18 to Node 20 (ticket OPS-88)",
+        "HANDOVER.md preserves the obscure ordering gotcha: node-gyp rebuild must run before npm ci on the new image or native deps fail to compile",
+        "HANDOVER.md records the decision to pin Node 20.11.1 specifically to match prod rather than using 20 or latest",
+        "HANDOVER.md references .github/workflows/ci.yml and commit 3a1c8de",
+        "HANDOVER.md gives the next step: push and watch a CI run go green to confirm the ordering fix",
+        "HANDOVER.md is concise and does not pad with invented sections or generic filler for what is a small task"
+      ]
+    }
+  ]
+}
