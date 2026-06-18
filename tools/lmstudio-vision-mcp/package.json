@@ -1,0 +1,20 @@
+{
+  "name": "lmstudio-vision-mcp",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "HTTP MCP bridge exposing an LM Studio (OpenAI-compatible) vision/thinking model as MCP tools",
+  "bin": {
+    "lmstudio-vision-mcp": "server.js"
+  },
+  "scripts": {
+    "start": "node server.js"
+  },
+  "engines": {
+    "node": ">=18"
+  },
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "^1.29.0",
+    "zod": "^3.25.0"
+  }
+}

@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<!--
+  launchd unit to keep lmstudio-vision-mcp running on the LM Studio box.
+  Copy to ~/Library/LaunchAgents/ and fix the two absolute paths below
+  (your node binary, and the absolute path to server.js), then:
+      launchctl load -w ~/Library/LaunchAgents/com.tb.lmstudio-vision-mcp.plist
+  Find your node path with: which node   (nvm installs live under ~/.nvm/versions/node/...)
+-->
+<plist version="1.0">
+<dict>
+  <key>Label</key>
+  <string>com.tb.lmstudio-vision-mcp</string>
+  <key>ProgramArguments</key>
+  <array>
+    <string>/usr/local/bin/node</string>
+    <string>/ABSOLUTE/PATH/TO/ai-toolbelt/tools/lmstudio-vision-mcp/server.js</string>
+  </array>
+  <key>EnvironmentVariables</key>
+  <dict>
+    <key>LMSTUDIO_BASE_URL</key>
+    <string>http://localhost:1234/v1</string>
+    <key>PORT</key>
+    <string>8021</string>
+    <key>HOST</key>
+    <string>0.0.0.0</string>
+  </dict>
+  <key>RunAtLoad</key>
+  <true/>
+  <key>KeepAlive</key>
+  <true/>
+  <key>StandardOutPath</key>
+  <string>/tmp/lmstudio-vision-mcp.log</string>
+  <key>StandardErrorPath</key>
+  <string>/tmp/lmstudio-vision-mcp.log</string>
+</dict>
+</plist>
