@@ -1,0 +1,16 @@
+{
+  "mcpServers": {
+    "forgetful": {
+      "type": "http",
+      "url": "http://192.168.2.104:8020/mcp"
+    },
+    "lmstudio-vision": {
+      "type": "http",
+      "url": "http://192.168.2.104:8021/mcp"
+    },
+    "kindly": {
+      "type": "http",
+      "url": "http://192.168.2.104:8000/mcp"
+    }
+  }
+}

@@ -27,6 +27,16 @@ scripts/    Shared utility scripts referenced by hooks and tools
 - `${CLAUDE_PLUGIN_ROOT}` -- resolves to plugin root directory. Use in hooks, MCP configs, and scripts. Does NOT work in SKILL.md markdown content.
 - `${CLAUDE_SKILL_DIR}` -- resolves to the skill's subdirectory. Use in SKILL.md bash commands.
 
+## Bundled MCP Servers
+
+`.mcp.json` at the plugin root registers MCP servers automatically when tb is installed/enabled (they disconnect on uninstall). These are self-hosted HTTP servers on the LAN host `192.168.2.104`, hardcoded by design — tb is personal infra, not portable:
+
+- `forgetful` (`:8020`) — semantic project memory
+- `lmstudio-vision` (`:8021`) — LM Studio vision/thinking bridge (on-demand; may be offline)
+- `kindly` (`:8000`) — web search (Serper/Tavily/SearXNG)
+
+API keys for these live server-side, so nothing sensitive is committed. `context7` (holds a private key) and `rn-debugger` stay in personal `~/.claude.json`, not bundled here. Adding a server here makes it redundant with any manual `~/.claude.json` entry of the same name — remove the manual one after `claude plugin update`.
+
 ## Development Workflow
 
 ```bash
