@@ -1,6 +1,6 @@
 ---
 name: tb:handover
-description: Use when pausing or handing off work, wrapping up a session, or when context is about to run out and you need to preserve where you left off so a fresh session can resume. Also use to resume from an existing handover document. Triggers on "create a handover", "hand off this work", "pause work", "document where I left off", "save state before we compact", "context is getting full", "resume from handover", or "pick up where I left off".
+description: Use when pausing or handing off work, wrapping up a session, or when context is about to run out and you need to preserve where you left off so a fresh session can resume — including writing a handover that branches off to a *new* goal to launch a fresh work thread rather than recording the current one. Also use to resume from an existing handover document. Triggers on "create a handover", "hand off this work", "pause work", "document where I left off", "save state before we compact", "context is getting full", "branch this work to a new goal", "make a kernel for a new direction", "resume from handover", or "pick up where I left off".
 ---
 
 # Handover
@@ -16,11 +16,21 @@ The hard part is not writing things down. It is deciding *what not to write*. A 
 
 ## Create mode
 
-### 1. Anchor on the goal
+### 1. Anchor on the goal — and confirm it before sifting
 
-Name the **one thing this session is trying to accomplish**, in a sentence or two. Everything else is judged by relevance to it: a fact earns its place only if the next agent needs it *to move the goal forward*.
+Name the **one thing this session is trying to accomplish**, in a sentence or two. Everything else is judged by relevance to it: a fact earns its place only if the next agent needs it *to move the goal forward*. That judgment drives the entire filter in step 2, so the goal has to be *right before* you sift — anchor on the wrong one and you capture the wrong context, and nobody finds out until the next agent is lost.
 
-If the goal is genuinely ambiguous (the session wandered across several tasks), ask the user which thread the handover should cover. Don't guess — a handover anchored on the wrong goal captures the wrong context.
+So before filtering anything, surface the goal you've inferred and let the user confirm, correct, or **redefine** it:
+
+> "I read this session's goal as: «goal». Write the handover for that — or are you branching off to a new goal from here?"
+
+This is a deliberate branch point, which is exactly why you ask *before* sifting and not after: the whole filter is shaped by which goal you're serving. Three ways it goes:
+
+- **Confirmed** → anchor on it and sift normally.
+- **Corrected** → the session wandered, or you mis-read it; take the user's wording as the anchor.
+- **A new goal — a work subbranch** → the user is using this handover to *launch a new direction*, not to record the old one. Anchor the kernel on the new goal. Now the session you're about to sift is mostly *old-goal* material, so filter it against the **new** goal: what you did toward the old goal — its state, decisions, dead-ends, next-steps — is dropped unless it still serves the new one. Dropping it is deliberate, not lossy: it keeps the old goal's assumptions from being smuggled into the fresh direction. What survives a goal change is the **references** — the `file:line`, tickets, commits, and docs you surfaced are goal-agnostic pointers, and they seed the subbranch. (Carve-out about the *pointer*, never the old conclusions: if a reference is only followable through something non-obvious — an MCP query, an outside source, research, not a plain in-repo path — carry *how to reach it*, not just the bare pointer; a pointer the next branch can't re-open is dead.) The output is a kernel that *starts* the subbranch, not a log of the trunk you're leaving.
+
+If the goal is genuinely ambiguous and the user isn't around to ask, anchor on the most recent coherent thread and say so in the handover. Don't silently guess.
 
 ### 2. Filter every candidate fact
 
@@ -120,4 +130,5 @@ Tell the user the path and give a one-line summary of what you captured and what
 - Length is a cost, not a virtue. Every line competes for the next agent's attention; a line that re-states recoverable context makes the useful lines harder to find.
 - When unsure whether to include something, prefer a reference over a reproduction, and omission over a generic restatement.
 - Relevance is defined by the goal. A true fact that doesn't move the goal forward doesn't belong.
+- Writing a handover is also a branch point, not just a snapshot. At creation you can anchor the kernel on a *new* goal instead of the session's — which is why step 1 confirms the goal before sifting, and why redefining it filters the session against the new goal: the references survive (with their retrieval path when that path is itself obscure) and seed the new direction, while the old goal's state, decisions, and next-steps drop.
 - Successive handovers should **converge, not accrete**. Each pass re-judges every line against the current goal — the kernel gets sharper and smaller as work resolves, never larger by accumulation. But an open, non-derivable fact must survive every hop until it's fixed.
