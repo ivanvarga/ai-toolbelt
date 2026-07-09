@@ -1,18 +1,21 @@
 ---
 name: tb:handover
-description: Use when pausing or handing off work, wrapping up a session, or when context is about to run out and you need to preserve where you left off so a fresh session can resume — including writing a handover that branches off to a *new* goal to launch a fresh work thread rather than recording the current one. Also use to resume from an existing handover document. Triggers on "create a handover", "hand off this work", "pause work", "document where I left off", "save state before we compact", "context is getting full", "branch this work to a new goal", "make a kernel for a new direction", "resume from handover", or "pick up where I left off".
+description: Use when pausing or handing off work, wrapping up a session, or when context is about to run out and you need to preserve where you left off so a fresh session can resume — including writing a handover that branches off to a *new* goal to launch a fresh work thread, snapshotting useful off-goal knowledge the kernel leaves out, and promoting old snapshots into the kernel when the goal changes. Also use to resume from an existing handover document. Triggers on "create a handover", "hand off this work", "pause work", "document where I left off", "save state before we compact", "context is getting full", "branch this work to a new goal", "make a kernel for a new direction", "snapshot the leftovers", "save a snapshot", "check snapshots", "promote from snapshots", "resume from handover", or "pick up where I left off".
 ---
 
 # Handover
 
-Produce a `HANDOVER.md` that lets a **fresh session with zero memory of this conversation** resume the work — or read an existing one to resume.
+Produce a `HANDOVER.md` — the **kernel** — that lets a **fresh session with zero memory of this conversation** resume the work; optionally park substantive off-goal material in commit-anchored **snapshots**; or read an existing kernel to resume.
 
 The hard part is not writing things down. It is deciding *what not to write*. A handover that dumps the whole session is as useless as no handover: the next agent drowns in irrelevant context and re-derives nothing faster. The whole value of this skill is the filter below.
 
+The division of labor: **the kernel steers, a snapshot stores.** Anything that would pull the next agent's attention toward an abandoned or off-goal direction belongs in a snapshot or nowhere — never in the kernel.
+
 ## Mode
 
-- **Create** (default): write a handover for the current session.
+- **Create** (default): write a kernel for the current session; offer snapshots for substantive leftovers.
 - **Resume**: if `$ARGUMENTS` mentions "resume"/"continue"/"pick up", or points at an existing handover file, read it and continue the work. See [Resume mode](#resume-mode).
+- **Promote**: if `$ARGUMENTS` asks to check or promote snapshots, run [Promotion](#promotion--merging-a-snapshot-back) against the current goal.
 
 ## Create mode
 
@@ -28,7 +31,7 @@ This is a deliberate branch point, which is exactly why you ask *before* sifting
 
 - **Confirmed** → anchor on it and sift normally.
 - **Corrected** → the session wandered, or you mis-read it; take the user's wording as the anchor.
-- **A new goal — a work subbranch** → the user is using this handover to *launch a new direction*, not to record the old one. Anchor the kernel on the new goal. Now the session you're about to sift is mostly *old-goal* material, so filter it against the **new** goal: what you did toward the old goal — its state, decisions, dead-ends, next-steps — is dropped unless it still serves the new one. Dropping it is deliberate, not lossy: it keeps the old goal's assumptions from being smuggled into the fresh direction. What survives a goal change is the **references** — the `file:line`, tickets, commits, and docs you surfaced are goal-agnostic pointers, and they seed the subbranch. (Carve-out about the *pointer*, never the old conclusions: if a reference is only followable through something non-obvious — an MCP query, an outside source, research, not a plain in-repo path — carry *how to reach it*, not just the bare pointer; a pointer the next branch can't re-open is dead.) The output is a kernel that *starts* the subbranch, not a log of the trunk you're leaving.
+- **A new goal — a work subbranch** → the user is using this handover to *launch a new direction*, not to record the old one. Anchor the kernel on the new goal. Now the session you're about to sift is mostly *old-goal* material, so filter it against the **new** goal: what you did toward the old goal — its state, decisions, journeys, next-steps — stays out of the kernel unless it still serves the new one. Keeping it out is what stops the old goal's assumptions being smuggled into the fresh direction; it is also the prime **snapshot candidate** (step 4), so it isn't lost — just not steering. What survives a goal change *inside* the kernel is the **references** — the `file:line`, tickets, commits, and docs you surfaced are goal-agnostic pointers, and they seed the subbranch. (Carve-out about the *pointer*, never the old conclusions: if a reference is only followable through something non-obvious — an MCP query, an outside source, research, not a plain in-repo path — carry *how to reach it*, not just the bare pointer; a pointer the next branch can't re-open is dead.) A goal change is also exactly when a parked fact can become relevant, so run [Promotion](#promotion--merging-a-snapshot-back) over any existing snapshots. The output is a kernel that *starts* the subbranch, not a log of the trunk you're leaving.
 
 If the goal is genuinely ambiguous and the user isn't around to ask, anchor on the most recent coherent thread and say so in the handover. Don't silently guess.
 
@@ -37,8 +40,11 @@ If the goal is genuinely ambiguous and the user isn't around to ask, anchor on t
 For each thing you're tempted to write down, run it through this filter. This is the skill.
 
 **Is it a decision, or a dead-end?**
-- A **decision** — a choice made and *why* (including "we ruled out X because Y") — is worth saving. It is not re-derivable and saving it stops the next agent re-litigating it. Save the decision, compactly; not the deliberation that led to it.
-- A **dead-end** that produced no durable conclusion — the three things tried that just didn't pan out — is noise. Drop it. The exception is exactly the decision case above: if a dead-end yielded "approach X doesn't work because Y," that *is* a decision. Keep the one-line conclusion, not the journey. But if the root cause you *did* record already makes X obviously moot (you noted the race, so "a longer timeout won't help" is self-evident), even that one-liner is derivable — drop it too.
+- A **decision** — a positive choice and *why* ("Chose A over B because C") — is worth saving in **Decisions**. It is not re-derivable and saving it stops the next agent re-litigating it. Save the decision, compactly; not the deliberation that led to it.
+- A **dead-end** — an approach tried or considered and abandoned — never enters the kernel as narrative. The journey ("we tried X, then Y, then Z…") re-anchors the next agent on the abandoned direction: negation-as-story is weak steering, and a failed direction wins attention just by getting tokens. A ruled-out approach earns a kernel line **only if it guards a concrete next step or the goal itself**, and then as a **forward constraint attached to where it bites** — inline with the next step it protects ("Implement the per-charge queue in `refunds/writer.ts` — don't use row-level locks: cross-process deadlock risk") or in **Watch out** when it guards the whole goal. Constraint phrasing ("the solution must not rely on X — Y"), never story phrasing ("we tried X and it failed"). And if the root cause you *did* record already makes X obviously moot (you noted the race, so "a longer timeout won't help" is self-evident), even the constraint is derivable — drop it. Everything else about a dead-end — the journey, conclusions that guard nothing — is a **snapshot candidate** (step 4), not a kernel line.
+
+**Is it true and useful, but off-goal?**
+- A substantive discovery that doesn't move *this* goal forward doesn't belong in the kernel — relevance is defined by the goal. It's a **snapshot candidate** (step 4). Trivial noise still just drops.
 
 **Can it be drawn from the context that already exists?**
 - If the next agent can re-derive it by reading the code, the diff, the docs, the tests, or git history — **do not reproduce it. Save a reference instead.** `auth/session.ts:42`, commit `a1b2c3d`, `LFCR-360`, the failing test name, the doc URL. Reproducing derivable content rots: the code moves, the copy goes stale, and you've added words that compete for attention without adding information.
@@ -54,7 +60,7 @@ For each thing you're tempted to write down, run it through this filter. This is
 **Is it generic?**
 - A generic statement ("improve error handling", "the API needs work") pulls the next agent toward a huge, mostly-irrelevant surface. Make it specific enough to point at the actual next move ("the token refresh in `auth/session.ts:42` drops the `Retry-After` header") — but don't over-explain. Specific and short beats vague-and-broad or correct-but-bloated.
 
-The throughline: **save what can't be recovered, reference what can, drop the rest.**
+The throughline: **save what can't be recovered, reference what can, snapshot what's substantive but off-goal, drop the rest.**
 
 ### 3. Write `HANDOVER.md`
 
@@ -71,20 +77,50 @@ Default location: `HANDOVER.md` at the repo root (override with a path in `$ARGU
 Reference the artifacts (branch, files, failing test) rather than describing them.>
 
 ## Decisions
-- <Decision + why, one line each. Include rejected options: "Chose A over B because C.">
+- <Positive choice + why, one line each: "Chose A over B because C.">
 
 ## Next steps
-1. <Concrete next action — specific enough to start without re-investigating.>
+1. <Concrete next action — specific enough to start without re-investigating.
+   Attach a guardrail inline when a ruled-out approach guards this step:
+   "… — don't use X: Y.">
 2. <...>
 
 ## Watch out
-- <Obscure, non-discoverable facts + researched invariants (with source) that would trip up a fresh agent or get naively undone. These persist across hops until captured in code/an ADR. Omit if none.>
+- <Obscure, non-discoverable facts + researched invariants (with source) that would trip up a fresh agent or get naively undone, and constraints that guard the whole goal. These persist across hops until captured in code/an ADR. Omit if none.>
 
 ## References
 - <Pointers to relevant context: `file:line`, commits, tickets, PRs, docs, URLs.>
+- <If snapshots were written: at most ONE pointer line — "Off-goal material parked in `.handover/snapshots/`" — an index, never content.>
 ```
 
-### 4. If a handover already exists, distill — don't accrete
+### 4. Snapshot the leftovers (optional)
+
+While filtering, collect what the kernel excludes but is still substantive: dead-end journeys and non-guarding conclusions, off-goal discoveries, and — on a goal branch — the old goal's state and decisions. If nothing substantive was dropped, skip this step silently; never pad.
+
+Otherwise, offer once:
+
+> "I left ‹one-line summary of the leftovers› out of the kernel — snapshot it to `.handover/snapshots/`?"
+
+Default is no; kernel-only stays the fast path. On yes, write one file per topic:
+
+```
+.handover/snapshots/YYYY-MM-DD-<sha7>-<topic>.md
+```
+
+```markdown
+---
+commit: <sha7 of HEAD at write time, from `git rev-parse --short HEAD`>
+goal: "<the goal the kernel was anchored on>"
+topic: <short-kebab-topic>
+---
+
+<Body: topical and organized, but held to a lower bar than the kernel — this is
+cold storage, not steering. What was explored, what was learned, why it's off-goal.>
+```
+
+The filename sorts chronologically; the commit anchor lets a future kernel judge staleness (`git log <sha>..HEAD`). A snapshot is never read on plain resume — its only future is [Promotion](#promotion--merging-a-snapshot-back).
+
+### 5. If a handover already exists, distill — don't accrete
 
 If you're handing off work that *already* has a handover (a second, third, Nth pass), do not append to it or merge both. Treat writing the new one as a **distillation pass**: re-run the filter in step 2 over every carried-over line against the goal *as it stands now*.
 
@@ -92,11 +128,15 @@ If you're handing off work that *already* has a handover (a second, third, Nth p
 - Drop what's become **derivable** — but only if the code reveals the *reasoning*, not just the result. The diff shows the retry loop exists; it does not say "don't remove this, the API 404s for 2s after create." A researched rationale behind shipped code stays as an invariant until it's captured in a comment or ADR.
 - Keep, and **sharpen**, what's still open and still non-derivable. Re-ask "how specific is this to the goal as it is now?" and tighten accordingly.
 
+Substantive material dropped during distillation gets the same snapshot offer as in step 4.
+
 A good second handover is *tighter and more goal-specific* than the first, because the goal has narrowed and work has resolved. The kernel should converge toward the still-relevant core, not grow by accumulation. The one thing that must survive every pass until it's resolved: an open, non-derivable fact (the unfixed gotcha) — losing it across hops is the cardinal failure.
 
-### 5. Verify pieces by recoverability (optional)
+### 6. Verify pieces by recoverability (optional)
 
 You are the worst judge of your own handover: you just did the work, so every line feels obvious and findable. Fix that by testing each piece against a reader with none of your context — and test pieces *independently*, so a marginal line can't hide inside the doc's overall coherence.
+
+This pass applies to the **kernel only** — snapshots are exempt: they're cold storage, where retention bias, not concision, is the point.
 
 When you want to tighten a doc (or on request), decompose it into atomic pieces — each decision, state claim, watch-out fact, next step, reference — and spawn one cheap, fast subagent per piece (Haiku-tier; each task is tiny — run them in parallel). Give each subagent only the **goal plus its one piece** — not the rest of the doc, not this session. Ask:
 
@@ -114,21 +154,38 @@ After the pass, order what survives so the not-recoverable, goal-critical pieces
 
 (The whole-document version of this check — does a cold reader actually resume correctly? — lives in the skill's eval harness, not in the per-handover path.)
 
-### 6. Confirm
+### 7. Confirm
 
-Tell the user the path and give a one-line summary of what you captured and what you deliberately left out (so they can catch a wrong omission). If you ran the recoverability pass, say so and note what it cut or flagged. Don't dump the file contents back.
+Tell the user the path and give a one-line summary of what you captured and what you deliberately left out (so they can catch a wrong omission). Say whether a snapshot was written or the offer declined. If you ran the recoverability pass, say so and note what it cut or flagged. Don't dump the file contents back.
+
+## Promotion — merging a snapshot back
+
+A kernel is complete for its goal by definition, so snapshots are **never consulted on plain resume**. They come back into play only when the goal *moves*:
+
+- Create mode is branching to a new goal (step 1), or
+- the user explicitly asks ("check snapshots", "promote from snapshots").
+
+Procedure:
+
+1. List `.handover/snapshots/`. Shortlist by topic and commit anchor: a snapshot whose ground has churned since its commit is suspect — check `git log <sha>..HEAD -- <files it mentions>`. A snapshot records what was true *at its commit*, not now.
+2. Re-run the step-2 filter over each shortlisted snapshot against the **current** goal. A fact promotes only if it would earn a kernel line had it been discovered today — and verify it against the current code first.
+3. Write qualifying facts into the kernel in their proper form: decisions, watch-outs, or guardrails attached to the step they protect.
+4. Afterwards, delete any snapshot that no longer holds anything non-derivable; keep the rest.
 
 ## Resume mode
 
 1. Locate the handover: the path in `$ARGUMENTS`, else `HANDOVER.md` at repo root, else the newest `HANDOVER*.md` you can find. If none exists, say so and offer to create one or run `tb:catchup` instead.
 2. Read it. Then **follow its references** — open the cited `file:line`, read the ticket, check the commit — to rebuild the working context the doc deliberately did not reproduce. The doc is an index, not the whole story.
-3. Restate the goal and the immediate next step back to the user in one or two lines, then continue the work. If a reference is now stale (file moved, test renamed), flag it rather than guessing.
+3. Do **not** read `.handover/snapshots/`. The kernel is complete for its goal; snapshots exist only for goal changes (see [Promotion](#promotion--merging-a-snapshot-back)).
+4. Restate the goal and the immediate next step back to the user in one or two lines, then continue the work. If a reference is now stale (file moved, test renamed), flag it rather than guessing.
 
 ## Principles
 
 - The reader is a fresh agent with no memory of this session. Write for them, not as a log for yourself.
 - Length is a cost, not a virtue. Every line competes for the next agent's attention; a line that re-states recoverable context makes the useful lines harder to find.
 - When unsure whether to include something, prefer a reference over a reproduction, and omission over a generic restatement.
-- Relevance is defined by the goal. A true fact that doesn't move the goal forward doesn't belong.
-- Writing a handover is also a branch point, not just a snapshot. At creation you can anchor the kernel on a *new* goal instead of the session's — which is why step 1 confirms the goal before sifting, and why redefining it filters the session against the new goal: the references survive (with their retrieval path when that path is itself obscure) and seed the new direction, while the old goal's state, decisions, and next-steps drop.
+- Relevance is defined by the goal. A true fact that doesn't move the goal forward doesn't belong in the kernel — snapshot it if substantive, drop it if not.
+- **The kernel steers, a snapshot stores.** A dead-end appears in the kernel only as a forward constraint attached to what it guards; journeys never — narrative about an abandoned direction pulls a fresh agent back down it.
+- Snapshots are cold storage: commit-anchored, held to a lower bar, never read on plain resume. Their only future is promotion at a goal change — the merge in this skill's git analogy.
+- Writing a handover is also a branch point, not just a snapshot. At creation you can anchor the kernel on a *new* goal instead of the session's — which is why step 1 confirms the goal before sifting, and why redefining it filters the session against the new goal: the references survive (with their retrieval path when that path is itself obscure) and seed the new direction, while the old goal's state, decisions, and next-steps leave the kernel (snapshotted if substantive).
 - Successive handovers should **converge, not accrete**. Each pass re-judges every line against the current goal — the kernel gets sharper and smaller as work resolves, never larger by accumulation. But an open, non-derivable fact must survive every hop until it's fixed.
