@@ -19,9 +19,13 @@ For APIs, libraries, CLI flags, config schemas and versions, never answer from m
 
 ## Confidence
 
-- high: official source and tested, or multiple independent authoritative sources agree
-- medium: one authoritative source, untested; or tested but narrow
-- low: secondary sources only, or unresolved conflict
+Every finding and assumption carries one tag from this fixed rubric:
+
+- `HIGH`: confirmed by the code itself or by multiple independent sources, tested where possible.
+- `MED`: a few sources, or one authoritative source not cross-checked.
+- `LOW`: only from model knowledge or memory, no source.
+
+Model-only knowledge is never tagged above `LOW`. Unresolved conflicts are at most `MED`.
 
 ## Report (hard cap, TL;DR first)
 
@@ -29,7 +33,7 @@ For APIs, libraries, CLI flags, config schemas and versions, never answer from m
 TLDR: <one paragraph with the answer and overall confidence>
 sources-used: <list>  sources-unavailable: <list>
 findings:
-- <claim> | confidence | sources | tested: <yes: how | no>
+[HIGH|MED|LOW] <claim>, <evidence: paths/urls, and how tested if tested>
 conflicts: <what disagrees, which side you favor and why, or none>
 unknowns: <what could not be established>
 ```
