@@ -18,7 +18,7 @@ Read-only. Read the request and the relevant code. Return ONLY pushback: contrad
 
 ## Mode: spec
 
-Input: the request plus my answers or the accepted defaults. Output has two parts.
+Input: the request plus my answers or the accepted defaults. When the brief names `DECISIONS.md`, read it first: it holds my final answers, accepted defaults and the rejected alternatives with reasons. Do not contradict a recorded decision without flagging it in the report's open-risks, and do not revive a rejected alternative. Never write or edit `DECISIONS.md`; only the orchestrator does. Each run replaces the previous plan; do not carry over or narrate earlier versions. Output has two parts.
 
 ### For the user (mandatory; the plan is incomplete without all of it)
 
