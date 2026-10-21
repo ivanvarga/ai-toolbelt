@@ -169,12 +169,13 @@ jq --arg key "$PLUGIN_KEY" \
    --argjson deny "$DENY_RULES" \
    --argjson ask "$ASK_RULES" '
   .enabledPlugins[$key] = true |
-  .attribution = ((if (.attribution | type) == "object" then .attribution else {} end) + {commit: "", pr: ""}) |
   .permissions.allow = ((.permissions.allow // []) + $allow | unique) |
   .permissions.deny = ((.permissions.deny // []) + $deny | unique) |
   .permissions.ask = ((.permissions.ask // []) + $ask | unique)
 ' "$SETTINGS_FILE" > "$tmp" && mv "$tmp" "$SETTINGS_FILE"
 echo "Updated $SETTINGS_FILE (plugin + permissions)"
+
+bash "$(cd "$(dirname "$0")" && pwd)/skills/sync/set-attribution.sh" "$SETTINGS_FILE"
 
 echo ""
 echo "Registering marketplace..."

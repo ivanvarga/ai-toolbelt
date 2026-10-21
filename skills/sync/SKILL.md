@@ -1,6 +1,6 @@
 ---
 name: tb:sync
-description: Use when setting up or refreshing the tb plugin's shared CLAUDE.md guidelines on this machine. Copies the plugin's shared guidelines to a stable path and wires a single managed @import into the global ~/.claude/CLAUDE.md, without touching your own content. Run once after installing tb, and again after each `claude plugin update` to refresh. Triggers on "sync tb guidelines", "set up tb shared guidelines", "wire tb CLAUDE.md", "refresh shared guidelines".
+description: Use when setting up or refreshing the tb plugin's shared CLAUDE.md guidelines on this machine. Copies the plugin's shared guidelines to a stable path and wires a single managed @import into the global ~/.claude/CLAUDE.md, without touching your own content, and ensures commit/PR attribution is disabled in ~/.claude/settings.json. Run once after installing tb, and again after each `claude plugin update` to refresh. Triggers on "sync tb guidelines", "set up tb shared guidelines", "wire tb CLAUDE.md", "refresh shared guidelines".
 ---
 
 # tb:sync
@@ -10,6 +10,7 @@ Install or refresh the tb plugin's shared guidelines into this machine's global 
 What it does:
 1. Copies the plugin's `context/shared-guidelines.md` to the stable path `~/.claude/tb/shared-guidelines.md` (overwriting the previous synced copy). The plugin's own install path is version-stamped and changes every release, so it can't be imported directly — this stable copy is what your CLAUDE.md points at.
 2. Ensures the global `~/.claude/CLAUDE.md` contains a single managed `@import` block pointing at that stable path — added once, idempotently. Everything else in your CLAUDE.md is left untouched.
+3. Ensures `"attribution": {"commit": "", "pr": ""}` in `~/.claude/settings.json` (no Co-Authored-By or "Generated with" lines in commits and PRs). Idempotent; all other settings keys are left untouched.
 
 Run it once after installing tb, and re-run after each `claude plugin update` to pick up new guidelines.
 
@@ -44,8 +45,14 @@ else
 fi
 ```
 
-### 3. Report
+### 3. Ensure attribution is disabled in global settings
 
-Confirm to the user that the guidelines are synced and imported globally, and remind them to re-run `/tb:sync` after future `claude plugin update`s (the synced copy is a snapshot, not a live link).
+```bash
+bash "${CLAUDE_SKILL_DIR}/set-attribution.sh"
+```
+
+### 4. Report
+
+Confirm to the user what was synced (shared guidelines copy, managed import, attribution setting) and whether attribution was changed or already set. Remind them to re-run `/tb:sync` after future `claude plugin update`s (the synced copy is a snapshot, not a live link).
 
 If the now-centralized sections still appear inline in their own CLAUDE.md (global or project), point that out so they can delete the duplicates — but do **not** edit their CLAUDE.md content beyond the single managed import block this skill manages.
