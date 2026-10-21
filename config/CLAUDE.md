@@ -70,3 +70,6 @@ Claude Code has hardcoded safety rules that trigger manual approval regardless o
 - NO multi-line descriptions, NO bullet points, NO detailed explanations
 - NO attribution (no Co-Authored-By, no Generated with Claude, no author credits)
 - Example: `Fix audio artwork for lockscreen` - that's it, nothing more
+
+<!-- tb:guidelines (managed) -->
+@~/.claude/tb/shared-guidelines.md

@@ -40,7 +40,7 @@ done
 ```
 
 **Category mapping:**
-- **Setup:** plugin-registered, global-config, git-identity, skills-valid, hooks-valid
+- **Setup:** plugin-registered, global-config, git-identity, skills-valid, hooks-valid, agents
 - **Credentials:** cred-acli, cred-contentful, cred-github, cred-jira-token, cred-sentry
 - **Tools:** tool-mbridge
 - **Integration:** forgetful-mcp, forgetful-plugin

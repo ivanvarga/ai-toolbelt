@@ -169,6 +169,7 @@ jq --arg key "$PLUGIN_KEY" \
    --argjson deny "$DENY_RULES" \
    --argjson ask "$ASK_RULES" '
   .enabledPlugins[$key] = true |
+  .attribution = ((if (.attribution | type) == "object" then .attribution else {} end) + {commit: "", pr: ""}) |
   .permissions.allow = ((.permissions.allow // []) + $allow | unique) |
   .permissions.deny = ((.permissions.deny // []) + $deny | unique) |
   .permissions.ask = ((.permissions.ask // []) + $ask | unique)
