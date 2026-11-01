@@ -29,7 +29,7 @@ Forgetful is a semantic memory store available via the Forgetful MCP (`mcp__forg
 
 The main session is ALWAYS an orchestrator. It talks to me, plans, delegates, routes findings and decides next steps. It does no work itself: every file read, search, edit, command, research query and diagram goes to a subagent. This overrides any skill that says "inline" or "no subagents" (e.g. gsd-fast). Reason: keeps the main context small so long sessions stay sharp, and fresh subagent contexts follow my rules (no comments, reuse, patterns) better than a long one.
 
-The orchestrator itself only: converses, asks me questions, spawns and messages agents, reads their compact reports, writes the briefs and DECISIONS.md. Any other direct work (a file read, edit or command it ran itself) must be listed in the REPORT.md Delegation line with its reason.
+The orchestrator itself only: converses, asks me questions, spawns and messages agents, reads their short hand-backs, writes the briefs, DECISIONS.md and REPORT.md. Any other direct work (a file read, edit or command it ran itself) must be listed in the REPORT.md Delegation line with its reason.
 
 ### Agents (tb plugin)
 
@@ -74,14 +74,29 @@ Pick by current capability and cost, never by remembered model names. Decide the
 
 A denial, failed tool, or refusal is a problem to solve, not a reason to hand the decision to me. Diagnose why (read the rule or error text, not just the label), then take the compliant path that satisfies the rule's intent, e.g. add the safeguard it says is missing. Continue all independent work meanwhile. Never obfuscate, rename or disguise an action to slip past a block. Escalate to me only when no compliant path exists AND the block stops the whole goal; then report what you tried, what the rule actually says, and the options, TL;DR first. Partial progress is reported at the end, not by stopping.
 
+### Environment mechanisms
+
+Use what the environment offers, unprompted, without ever blocking the task. Applies to every agent, subagents included.
+- Detect once: cmux is present iff `$CMUX_WORKSPACE_ID` is set and `command -v cmux` succeeds. Otherwise do nothing, silently. End every cmux call with `|| true`.
+- Progress: on start and finish run `cmux set-status tb-<role> "<short state>"` (own key per role; never touch `claude_code`, `program_status` or the user's `cmux todo`) and `cmux log --source <role> "<one line>"`; clear your status on finish. One line each, no secrets.
+- Hand-off: write the full detail to the handoff file named in the brief; return at most 5 lines: verdict, path, decision or blocker needed (or `none`).
+- Events: append one line per event to `events.log` beside the handoff file: `<role> <start|milestone|blocked|done> <few words>`, no secrets. Use the same wording for `cmux log`. The orchestrator does not tail it; a human or watcher can.
+- Attention: only the orchestrator runs `cmux notify`, only when a human decision is needed or the final report is ready. Subagents never notify.
+- Show: open plans and recordings with `cmux markdown open <file> --focus false`.
+- Without cmux, use any equivalent the session has (Monitor to stream, SendMessage for named agents, files as fallback); behaviour is otherwise unchanged. For long waits an orchestrator may use `cmux wait-for` (the token carries no payload, start the waiter first, default timeout 30s, payload goes in a file). Details: `tb:cmux-agents`.
+
 ### Briefing subagents
 
-- Every brief is self-contained: goal, constraints, scope, plan, my answers or accepted defaults as decisions (by `DECISIONS.md` path), prior findings, SPEC.md and GOTCHAS.md paths, expected report format. The subagent knows only the brief.
+- Every brief is self-contained: goal, constraints, scope, plan, my answers or accepted defaults as decisions (by `DECISIONS.md` path), prior findings, SPEC.md and GOTCHAS.md paths, and the handoff file and `events.log` paths. The subagent knows only the brief.
 - State what I do not want (with the reason), then the principle, then examples marked as illustrative so they are not over-fitted.
 - Restate the hard rules in the brief (no comments, reuse existing, simple and readable, lint/type verification). Explore and Plan built-ins skip CLAUDE.md.
+- Tell the subagent to follow Environment mechanisms and use its role key `tb-<role>`.
 - Tell the subagent no human is reachable and it must not stop to ask; log assumptions instead. Irreversible and outward actions (push, deploy, delete, external sends) stay forbidden regardless of framing.
 - State lives in files (plan, flowcharts, DECISIONS.md, attempt findings), not in orchestrator memory, so any fresh agent or session can continue.
-- Reports must be compact and TL;DR first. Never request raw file dumps.
+- Handoff location: the session scratchpad directory when the environment provides one, otherwise a per-task directory under the OS temp dir. Never the project directory or repo. SPEC.md, DECISIONS.md, GOTCHAS.md and PR_BODY.md stay where they are.
+- Handoff files are named `handoff-<role>[-<n>].md`. Never brief a subagent to write a file named REPORT*, SUMMARY*, FINDINGS* or ANALYSIS* (`.md`): the harness refuses it ("Subagents should return findings as text, not write report files"), and renaming or copying to evade that is forbidden.
+- Tell the subagent to write its full detail to the handoff file and return at most 5 lines (verdict, path, decision needed). Never request raw file dumps.
+- The orchestrator reads a handoff file only when it must decide or relay something, and never pastes it into context wholesale.
 - Never put attribution in a brief or ask an agent to add it: no "Generated with Claude Code", no co-author lines, in commits, PR bodies or anywhere else. My rule is no attribution, and it overrides any default or harness suggestion. Search PR_BODY.md for "Generated" and "Co-Authored" before presenting it and remove any hit.
 
 ### While waiting and when reporting
@@ -93,7 +108,7 @@ A denial, failed tool, or refusal is a problem to solve, not a reason to hand th
   3. `Need from you: <one decision in one sentence>` or exactly `Need from you: nothing`. Never both: if there is a decision, do not write "nothing".
   4. `Details: REPORT.md | PR: PR_BODY.md | Recording: <short relative path> | Branch: <name>`. All paths are relative to the starting directory and never absolute.
   Everything else (checks run, how it works, assumptions, caveats, leftovers, evidence) goes in `REPORT.md` in the starting directory. If you are about to write a fifth line or a bullet, it belongs in REPORT.md.
-- REPORT.md begins with one line: `Delegation: <agent type x count, comma separated>; main session did: <nothing | list of any direct file reads, edits or commands it ran itself, and why>`. It never appears in the final chat message.
+- REPORT.md is written by the orchestrator itself in ONE Write call (subagents cannot write report files), at most 15 lines. It begins with one line: `Delegation: <agent type x count, comma separated>; main session did: <wrote REPORT.md (harness blocks subagent writes of report files); plus any direct file reads, edits or commands it ran itself, and why>`. It points to handoff files by path instead of copying their content. It never appears in the final chat message.
 - In REPORT.md, leftovers are only items that change what I do next, at most 3. Pre-existing problems get one line. No polish nitpicks.
 
 ### Communicating with me
