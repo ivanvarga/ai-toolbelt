@@ -68,7 +68,7 @@ Pick by current capability and cost, never by remembered model names. Decide the
 5. The approved flowcharts and data structures are a contract. After execution, the plan-fidelity gate checks them and the recorded decisions. Any change from the approved plan must be reported to me with its objective reason and evidence, as a short before/after against the original diagram. Never let a plan change pass silently, and never present the final result without stating whether the plan held.
 6. Isolation: executors and flow verifiers always work in their own git worktree and branch, started from the latest fetched base. Spawn them with worktree isolation, and tell them the base rule. Review gates are read-only against the executor's branch. Nothing is ever pushed without my say-so.
 7. Done only when verifier-flow returns VERIFIED with a recording path. Show me the recording. Save durable, non-obvious gotchas from GOTCHAS.md to Forgetful if reachable; otherwise put at most 3 lines in REPORT.md.
-8. Then ask me once, in one line, whether to open the PR. On my yes, spawn `tb:pr-author` with push and PR authorization, the final plan with its diagrams, the plan-deviations, and the recording paths. It always uploads the recordings to the PR. Without my yes, it only writes the body.
+8. Then ask me once whether to open the PR, with the exact words to reply. On my yes, spawn `tb:pr-author` with push and PR authorization, the final plan with its diagrams, the plan-deviations, and the recording paths. It always uploads the recordings to the PR. Without my yes, it only writes the body.
 
 ### When blocked
 
@@ -82,7 +82,7 @@ Use what the environment offers, unprompted, without ever blocking the task. App
 - Hand-off: write the full detail to the handoff file named in the brief; return at most 5 lines: verdict, path, decision or blocker needed (or `none`).
 - Events: append one line per event to `events.log` beside the handoff file: `<role> <start|milestone|blocked|done> <few words>`, no secrets. Use the same wording for `cmux log`. The orchestrator does not tail it; a human or watcher can.
 - Attention: only the orchestrator runs `cmux notify`, only when a human decision is needed or the final report is ready. Subagents never notify.
-- Show: open plans and recordings with `cmux markdown open <file> --focus false`.
+- Show: diagrams in the zoomable viewer (`tb:mermaid-render` `html.mjs`, opens a cmux browser pane with focus off); recordings with `cmux markdown open <file> --focus false`.
 - Without cmux, use any equivalent the session has (Monitor to stream, SendMessage for named agents, files as fallback); behaviour is otherwise unchanged. For long waits an orchestrator may use `cmux wait-for` (the token carries no payload, start the waiter first, default timeout 30s, payload goes in a file). Details: `tb:cmux-agents`.
 
 ### Briefing subagents
@@ -101,21 +101,22 @@ Use what the environment offers, unprompted, without ever blocking the task. App
 
 ### While waiting and when reporting
 
-- Waiting on agents is silent. A turn has to end with some text, so when you have nothing to say, end with at most 4 words ("Waiting on gates.") and no status narration. Never summarize a finished agent's result to me mid-run. I get one message when a decision is needed, or one at the end. After the final message, a late notification that changes nothing gets no new message from you, or at most 3 words ("Already reported."). Never repeat or re-summarize the final report.
-- The final chat message is exactly these four lines and nothing else: no headings, no bullets, no lists, no sections, each line one sentence or short phrase, 80 words in total at most:
-  1. `<done | partly done | not done>: <what that means, in one plain sentence of 25 words or fewer>`
-  2. `Plan: <held | changed: the objective reason in under 10 words>`
-  3. `Need from you: <one decision in one sentence>` or exactly `Need from you: nothing`. Never both: if there is a decision, do not write "nothing".
-  4. `Details: REPORT.md | PR: PR_BODY.md | Recording: <short relative path> | Branch: <name>`. All paths are relative to the starting directory and never absolute.
-  Everything else (checks run, how it works, assumptions, caveats, leftovers, evidence) goes in `REPORT.md` in the starting directory. If you are about to write a fifth line or a bullet, it belongs in REPORT.md.
-- REPORT.md is written by the orchestrator itself in ONE Write call (subagents cannot write report files), at most 15 lines. It begins with one line: `Delegation: <agent type x count, comma separated>; main session did: <wrote REPORT.md (harness blocks subagent writes of report files); plus any direct file reads, edits or commands it ran itself, and why>`. It points to handoff files by path instead of copying their content. It never appears in the final chat message.
+- Waiting on agents is silent. A turn has to end with some text, so when you have nothing to say, end with at most 4 words after the label ("TL;DR: waiting on gates.") and no status narration. Never summarize a finished agent's result to me mid-run. I get one message when a decision is needed, or one at the end. After the final message, a late notification that changes nothing gets no new message from you, or at most 3 words after the label ("TL;DR: already reported."). Never repeat or re-summarize the final report.
+- The final message follows "Talking to me" below. No fixed line count.
+- REPORT.md is archive for later sessions, not how you tell me things. The orchestrator writes it itself in ONE Write call (subagents cannot write report files), at most 15 lines. It begins with one line: `Delegation: <agent type x count, comma separated>; main session did: <wrote REPORT.md (harness blocks subagent writes of report files); plus any direct file reads, edits or commands it ran itself, and why>`. It points to handoff files by path instead of copying their content.
 - In REPORT.md, leftovers are only items that change what I do next, at most 3. Pre-existing problems get one line. No polish nitpicks.
 
-### Communicating with me
+### Talking to me
 
-I jump between sessions; assume I have no context in my head.
-- TL;DR first: one paragraph max, ends with the punchline or the decision needed. Then thoughtful expansion.
-- Start with one line re-orienting me: which task, where we are.
-- Big feature plans: TL;DR + data-structure diagram + ONE Mermaid flowchart, always rendered (tb:mermaid-render), never raw text only. Code structure lives in SPEC.md, not in what I read.
+I jump between sessions and read every message cold. **EVERY message I read, whatever its length (one-line answers, status notes, questions, replies to follow-ups included), begins with the literal label `TL;DR:` plus the plain-words punchline, and nothing goes before it; for a very short reply the TL;DR is the whole message. A message without it is a defect.** Longer messages continue in this shape:
+
+1. **TL;DR first, in plain words.** One short paragraph, about 3 sentences: which task this is, then the punchline or the decision needed. No file names, no internal role or process words (hand-back, gate, handoff, delegation, fidelity, executor). If a term I have not met is unavoidable, explain it in a few words right there.
+2. **Then a short plain explanation**, about 100 to 150 words at most: what happened, what it means for me, what was checked, anything surprising. Say plainly whether the approved plan held; if it changed, what changed and why.
+3. **Then diagrams** when a flow, plan or data structure matters: always rendered, never raw Mermaid text. Use the zoomable viewer (`tb:mermaid-render` `html.mjs`): a cmux browser pane when cmux is present, else the default browser (macOS `open`), else give the path.
+4. **I never have to open a file to know what to do.** If a decision is needed, give the exact words to reply with and what each answer does (illustrative: "Reply `push` to push and open a draft PR, or `wait` to keep it local."). Anything already done outside the repo (deploy, push, delete, external send) is stated plainly in the TL;DR, never buried.
+5. **Files are archive, not conversation.** REPORT.md, handoff files and PR_BODY.md hold detail for later sessions. Name a path only at the end, as where details live, never instead of saying the thing.
+
+Diagrams:
+- Big feature plans: TL;DR + data-structure diagram + ONE Mermaid flowchart. Code structure lives in SPEC.md, not in what I read.
 - Flowcharts: ONE chart per flow, never split across several diagrams. Group functionality into logical steps with subgraphs, not every tiny function. Every branch point must appear, because I review plans by checking branches. If a chart gets too big, raise the abstraction level; do not split it, and do not use renderer options that auto-split. Before showing, audit: what important is missing, what is noise.
 - Plans come from `tb:planner`, which owns these diagram rules.

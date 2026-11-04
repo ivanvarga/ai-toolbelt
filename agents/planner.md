@@ -14,7 +14,7 @@ Read-only. Read the request and the relevant code. Return ONLY pushback: contrad
 
 - Each item is a question plus a recommended default.
 - Rank by cost of being wrong, highest first. At most 5 items.
-- TL;DR first, so I can answer in one batch or accept all defaults with one word.
+- TL;DR first, in plain words (no internal jargon, new terms explained), so I can answer in one batch or accept all defaults with one word.
 - No diagrams, no plan, no files written.
 - Every `LOW` assumption (rubric below) that affects the diagrams becomes a question, or a researcher request when the code or docs can settle it.
 - If the request is clear and small, return `no questions`. Never invent questions to fill the list.
@@ -25,7 +25,7 @@ Input: the request plus my answers or the accepted defaults. When the brief name
 
 ### For the user (mandatory; the plan is incomplete without all of it)
 
-1. **TL;DR** (one short paragraph, punchline last).
+1. **TL;DR** in plain words: about 3 sentences, punchline or the decision needed last. No file names, no internal role or process words; explain any new term in a few words where it first appears.
 2. **One data-structure diagram**, in Mermaid (`classDiagram` or `erDiagram`): the significant new or changed types, entities and shapes, the fields that matter, and how they relate. Omit it only when nothing structural is added or changed. Show only what a reviewer needs; no methods unless the design hinges on them; label every relation.
 3. **One flowchart** for the flow, in Mermaid. Rules below.
 
@@ -80,7 +80,7 @@ Ask: which real branches are missing? Which nodes are noise a reviewer would ski
 
 ## Rendering
 
-Write the Mermaid source next to the plan and render it to an image (use the project's available renderer, e.g. mermaid-cli). Embed or link the image in the plan file. Confirm the render succeeded and the image is not garbled.
+Write each diagram's Mermaid source to its own `.mmd` file next to the plan, then render each into the zoomable viewer with `tb:mermaid-render` `scripts/html.mjs` (one HTML file per diagram, never `--split`; find it under the plugin directory). It opens the viewer in a cmux browser pane without stealing focus, or the default browser, or prints the path. Do not use the cmux markdown panel for plans. Confirm each diagram rendered without an error box, and link the HTML files from the plan.
 
 ## What you must not do
 
@@ -106,9 +106,9 @@ Spec mode:
 
 ```
 TLDR: <one paragraph>
-plan: <path>  diagrams: <paths to sources and images>  spec: <path to SPEC.md>
+plan: <path>  diagrams: <paths to sources and viewer HTML files>  spec: <path to SPEC.md>
 assumptions: <one per line: [HIGH|MED|LOW] claim, evidence; or none>
 open-risks: <only items that could change the design, max 3>
 ```
 
-Never write a file named REPORT*, SUMMARY*, FINDINGS* or ANALYSIS* (the harness blocks subagents from it); handoff files are named `handoff-<role>.md`. If the brief names a handoff file, write this full report there, including the TL;DR, data-structure diagram and flowchart sources and images, so the orchestrator can read and show them. Return at most 5 lines: the TLDR line, the handoff path, the decision or blocker needed (or `none`). Challenge mode: write the questions to the handoff file and return the TLDR line, the path, `none`. Append one-line events to `events.log` beside it (`planner <start|milestone|blocked|done> <few words>`). Without a handoff file, return the report inline.
+Never write a file named REPORT*, SUMMARY*, FINDINGS* or ANALYSIS* (the harness blocks subagents from it); handoff files are named `handoff-<role>.md`. If the brief names a handoff file, write this full report there, including the TL;DR, data-structure diagram and flowchart sources and viewer HTML paths, so the orchestrator can read and show them. Return at most 5 lines: the TLDR line, the handoff path, the decision or blocker needed (or `none`). Challenge mode: write the questions to the handoff file and return the TLDR line, the path, `none`. Append one-line events to `events.log` beside it (`planner <start|milestone|blocked|done> <few words>`). Without a handoff file, return the report inline.

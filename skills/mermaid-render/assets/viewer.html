@@ -1,0 +1,317 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>{{TITLE}}</title>
+<style>
+  :root {
+    color-scheme: light;
+    --bg: #f7f7f8;
+    --fg: #1d1d1f;
+    --muted: #5f6368;
+    --panel: #ffffffe6;
+    --border: #d0d0d5;
+    --accent: #2f6fd6;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      color-scheme: dark;
+      --bg: #17181b;
+      --fg: #e8e8ea;
+      --muted: #a0a3a8;
+      --panel: #26282ce6;
+      --border: #3c3f45;
+      --accent: #7fb0ff;
+    }
+  }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; height: 100%; overflow: hidden; }
+  body { background: var(--bg); color: var(--fg); font: 14px/1.4 -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; }
+  #viewport { position: fixed; inset: 0; cursor: grab; touch-action: none; outline: none; }
+  #viewport.dragging { cursor: grabbing; }
+  #stage { position: absolute; left: 0; top: 0; transform-origin: 0 0; }
+  #stage svg { display: block; max-width: none !important; }
+  #toolbar { position: fixed; top: 12px; right: 12px; display: flex; gap: 6px; align-items: center; padding: 6px; background: var(--panel); border: 1px solid var(--border); border-radius: 10px; z-index: 2; }
+  #toolbar button { min-width: 36px; height: 32px; padding: 0 10px; border: 1px solid var(--border); border-radius: 7px; background: transparent; color: var(--fg); font: inherit; cursor: pointer; }
+  #toolbar button:hover { border-color: var(--accent); }
+  #zoom { min-width: 48px; text-align: right; color: var(--muted); font-variant-numeric: tabular-nums; }
+  #title { position: fixed; top: 12px; left: 12px; max-width: calc(100% - 340px); padding: 8px 12px; background: var(--panel); border: 1px solid var(--border); border-radius: 10px; font-weight: 600; z-index: 2; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  #hint { position: fixed; bottom: 12px; left: 12px; padding: 6px 10px; background: var(--panel); border: 1px solid var(--border); border-radius: 8px; color: var(--muted); font-size: 12px; z-index: 2; }
+  #error { position: fixed; inset: 70px 16px auto 16px; padding: 12px; border: 1px solid #c94a4a; border-radius: 8px; background: var(--panel); color: var(--fg); white-space: pre-wrap; font-family: ui-monospace, Menlo, monospace; display: none; z-index: 3; }
+  .dimmed { opacity: 0.18; transition: opacity 0.15s; }
+  .focused > * { filter: drop-shadow(0 0 4px var(--accent)); }
+  @media (max-width: 600px) {
+    #title { max-width: calc(100% - 32px); top: 60px; }
+    #hint { display: none; }
+  }
+</style>
+</head>
+<body>
+<div id="title">{{TITLE}}</div>
+<div id="toolbar" role="toolbar" aria-label="Zoom controls">
+  <button id="zoom-out" title="Zoom out (-)" aria-label="Zoom out">&minus;</button>
+  <span id="zoom">100%</span>
+  <button id="zoom-in" title="Zoom in (+)" aria-label="Zoom in">+</button>
+  <button id="fit" title="Fit to screen (0)">Fit</button>
+  <button id="reset" title="Back to the starting view (r)">Reset</button>
+</div>
+<div id="viewport" tabindex="0" aria-label="Diagram, drag to pan, scroll to zoom">
+  <div id="stage"></div>
+</div>
+<div id="hint">Drag to pan &middot; scroll or pinch to zoom &middot; arrows pan &middot; +/- zoom &middot; 0 fit &middot; r reset &middot; click a node to highlight its neighbours</div>
+<div id="error" role="alert"></div>
+<script type="application/json" id="source">{{SOURCE_JSON}}</script>
+<script>{{MERMAID_JS}}</script>
+<script>
+(() => {
+  const MIN_SCALE = 0.05;
+  const MAX_SCALE = 8;
+  const READABLE_SCALE = 0.75;
+  const MAX_INITIAL_SCALE = 1.5;
+  const PAN_STEP = 80;
+  const ZOOM_STEP = 1.25;
+
+  const source = JSON.parse(document.getElementById("source").textContent);
+  const viewport = document.getElementById("viewport");
+  const stage = document.getElementById("stage");
+  const zoomLabel = document.getElementById("zoom");
+  const errorBox = document.getElementById("error");
+  const darkQuery = window.matchMedia("(prefers-color-scheme: dark)");
+
+  const view = { x: 0, y: 0, scale: 1 };
+  let diagramWidth = 1;
+  let diagramHeight = 1;
+  let renderCount = 0;
+
+  function apply() {
+    stage.style.transform = `translate(${view.x}px, ${view.y}px) scale(${view.scale})`;
+    zoomLabel.textContent = `${Math.round(view.scale * 100)}%`;
+  }
+
+  function clampScale(scale) {
+    return Math.min(MAX_SCALE, Math.max(MIN_SCALE, scale));
+  }
+
+  function zoomAt(factor, clientX, clientY) {
+    const next = clampScale(view.scale * factor);
+    const ratio = next / view.scale;
+    view.x = clientX - (clientX - view.x) * ratio;
+    view.y = clientY - (clientY - view.y) * ratio;
+    view.scale = next;
+    apply();
+  }
+
+  function zoomCenter(factor) {
+    zoomAt(factor, viewport.clientWidth / 2, viewport.clientHeight / 2);
+  }
+
+  function centerAt(scale, topAligned) {
+    const margin = 24;
+    const top = 64;
+    view.scale = clampScale(scale);
+    view.x = (viewport.clientWidth - diagramWidth * view.scale) / 2;
+    const freeHeight = viewport.clientHeight - top - margin;
+    view.y = topAligned ? top : top + Math.max(0, (freeHeight - diagramHeight * view.scale) / 2);
+    apply();
+  }
+
+  function fitAllScale() {
+    const width = viewport.clientWidth - 48;
+    const height = viewport.clientHeight - 88;
+    return Math.min(width / diagramWidth, height / diagramHeight);
+  }
+
+  function fit() {
+    centerAt(fitAllScale(), false);
+  }
+
+  function initialView() {
+    const fitAll = fitAllScale();
+    const scale = Math.min(MAX_INITIAL_SCALE, Math.max(READABLE_SCALE, fitAll));
+    centerAt(scale, scale > fitAll);
+  }
+
+  function nodeIdOf(element) {
+    const match = /flowchart-(.+)-\d+$/.exec(element.id || "");
+    return match ? match[1] : null;
+  }
+
+  function edgeEnds(edgeId, nodeIds) {
+    const match = /^L_(.+)_\d+$/.exec(edgeId || "");
+    if (!match) return null;
+    const body = match[1];
+    for (let i = body.indexOf("_"); i > 0; i = body.indexOf("_", i + 1)) {
+      const from = body.slice(0, i);
+      const to = body.slice(i + 1);
+      if (nodeIds.has(from) && nodeIds.has(to)) return [from, to];
+    }
+    return null;
+  }
+
+  function clearHighlight() {
+    stage.querySelectorAll(".dimmed, .focused").forEach((el) => el.classList.remove("dimmed", "focused"));
+  }
+
+  function highlight(nodeElement) {
+    clearHighlight();
+    const svg = stage.querySelector("svg");
+    const nodes = [...svg.querySelectorAll("g.node")];
+    const nodeIds = new Set(nodes.map(nodeIdOf).filter(Boolean));
+    const selected = nodeIdOf(nodeElement);
+    const keep = new Set([selected]);
+    const keepEdges = new Set();
+    svg.querySelectorAll("path[data-id], path.flowchart-link").forEach((edge) => {
+      const edgeId = edge.dataset.id || edge.id;
+      const ends = edgeEnds(edgeId, nodeIds);
+      if (!ends || !ends.includes(selected)) return;
+      keepEdges.add(edgeId);
+      ends.forEach((id) => keep.add(id));
+    });
+    nodes.forEach((node) => node.classList.toggle("dimmed", !keep.has(nodeIdOf(node))));
+    svg.querySelectorAll("path[data-id], path.flowchart-link").forEach((edge) => {
+      edge.classList.toggle("dimmed", !keepEdges.has(edge.dataset.id || edge.id));
+    });
+    svg.querySelectorAll("g.edgeLabel").forEach((label) => {
+      const inner = label.querySelector("[data-id]");
+      label.classList.toggle("dimmed", !inner || !keepEdges.has(inner.dataset.id));
+    });
+    nodeElement.classList.add("focused");
+  }
+
+  async function render() {
+    renderCount += 1;
+    mermaid.initialize({
+      startOnLoad: false,
+      theme: darkQuery.matches ? "dark" : "default",
+      securityLevel: "antiscript",
+      maxTextSize: 1000000,
+      maxEdges: 5000,
+      fontSize: 16,
+      flowchart: { useMaxWidth: false, htmlLabels: true },
+      class: { useMaxWidth: false },
+      er: { useMaxWidth: false },
+      sequence: { useMaxWidth: false },
+      state: { useMaxWidth: false },
+    });
+    try {
+      const { svg, bindFunctions } = await mermaid.render(`diagram-${renderCount}`, source);
+      stage.style.transform = "none";
+      stage.innerHTML = svg;
+      bindFunctions?.(stage);
+      const element = stage.querySelector("svg");
+      const box = element.getBoundingClientRect();
+      diagramWidth = Math.max(1, box.width);
+      diagramHeight = Math.max(1, box.height);
+      errorBox.style.display = "none";
+      initialView();
+    } catch (error) {
+      errorBox.textContent = `Could not render diagram:\n${error.message || error}`;
+      errorBox.style.display = "block";
+      console.error(error);
+    }
+  }
+
+  const pointers = new Map();
+  let dragStart = null;
+  let pinchDistance = 0;
+
+  function pinchState() {
+    const [a, b] = [...pointers.values()];
+    return { distance: Math.hypot(a.x - b.x, a.y - b.y), x: (a.x + b.x) / 2, y: (a.y + b.y) / 2 };
+  }
+
+  viewport.addEventListener("pointerdown", (event) => {
+    viewport.focus();
+    viewport.setPointerCapture(event.pointerId);
+    pointers.set(event.pointerId, { x: event.clientX, y: event.clientY });
+    if (pointers.size === 2) pinchDistance = pinchState().distance;
+    dragStart = { x: event.clientX, y: event.clientY, moved: false, target: event.target };
+    viewport.classList.add("dragging");
+  });
+
+  viewport.addEventListener("pointermove", (event) => {
+    const previous = pointers.get(event.pointerId);
+    if (!previous) return;
+    pointers.set(event.pointerId, { x: event.clientX, y: event.clientY });
+    if (pointers.size === 2) {
+      const pinch = pinchState();
+      if (pinchDistance > 0) zoomAt(pinch.distance / pinchDistance, pinch.x, pinch.y);
+      pinchDistance = pinch.distance;
+      dragStart.moved = true;
+      return;
+    }
+    view.x += event.clientX - previous.x;
+    view.y += event.clientY - previous.y;
+    if (Math.hypot(event.clientX - dragStart.x, event.clientY - dragStart.y) > 4) dragStart.moved = true;
+    apply();
+  });
+
+  function endPointer(event) {
+    pointers.delete(event.pointerId);
+    if (pointers.size > 0) return;
+    viewport.classList.remove("dragging");
+    if (dragStart && !dragStart.moved && event.type === "pointerup") {
+      const node = dragStart.target.closest?.("g.node");
+      if (node) highlight(node);
+      else clearHighlight();
+    }
+    dragStart = null;
+  }
+
+  viewport.addEventListener("pointerup", endPointer);
+  viewport.addEventListener("pointercancel", endPointer);
+
+  viewport.addEventListener("wheel", (event) => {
+    event.preventDefault();
+    const speed = event.ctrlKey ? 0.01 : 0.002;
+    zoomAt(Math.exp(-event.deltaY * speed), event.clientX, event.clientY);
+  }, { passive: false });
+
+  let gestureScale = 1;
+  viewport.addEventListener("gesturestart", (event) => {
+    event.preventDefault();
+    gestureScale = 1;
+  });
+  viewport.addEventListener("gesturechange", (event) => {
+    event.preventDefault();
+    zoomAt(event.scale / gestureScale, event.clientX, event.clientY);
+    gestureScale = event.scale;
+  });
+
+  const keyActions = {
+    ArrowLeft: () => { view.x += PAN_STEP; apply(); },
+    ArrowRight: () => { view.x -= PAN_STEP; apply(); },
+    ArrowUp: () => { view.y += PAN_STEP; apply(); },
+    ArrowDown: () => { view.y -= PAN_STEP; apply(); },
+    "+": () => zoomCenter(ZOOM_STEP),
+    "=": () => zoomCenter(ZOOM_STEP),
+    "-": () => zoomCenter(1 / ZOOM_STEP),
+    "_": () => zoomCenter(1 / ZOOM_STEP),
+    "0": fit,
+    r: initialView,
+    Escape: clearHighlight,
+  };
+
+  window.addEventListener("keydown", (event) => {
+    if (event.metaKey || event.ctrlKey || event.altKey) return;
+    const action = keyActions[event.key];
+    if (!action) return;
+    event.preventDefault();
+    action();
+  });
+
+  document.getElementById("zoom-in").addEventListener("click", () => zoomCenter(ZOOM_STEP));
+  document.getElementById("zoom-out").addEventListener("click", () => zoomCenter(1 / ZOOM_STEP));
+  document.getElementById("fit").addEventListener("click", fit);
+  document.getElementById("reset").addEventListener("click", initialView);
+  darkQuery.addEventListener("change", render);
+  window.addEventListener("resize", () => {
+    if (pointers.size === 0) initialView();
+  });
+
+  render().then(() => viewport.focus());
+})();
+</script>
+</body>
+</html>

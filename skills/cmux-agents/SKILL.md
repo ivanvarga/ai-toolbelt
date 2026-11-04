@@ -63,7 +63,8 @@ cmux read-screen --surface surface:2 --lines 50 || true
 
 ## Showing results
 
-- `cmux markdown open <file> --focus false` for plans and reports (live reload).
+- Diagrams (plans, flows): `tb:mermaid-render` `scripts/html.mjs` writes one zoomable HTML file and opens it with `cmux browser open file://<abs path> --focus false` (a new pane each time; close with `cmux close-surface --surface <ref>`).
+- `cmux markdown open <file> --focus false` only for prose files the user asked to see (live reload); never as the way to tell the user something.
 - `cmux diff --branch --focus false` or `cmux diff <patch>` for changes.
 - `cmux shot --out <png>` and `cmux record start --out <mp4>` / `cmux record stop` for evidence; only cmux's own windows are captured.
 
@@ -84,4 +85,4 @@ cmux read-screen --surface surface:2 --lines 50 || true
 | Signal | SendMessage to named agent, or a marker file |
 | Hand-off | Handoff file named in the brief, at most 5 lines returned (verdict, path, decision needed) |
 | Attention | Final message states the needed decision |
-| Show | Print the file path |
+| Show | macOS `open <file>` for viewer HTML, else print the file path |
