@@ -65,7 +65,7 @@ cmux read-screen --surface surface:2 --lines 50 || true
 
 - Diagrams (plans, flows): `tb:mermaid-render` `scripts/html.mjs` writes one zoomable HTML file and opens it with `cmux browser open file://<abs path> --focus false` (a new pane each time; close with `cmux close-surface --surface <ref>`).
 - `cmux markdown open <file> --focus false` only for prose files the user asked to see (live reload); never as the way to tell the user something.
-- `cmux diff --branch --focus false` or `cmux diff <patch>` for changes.
+- `cmux diff --branch --focus false` or `cmux diff <patch>` for changes. It cannot target one file, so for a file-by-file review (`tb:review-walkthrough`) pipe a one-file patch: `git diff <base>...<branch> -- <file> | cmux diff - --title <file> --focus false`.
 - `cmux shot --out <png>` and `cmux record start --out <mp4>` / `cmux record stop` for evidence; only cmux's own windows are captured.
 
 ## Safety and gotchas

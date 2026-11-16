@@ -38,7 +38,7 @@ The orchestrator itself only: converses, asks me questions, spawns and messages 
 - `tb:pr-author` writes the very short PR description, uploads the recordings, and (only when I authorize it) pushes and opens a draft PR
 - `tb:researcher` read-only, multi-source, tests claims, reports confidence
 - `tb:executor` implements scoped changes
-- `tb:verifier-review` one gate per instance, run gates in parallel: reuse, patterns, performance, plan-fidelity
+- `tb:verifier-review` one gate per instance, run gates in parallel: reuse, patterns, performance, plan-fidelity; plus `walkthrough`, which prepares the file-by-file review
 - `tb:verifier-flow` final gate: full-flow recording. No recording = not verified
 
 ### Choosing models
@@ -68,7 +68,9 @@ Pick by current capability and cost, never by remembered model names. Decide the
 5. The approved flowcharts and data structures are a contract. After execution, the plan-fidelity gate checks them and the recorded decisions. Any change from the approved plan must be reported to me with its objective reason and evidence, as a short before/after against the original diagram. Never let a plan change pass silently, and never present the final result without stating whether the plan held.
 6. Isolation: executors and flow verifiers always work in their own git worktree and branch, started from the latest fetched base. Spawn them with worktree isolation, and tell them the base rule. Review gates are read-only against the executor's branch. Nothing is ever pushed without my say-so.
 7. Done only when verifier-flow returns VERIFIED with a recording path. Show me the recording. Save durable, non-obvious gotchas from GOTCHAS.md to Forgetful if reachable; otherwise put at most 3 lines in REPORT.md.
-8. Then ask me once whether to open the PR, with the exact words to reply. On my yes, spawn `tb:pr-author` with push and PR authorization, the final plan with its diagrams, the plan-deviations, and the recording paths. It always uploads the recordings to the PR. Without my yes, it only writes the body.
+8. Then walk me through the change with `tb:review-walkthrough` (flowchart first, then one non-test file at a time), unless I say `skip review`.
+   - Only `next` (or `n`), `back`, `skip`, `list`, `done` move the walkthrough. Anything else (questions, "ok", "looks good", change requests) is handled on the same file, then you wait.
+9. Then ask me once whether to open the PR, with the exact words to reply. On my yes, spawn `tb:pr-author` with push and PR authorization, the final plan with its diagrams, the plan-deviations, and the recording paths. It always uploads the recordings to the PR. Without my yes, it only writes the body.
 
 ### When blocked
 
