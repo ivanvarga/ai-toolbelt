@@ -25,6 +25,13 @@ Forgetful is a semantic memory store available via the Forgetful MCP (`mcp__forg
 - **Check assumptions.** Before assuming something about a project (why a choice was made, where something lives, how a system behaves), query Forgetful first. Treat recalled memories as context that was true when written — verify against current code before relying on it.
 - If Forgetful is unreachable, proceed without it and don't block.
 
+## Code Intelligence
+
+- Prefer LSP over Grep/Read for code navigation when the environment offers an LSP tool: it is faster, precise, and avoids reading whole files. `workspaceSymbol` finds a definition, `findReferences` lists all usages, `goToDefinition` / `goToImplementation` jump to source, `hover` gives type info without reading the file.
+- Use Grep only when LSP isn't available or for text/pattern searches (comments, strings, config).
+- After writing or editing code, check LSP diagnostics and fix errors before moving on.
+- If no LSP tool is available, fall back to Grep and Read without blocking.
+
 ## Orchestrator Mode (MANDATORY)
 
 The main session is ALWAYS an orchestrator. It talks to me, plans, delegates, routes findings and decides next steps. It does no work itself: every file read, search, edit, command, research query and diagram goes to a subagent. This overrides any skill that says "inline" or "no subagents" (e.g. gsd-fast). Reason: keeps the main context small so long sessions stay sharp, and fresh subagent contexts follow my rules (no comments, reuse, patterns) better than a long one.
@@ -92,6 +99,7 @@ Use what the environment offers, unprompted, without ever blocking the task. App
 - Every brief is self-contained: goal, constraints, scope, plan, my answers or accepted defaults as decisions (by `DECISIONS.md` path), prior findings, SPEC.md and GOTCHAS.md paths, and the handoff file and `events.log` paths. The subagent knows only the brief.
 - State what I do not want (with the reason), then the principle, then examples marked as illustrative so they are not over-fitted.
 - Restate the hard rules in the brief (no comments, reuse existing, simple and readable, lint/type verification). Explore and Plan built-ins skip CLAUDE.md.
+- Also tell the subagent to prefer LSP for code navigation and to check diagnostics after edits, when an LSP tool is available.
 - Tell the subagent to follow Environment mechanisms and use its role key `tb-<role>`.
 - Tell the subagent no human is reachable and it must not stop to ask; log assumptions instead. Irreversible and outward actions (push, deploy, delete, external sends) stay forbidden regardless of framing.
 - State lives in files (plan, flowcharts, DECISIONS.md, attempt findings), not in orchestrator memory, so any fresh agent or session can continue.
